@@ -1,0 +1,17 @@
+default-menu: rafter:demo
+
+# 资源包
+resource-pack:
+  archive: false
+  compression-level: 6
+  merge:
+    # 留空不合并外部包
+    sources: []
+  self-host:
+    enabled: false
+    bind-address: 127.0.0.1
+    port: 8187
+    public-url: ''
+    send-on-join: false
+    send-after-build: false
+    required: false

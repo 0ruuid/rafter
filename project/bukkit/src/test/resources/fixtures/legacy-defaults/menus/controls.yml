@@ -1,0 +1,80 @@
+id: rafter:controls
+entry: nickname
+permission: rafter.use
+state:
+  enabled: true
+  difficulty: normal
+  nickname: 旅行者
+pages:
+  nickname:
+    mode: canvas
+    title: '&f个人资料'
+    frame:
+      asset: rafter:solid-dark
+    width: 360
+    height: 144
+    columns: 2
+    elements:
+      - id: nickname-accent
+        type: image
+        asset: rafter:solid-green
+        width: 360
+        height: 9
+        fit: stretch
+      - id: nickname-breadcrumb
+        type: text
+        x: 27
+        y: 18
+        text: '&7旅途偏好  /  个人资料'
+      - id: nickname-heading
+        type: text
+        x: 27
+        y: 45
+        text:
+          format: colored
+          value: '&f怎么称呼你？'
+          font-size: 20
+      - id: nickname-description
+        type: text
+        x: 27
+        y: 81
+        text: '&7给这段旅程取个名字。'
+      - id: nickname-current
+        type: text
+        x: 27
+        y: 108
+        text:
+          format: parts
+          parts:
+            - '&7当前昵称  '
+            - format: literal
+              binding:
+                type: state
+                key: nickname
+              color: '#F5F1ED'
+      - id: nickname-avatar
+        type: image
+        x: 279
+        y: 45
+        asset: rafter:avatar
+        width: 54
+        height: 54
+        fit: stretch
+    components:
+      - id: nickname-input
+        type: input
+        text: '&f新的昵称  &7（最多 10 字）'
+        width: 306
+        state: nickname
+        max-length: 10
+      - id: nickname-confirm
+        type: button
+        text: '&a保存昵称'
+        actions:
+          - type: submit
+          - type: back
+      - id: nickname-cancel
+        type: button
+        text: '&7返回'
+        actions:
+          - type: back

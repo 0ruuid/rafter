@@ -1,0 +1,67 @@
+id: rafter:friends/header
+params:
+  source: friends
+  title: 好友管理
+component:
+  id: header
+  type: group
+  elements:
+    - id: art
+      type: image
+      x: 0
+      y: 0
+      asset: rafter:friends/layers/header
+      width: 560
+      height: 336
+      fit: contain
+    - id: title
+      type: text
+      x: 40
+      y: 12
+      text:
+        param: title
+      width: 248
+    - id: counts
+      type: text
+      x: 516
+      y: 12
+      text:
+        format: parts
+        color: "#A9ACAD"
+        parts:
+          - "好友 "
+          - format: literal
+            binding:
+              type: source
+              key: size
+              source:
+                param: source
+          - "/100 · 在线 "
+          - format: literal
+            binding:
+              type: source
+              key: count
+              source:
+                param: source
+              field: online
+              value: true
+      align: right
+      width: 208
+    - id: back
+      type: hit-area
+      x: 12
+      y: 9
+      width: 20
+      height: 18
+      actions:
+        - type: close
+      tooltip: 返回游戏
+    - id: close
+      type: hit-area
+      x: 528
+      y: 9
+      width: 20
+      height: 18
+      actions:
+        - type: close
+      tooltip: 关闭

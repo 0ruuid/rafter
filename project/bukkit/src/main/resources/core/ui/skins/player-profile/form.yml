@@ -1,0 +1,69 @@
+id: rafter:player-profile/form
+page:
+  mode: canvas
+  title: ""
+  width: 360
+  columns: 2
+  modal:
+    feedback: description
+    asset: rafter:player-profile/form
+    background: "#4A4B53"
+    dim: 0.52
+    top: 54
+    content-top: 41
+    button-gap: 24
+  elements:
+    - id: title
+      type: slot
+      component:
+        type: text
+        x: 4
+        y: 12
+        width: 328
+        height: 10
+      required: true
+      text-style:
+        color: "#FAFAFA"
+    - id: close-image
+      type: image
+      asset: rafter:player-profile/close
+      x: 338
+      y: 0
+    - id: close
+      type: hit-area
+      target: close-image
+      actions:
+        - type: back
+      tooltip: 返回玩家资料
+  components:
+    - id: description
+      type: slot
+      component:
+        type: text
+        width: 352
+      required: true
+      text-style:
+        color: "#CDCFD0"
+    - id: input
+      type: slot
+      component:
+        type: input
+        width: 352
+        label-visible: false
+        multiline: true
+        multiline-height: 64
+        max-lines: 5
+      required: true
+    - id: cancel
+      type: button
+      role: exit
+      width: 164
+      text: 取消
+      actions:
+        - type: back
+    - id: confirm
+      type: slot
+      component:
+        type: button
+        width: 164
+      required: true

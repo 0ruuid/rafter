@@ -1,0 +1,15 @@
+# 字体
+defaults:
+  font: rafter-mono
+  font-size: 10
+oversample: 1
+
+# 提示
+palette:
+  error: '#ff6666'
+controls:
+  close: 返回游戏
+  form-error: 请检查填写的内容。
+hide-dialog-warning: true
+hide-canvas-focus-outline: true
+hide-native-focus-outline: true

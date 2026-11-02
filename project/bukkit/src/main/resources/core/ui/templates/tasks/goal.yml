@@ -1,0 +1,91 @@
+id: "rafter:tasks/goal"
+params: {}
+component:
+  id: "goal"
+  type: "group"
+  elements:
+    -
+      id: "art"
+      type: "image"
+      x: 0
+      y: 0
+      width: 216
+      height: 48
+      asset: "rafter:tasks/goals/pending"
+      fit: "contain"
+      variants:
+        -
+          when:
+            type: "at-least"
+            binding:
+              type: "item"
+              key: "current"
+            compare:
+              type: "item"
+              key: "required"
+          override:
+            asset: "rafter:tasks/goals/done"
+    -
+      id: "name"
+      type: "text"
+      x: 32
+      y: 10
+      width: 172
+      overflow: "clip"
+      align: "left"
+      text:
+        format: "literal"
+        binding:
+          type: "item"
+          key: "name"
+        color: "#CDCFD0"
+    -
+      id: "count"
+      type: "text"
+      x: 204
+      y: 30
+      width: 60
+      overflow: "clip"
+      align: "right"
+      text:
+        format: "parts"
+        color: "#CDCFD0"
+        parts:
+          -
+            format: "literal"
+            binding:
+              type: "item"
+              key: "current"
+          - " / "
+          -
+            format: "literal"
+            binding:
+              type: "item"
+              key: "required"
+    -
+      id: "progress"
+      type: "meter"
+      x: 13
+      y: 33
+      width: 110
+      height: 3
+      value:
+        type: "item"
+        key: "current"
+      max:
+        type: "item"
+        key: "required"
+      fill: "#A6ACB8"
+      track: "#3B3E46"
+      variants:
+        -
+          when:
+            type: "at-least"
+            binding:
+              type: "item"
+              key: "current"
+            compare:
+              type: "item"
+              key: "required"
+          override:
+            fill: "#CDCFD0"

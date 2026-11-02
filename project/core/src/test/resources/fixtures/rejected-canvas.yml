@@ -1,0 +1,18 @@
+id: test:menu
+entry: main
+pages:
+  main:
+    mode: canvas
+    title: Golden
+    width: 432
+    components:
+      - id: row
+        type: row
+        width: 180
+        gap: 0
+        padding: 9
+        children:
+          - { id: left, type: text, text: L }
+          - { id: right, type: text, text: R }
+      - { id: image, type: image, asset: 'rafter:icon' }
+      - { id: panel, type: panel, width: 180, height: 9 }

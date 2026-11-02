@@ -1,0 +1,186 @@
+# 独立玩家资料 Dialog；所有资料与操作均为本地示例，不连接玩家/社交业务。
+id: rafter:player-profile
+entry: profile
+permission: rafter.use
+state:
+  selected-player: player-1
+  notice: 公开资料 · 本地预览
+  chat-message: ""
+  memo: ""
+data:
+  profile:
+    type: document
+    key: preview:player-profile
+pages:
+  profile:
+    mode: canvas
+    skin: rafter:player-profile/home
+    content:
+      notice:
+        text:
+          format: literal
+          binding: { type: state, key: notice }
+      relationship:
+        enabled:
+          type: all
+          conditions:
+            - type: not
+              condition:
+                type: equals
+                binding: { type: record, source: profile, state: selected-player, key: id }
+                value: null
+            - type: equals
+              binding: { type: record, source: profile, state: selected-player, key: friend }
+              value: false
+        tooltip: 仅修改当前预览会话，不会发送真实好友申请
+        actions:
+          - type: set-record
+            source: profile
+            state: selected-player
+            field: friend
+            value: true
+          - type: set-state
+            state: notice
+            value: 预览：好友关系未写入服务器
+      chat:
+        enabled:
+          type: equals
+          binding: { type: record, source: profile, state: selected-player, key: online }
+          value: true
+        tooltip: 在线玩家可填写私聊；离线时不可用
+        actions:
+          - type: open-page
+            page: chat
+      teleport:
+        enabled:
+          type: equals
+          binding: { type: record, source: profile, state: selected-player, key: online }
+          value: true
+        tooltip: 仅演示反馈，不会传送或发送申请
+        actions:
+          - type: set-state
+            state: notice
+            value: 预览：传送申请未发送
+      more:
+        enabled:
+          type: not
+          condition:
+            type: equals
+            binding: { type: record, source: profile, state: selected-player, key: id }
+            value: null
+        tooltip: 家园、交易、备注与玩家名称
+        actions:
+          - type: open-popup
+            popup: more
+      popup-home:
+        tooltip: 仅演示访问家园，不会执行传送
+        actions:
+          - type: set-state
+            state: notice
+            value: 预览：访问家园未执行
+          - type: close-popup
+      popup-trade:
+        enabled:
+          type: equals
+          binding: { type: record, source: profile, state: selected-player, key: online }
+          value: true
+        tooltip: 离线时不可用；预览不会发起真实交易
+        actions:
+          - type: set-state
+            state: notice
+            value: 预览：交易申请未发送
+          - type: close-popup
+      popup-memo:
+        tooltip: 多行备注仅保留在本次会话
+        actions:
+          - type: open-page
+            page: memo
+      popup-name:
+        tooltip: 查看完整名称；当前动作契约没有剪贴板操作
+        actions:
+          - type: open-page
+            page: name
+  chat:
+    mode: canvas
+    skin: rafter:player-profile/form
+    content:
+      title:
+        text: 私聊
+      description:
+        text: 本地预览 · 输入内容不会发送给玩家
+      input:
+        state: chat-message
+        max-length: 256
+      confirm:
+        text: 确认预览
+        actions:
+          - type: submit
+          - type: set-state
+            state: notice
+            value: 预览：已确认输入，消息未发送
+          - type: back
+  memo:
+    mode: canvas
+    skin: rafter:player-profile/form
+    content:
+      title:
+        text: 设置备注
+      description:
+        text: 本地预览 · 备注只保留在当前会话
+      input:
+        state: memo
+        max-length: 128
+      confirm:
+        text: 保存到会话
+        actions:
+          - type: submit
+          - type: set-state
+            state: notice
+            value: 预览：备注已保存在本次会话
+          - type: back
+  achievements:
+    mode: native
+    title: 全部成就
+    width: 432
+    components:
+      - id: player-name
+        type: text
+        width: 400
+        text:
+          format: literal
+          binding: { type: record, source: profile, state: selected-player, key: name }
+      - id: description
+        type: text
+        width: 400
+        text:
+          format: literal
+          binding: { type: record, source: profile, state: selected-player, key: achievement-details }
+      - id: back
+        type: button
+        role: exit
+        width: 150
+        text: 返回玩家资料
+        actions:
+          - type: back
+  name:
+    mode: native
+    title: 玩家名称
+    width: 432
+    components:
+      - id: player-name
+        type: text
+        width: 400
+        text:
+          format: literal
+          binding: { type: record, source: profile, state: selected-player, key: name }
+      - id: explanation
+        type: text
+        width: 400
+        text: 当前 Dialog 动作不支持直接写入剪贴板，此处展示完整名称。
+      - id: back
+        type: button
+        role: exit
+        width: 150
+        text: 返回玩家资料
+        actions:
+          - type: back

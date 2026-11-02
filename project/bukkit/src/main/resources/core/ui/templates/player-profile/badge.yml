@@ -1,0 +1,48 @@
+id: rafter:player-profile/badge
+params:
+  x: 0
+  y: 0
+  asset: rafter:player-profile/badges/explorer
+  name: ""
+  description: ""
+  visible:
+    type: constant
+    value: true
+component:
+  id: badge
+  type: group
+  x:
+    param: x
+  y:
+    param: y
+  visible:
+    param: visible
+  elements:
+    - id: image
+      type: image
+      x: 24
+      y: 5
+      asset:
+        param: asset
+    - id: label
+      type: text
+      x: 32
+      y: 28
+      width: 88
+      align: center
+      text:
+        param: name
+    - id: hover
+      type: hit-area
+      x: 0
+      y: 0
+      width: 64
+      height: 45
+      actions: []
+      tooltip:
+        format: parts
+        parts:
+          - param: name
+          - |+
+
+          - param: description

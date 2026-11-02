@@ -1,0 +1,11 @@
+id: preview:requests
+items:
+  - id: request-0
+    name: 木屋旅人
+    message: 你好，一起探索新的地方吧！
+  - id: request-1
+    name: 薄荷方糖
+    message: 想和你一起建造家园。
+  - id: request-2
+    name: 远山樵夫
+    message: 很高兴遇见你，加个好友吧。

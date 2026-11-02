@@ -1,0 +1,96 @@
+# 任务界面预览；文档记录的改动仅在当前会话有效，不执行真实发奖。
+id: "rafter:tasks"
+entry: "journal"
+permission: "rafter.use"
+state:
+  category: "daily"
+  selected-task: null
+  task-page: 0
+  type-page: 0
+  goal-page: 0
+data:
+  categories:
+    type: "document"
+    key: "preview:task-types"
+  tasks:
+    type: "document"
+    key: "preview:tasks"
+  goals:
+    type: "record"
+    source: "tasks"
+    state: "selected-task"
+    key: "goals"
+pages:
+  journal:
+    mode: "canvas"
+    skin: "rafter:tasks/journal"
+    content:
+      tasks:
+        source: "tasks"
+        page-state: "task-page"
+        selection-state: "selected-task"
+        filter:
+          field: "category"
+          state: "category"
+        params:
+          detail-actions:
+            -
+              type: "select-item"
+            -
+              type: "set-state"
+              state: "goal-page"
+              value: 0
+            -
+              type: "open-popup"
+              popup: "detail"
+          claim-actions:
+            -
+              type: "set-record"
+              source: "tasks"
+              field: "phase"
+              value: "claimed"
+          track-actions:
+            -
+              type: "toggle-record"
+              source: "tasks"
+              field: "tracked"
+      categories:
+        source: "categories"
+        page-state: "type-page"
+        selection-state: "category"
+        params:
+          actions:
+            -
+              type: "select-item"
+            -
+              type: "set-state"
+              state: "task-page"
+              value: 0
+      goals:
+        source: "goals"
+        page-state: "goal-page"
+      primary:
+        actions:
+          -
+            type: "toggle-record"
+            source: "tasks"
+            field: "tracked"
+            state: "selected-task"
+        variants:
+          -
+            when:
+              type: "equals"
+              binding:
+                type: "record"
+                source: "tasks"
+                state: "selected-task"
+                key: "phase"
+              value: "ready"
+            override:
+              actions:
+                -
+                  type: "set-record"
+                  source: "tasks"
+                  field: "phase"
+                  state: "selected-task"
+                  value: "claimed"

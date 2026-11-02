@@ -1,0 +1,114 @@
+id: test:dialog-controls
+entry: home
+state:
+  name: 好友昵称
+  message: ""
+  invitations: true
+  audience: friends
+  volume: 50
+pages:
+  home:
+    mode: canvas
+    title: ""
+    width: 432
+    height: 90
+    elements:
+      - id: settings
+        type: group
+        x: 12
+        y: 18
+        elements:
+          - id: art
+            type: image
+            asset: rafter:friends/buttons/cancel_default
+            height: 24
+          - id: label
+            type: text
+            x: 56
+            y: 7
+            align: center
+            text: "&{#1C1F20}编辑设置"
+          - id: click
+            type: hit-area
+            target: art
+            actions:
+              - type: open-page
+                page: settings
+  settings:
+    mode: canvas
+    title: ""
+    width: 256
+    columns: 3
+    modal:
+      top: 1
+      content-top: 35
+      asset: rafter:friends/backgrounds/window
+      background: "#4A4B53"
+      feedback: description
+    elements:
+      - id: title
+        type: text
+        x: 8
+        y: 7
+        text: "&{#FAFAFA}交互组合示例"
+    components:
+      - id: description
+        type: text
+        width: 248
+        text: 多个真实控件，共用一份布局
+      - id: name
+        type: input
+        state: name
+        width: 248
+        max-length: 16
+        text: 昵称
+      - id: invitations
+        type: checkbox
+        state: invitations
+        width: 248
+        text: 允许好友邀请
+      - id: audience
+        type: select
+        state: audience
+        width: 248
+        text: 可见范围
+        options:
+          friends: 好友
+          everyone: 所有人
+      - id: volume
+        type: slider
+        state: volume
+        width: 248
+        min: 0
+        max: 100
+        step: 1
+        text: 音量
+      - id: message
+        type: input
+        state: message
+        width: 248
+        label-visible: false
+        multiline: true
+        multiline-height: 64
+        max-lines: 5
+        max-length: 256
+      - id: save
+        type: button
+        width: 112
+        text: 保存并返回
+        actions:
+          - type: submit
+          - type: back
+      - id: apply
+        type: button
+        width: 112
+        text: 应用
+        actions:
+          - type: submit
+      - id: cancel
+        type: button
+        role: exit
+        width: 112
+        text: 取消
+        actions:
+          - type: back

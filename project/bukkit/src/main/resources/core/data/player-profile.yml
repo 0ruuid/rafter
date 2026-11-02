@@ -1,0 +1,44 @@
+# 虚构的资料记录。动态字符串只通过 literal binding 展示，不是可执行文本源。
+id: preview:player-profile
+items:
+  - id: player-1
+    name: 林间旅人
+    title: 林地探索者
+    online: true
+    friend: false
+    level: 36
+    guild: 青苔工坊
+    playtime: 128 小时
+    joined: 2026/08/16
+    unlocked: 3
+    total: 6
+    explorer-unlocked: true
+    explorer-name: 探索达人
+    explorer-description: |-
+      走过不同的地形，
+      记录每一次新的发现。
+    builder-unlocked: true
+    builder-name: 建造能手
+    builder-description: |-
+      参与公共营地建设，
+      让每一个方块都有意义。
+    helper-unlocked: true
+    helper-name: 热心伙伴
+    helper-description: |-
+      向新来的旅人伸出援手，
+      分享冒险的乐趣。
+    achievement-details: |-
+      本地示例 · 已解锁 3 / 6
+
+      已解锁 · 探索达人
+      走过不同的地形，记录每一次新的发现。
+
+      已解锁 · 建造能手
+      参与公共营地建设，让每一个方块都有意义。
+
+      已解锁 · 热心伙伴
+      帮助新来的旅人，分享冒险的乐趣。
+
+      未解锁 · 深海来客
+      未解锁 · 红石巧匠
+      未解锁 · 星空旅途

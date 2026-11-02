@@ -1,0 +1,82 @@
+id: rafter:friends/request-row
+params:
+  height: 56
+  name-y: 11
+  message-y: 29
+  label-y: 21
+  hit-y: 18
+  accept-actions: []
+  reject-actions: []
+component:
+  id: request
+  type: group
+  elements:
+    - id: image
+      type: image
+      x: 0
+      y: 0
+      asset: rafter:friends/requests/row_default
+      width: 536
+      height:
+        param: height
+      fit: contain
+    - id: name
+      type: text
+      x: 52
+      y:
+        param: name-y
+      text:
+        format: literal
+        binding:
+          type: item
+          key: name
+        color: "#FAFAFA"
+      width: 300
+      overflow: clip
+    - id: message
+      type: text
+      x: 52
+      y:
+        param: message-y
+      text:
+        format: literal
+        binding:
+          type: item
+          key: message
+        color: "#A9ACAD"
+      width: 300
+      overflow: clip
+    - id: accept-label
+      type: text
+      x: 408
+      y:
+        param: label-y
+      text: "&{#FAFAFA}同意"
+      align: center
+      width: 20
+    - id: reject-label
+      type: text
+      x: 491
+      y:
+        param: label-y
+      text: "&{#1C1F20}拒绝"
+      align: center
+      width: 20
+    - id: accept
+      type: hit-area
+      x: 364
+      y:
+        param: hit-y
+      width: 72
+      height: 27
+      actions:
+        param: accept-actions
+    - id: reject
+      type: hit-area
+      x: 448
+      y:
+        param: hit-y
+      width: 72
+      height: 27
+      actions:
+        param: reject-actions

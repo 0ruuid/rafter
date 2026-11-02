@@ -1,0 +1,150 @@
+id: rafter:friends/details
+component:
+  id: details
+  type: group
+  elements:
+    - id: image
+      type: image
+      x: 0
+      y: 0
+      asset: rafter:friends/panels/sidebar_default
+      variants:
+        - when:
+            type: equals
+            binding:
+              type: record
+              key: online
+              source:
+                param: source
+              state:
+                param: selection-state
+            value: false
+          override:
+            asset: rafter:friends/panels/sidebar_offline
+      width: 216
+      height: 220
+      fit: contain
+    - id: name
+      type: text
+      x: 64
+      y: 16
+      text:
+        format: literal
+        binding:
+          type: record
+          key: name
+          source:
+            param: source
+          state:
+            param: selection-state
+        color: "#FAFAFA"
+      width: 140
+      overflow: clip
+    - id: status
+      type: text
+      x: 85
+      y: 36
+      text:
+        format: literal
+        binding:
+          type: record
+          key: status
+          source:
+            param: source
+          state:
+            param: selection-state
+        color: "#CDCFD0"
+      width: 119
+      overflow: clip
+    - id: summary
+      type: text
+      x: 12
+      y: 66
+      text:
+        format: literal
+        binding:
+          type: record
+          key: summary
+          source:
+            param: source
+          state:
+            param: selection-state
+        color: "#A9ACAD"
+      width: 192
+      overflow: clip
+    - id: chat-label
+      type: text
+      x: 44
+      y: 103
+      text: "&{#CDCFD0}私聊"
+      width: 136
+    - id: chat-hit
+      type: hit-area
+      x: 12
+      y: 99
+      width: 192
+      height: 18
+      actions:
+        param: chat-actions
+      enabled:
+        type: constant
+        value: true
+      tooltip: 仅预览，不调用业务插件
+    - id: teleport-label
+      type: text
+      x: 44
+      y: 127
+      text: "&{#CDCFD0}传送申请"
+      width: 136
+    - id: teleport-hit
+      type: hit-area
+      x: 12
+      y: 126
+      width: 192
+      height: 18
+      actions:
+        param: teleport-actions
+      enabled:
+        type: constant
+        value: true
+      tooltip: 仅预览，不调用业务插件
+    - id: profile-label
+      type: text
+      x: 44
+      y: 151
+      text: "&{#A9ACAD}查看资料"
+      width: 136
+    - id: profile-hit
+      type: hit-area
+      x: 12
+      y: 153
+      width: 192
+      height: 18
+      actions: []
+      enabled:
+        type: constant
+        value: false
+    - id: more-label
+      type: text
+      x: 44
+      y: 175
+      text: "&{#CDCFD0}更多操作"
+      width: 136
+    - id: more-hit
+      type: hit-area
+      x: 12
+      y: 171
+      width: 192
+      height: 27
+      actions:
+        param: more-actions
+      enabled:
+        type: constant
+        value: true
+      tooltip: 仅预览，不调用业务插件
+params:
+  source: friends
+  selection-state: selected-id
+  chat-actions: []
+  teleport-actions: []
+  more-actions: []

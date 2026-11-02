@@ -1,0 +1,38 @@
+id: "preview:task-types"
+items:
+  -
+    id: "daily"
+    label: "日常任务"
+    reset: "每日 06:00 刷新"
+    completed: 2
+    total: 6
+  -
+    id: "weekly"
+    label: "周常任务"
+    reset: "每周一 06:00 刷新"
+    completed: 1
+    total: 2
+  -
+    id: "commissions"
+    label: "自由委托"
+    reset: "不定期更新委托"
+    completed: 0
+    total: 1
+  -
+    id: "events"
+    label: "限时活动"
+    reset: "当前没有开放的活动"
+    completed: 0
+    total: 0
+  -
+    id: "story"
+    label: "主线任务"
+    reset: "按任务进度解锁"
+    completed: 0
+    total: 1
+  -
+    id: "achievements"
+    label: "成就任务"
+    reset: "达成条件后开放"
+    completed: 0
+    total: 0

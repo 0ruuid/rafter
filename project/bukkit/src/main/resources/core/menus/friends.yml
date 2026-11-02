@@ -1,0 +1,215 @@
+# 好友界面预览，不连接真实好友业务。
+id: rafter:friends
+entry: friends
+permission: rafter.use
+state:
+  selected-id: friend-1
+  tab: all
+  page: 0
+  preview-message: ""
+  target-name: ""
+  request-message: "你好, 一起探索新的地方吧!"
+  search-name: ""
+  chat-message: ""
+  memo: ""
+data:
+  friends:
+    type: document
+    key: preview:friends
+  requests:
+    type: document
+    key: preview:requests
+pages:
+  friends:
+    mode: canvas
+    skin: rafter:friends/home
+    content:
+      friends:
+        source: friends
+        page-state: page
+        selection-state: selected-id
+        filter:
+          field: online
+          value: true
+          when:
+            type: state-equals
+            state: tab
+            value: online
+        params:
+          actions:
+            - type: select-item
+            - type: set-state
+              state: preview-message
+              value: ""
+      requests:
+        source: requests
+        page-state: page
+        params:
+          accept-actions:
+            - type: set-state
+              state: preview-message
+              value: 预览：已演示同意申请
+          reject-actions:
+            - type: set-state
+              state: preview-message
+              value: 预览：已演示拒绝申请
+      details:
+        params:
+          chat-actions:
+            - type: open-page
+              page: chat
+          teleport-actions:
+            - type: set-state
+              state: preview-message
+              value: 预览：已演示传送申请
+          more-actions:
+            - type: open-popup
+              popup: more
+    params:
+      more-home-hit-actions:
+        - type: set-state
+          state: preview-message
+          value: 预览：已演示访问家园
+        - type: close-popup
+      more-trade-hit-actions:
+        - type: set-state
+          state: preview-message
+          value: 预览：已演示交易申请
+        - type: close-popup
+  add:
+    mode: canvas
+    skin: rafter:friends/add
+    content:
+      title:
+        text: 添加好友
+      description:
+        text: 玩家名称
+      input:
+        state: target-name
+        max-length: 16
+      message:
+        text: 申请留言
+        state: request-message
+        max-length: 64
+      confirm:
+        text: 发送申请
+        actions:
+          - type: submit
+          - type: set-state
+            state: preview-message
+            value: 预览：已演示发送好友申请
+          - type: back
+  search:
+    mode: canvas
+    skin: rafter:friends/search
+    content:
+      title:
+        text: 搜索好友
+      description:
+        text: 玩家名称
+      input:
+        state: search-name
+        max-length: 16
+      confirm:
+        text: 搜索
+        actions:
+          - type: submit
+          - type: set-state
+            state: preview-message
+            value: 预览：已确认搜索，示例列表不筛选
+          - type: back
+  chat:
+    mode: canvas
+    skin: rafter:friends/chat
+    content:
+      title:
+        text: 私聊
+      description:
+        text: 消息
+      input:
+        state: chat-message
+        max-length: 256
+      confirm:
+        text: 发送
+        actions:
+          - type: submit
+          - type: set-state
+            state: preview-message
+            value: 预览：已暂存私聊消息，未对外发送
+          - type: back
+        enabled:
+          type: not
+          condition:
+            type: equals
+            binding:
+              type: record
+              source: friends
+              state: selected-id
+              key: id
+            value: null
+  memo:
+    mode: canvas
+    skin: rafter:friends/memo
+    content:
+      title:
+        text: 设置备注
+      description:
+        text: 备注
+      input:
+        state: memo
+        max-length: 16
+      confirm:
+        text: 保存
+        actions:
+          - type: submit
+          - type: set-state
+            state: preview-message
+            value: 预览：已保存当前会话备注
+          - type: back
+        enabled:
+          type: not
+          condition:
+            type: equals
+            binding:
+              type: record
+              source: friends
+              state: selected-id
+              key: id
+            value: null
+  remove:
+    mode: canvas
+    skin: rafter:friends/remove
+    content:
+      title:
+        text: 删除好友
+      question:
+        text:
+          format: parts
+          parts:
+            - format: literal
+              value: "确定删除 "
+            - format: literal
+              binding:
+                type: record
+                key: name
+                source: friends
+                state: selected-id
+            - format: literal
+              value: " 吗？"
+      confirm:
+        text: 确认删除
+        actions:
+          - type: set-state
+            state: preview-message
+            value: 预览：已演示删除确认，未修改真实好友关系
+          - type: back
+        enabled:
+          type: not
+          condition:
+            type: equals
+            binding:
+              type: record
+              source: friends
+              state: selected-id
+              key: id
+            value: null

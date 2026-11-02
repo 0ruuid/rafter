@@ -1,0 +1,9 @@
+.gradle/
+.kotlin/
+.idea/
+build/
+bin/
+logs/
+.DS_Store
+__pycache__/
+*.py[cod]

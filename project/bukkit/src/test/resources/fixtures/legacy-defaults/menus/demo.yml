@@ -1,0 +1,1700 @@
+id: rafter:demo
+entry: home
+permission: rafter.use
+state:
+  name: 旅行者
+  note: 沿着自己的节奏，发现世界。
+  enabled: true
+  difficulty: normal
+  amount: 50
+  first-journey: false
+  second-journey: false
+pages:
+  home:
+    mode: canvas
+    title: ''
+    width: 621
+    height: 360
+    elements:
+      - id: frame
+        type: image
+        x: 0
+        y: 0
+        asset: rafter:frame
+      - id: mark
+        type: image
+        x: 18
+        y: 9
+        asset: rafter:mark
+      - id: wordmark
+        type: text
+        x: 45
+        y: 18
+        align: left
+        style: heading
+        text:
+          format: literal
+          value: 玩家中心
+          font: rafter-mono
+          font-size: 20
+          color: '#F5F1ED'
+      - id: avatar
+        type: image
+        x: 279
+        y: 9
+        asset: rafter:avatar
+      - id: player-name
+        type: text
+        x: 306
+        y: 18
+        align: left
+        text:
+          format: literal
+          binding:
+            type: state
+            key: name
+          color: '#F5F1ED'
+      - id: close-image
+        type: image
+        x: 585
+        y: 9
+        asset: rafter:close
+      - id: close
+        type: hit-area
+        x: 585
+        y: 9
+        width: 18
+        height: 18
+        tooltip: 返回游戏
+        actions:
+          - type: close
+      - id: overview-image
+        type: image
+        x: 0
+        y: 36
+        asset: rafter:nav-active
+      - id: overview-label
+        type: text
+        x: 54
+        y: 45
+        align: center
+        text:
+          format: literal
+          value: 概览
+          color: '#FFFFFF'
+      - id: overview
+        type: hit-area
+        x: 0
+        y: 36
+        width: 108
+        height: 27
+        actions:
+          - type: open-page
+            page: home
+      - id: atlas-image
+        type: image
+        x: 108
+        y: 36
+        asset: rafter:nav
+      - id: atlas-label
+        type: text
+        x: 162
+        y: 45
+        align: center
+        text:
+          format: literal
+          value: 探索图鉴
+          color: '#D4CEC8'
+      - id: atlas
+        type: hit-area
+        x: 108
+        y: 36
+        width: 108
+        height: 27
+        actions:
+          - type: open-page
+            page: preview
+      - id: journal-image
+        type: image
+        x: 216
+        y: 36
+        asset: rafter:nav
+      - id: journal-label
+        type: text
+        x: 270
+        y: 45
+        align: center
+        text:
+          format: literal
+          value: 冒险手记
+          color: '#D4CEC8'
+      - id: journal
+        type: hit-area
+        x: 216
+        y: 36
+        width: 108
+        height: 27
+        actions:
+          - type: open-page
+            page: journal
+      - id: preferences-image
+        type: image
+        x: 324
+        y: 36
+        asset: rafter:nav
+      - id: preferences-label
+        type: text
+        x: 378
+        y: 45
+        align: center
+        text:
+          format: literal
+          value: 个人偏好
+          color: '#D4CEC8'
+        variants:
+          - when:
+              type: state-equals
+              state: enabled
+              value: false
+            override:
+              text:
+                format: literal
+                value: 提示关闭
+                color: '#D4CEC8'
+      - id: preferences
+        type: hit-area
+        x: 324
+        y: 36
+        width: 108
+        height: 27
+        tooltip: |-
+          &f个人偏好
+          &7玩家：{{ player name }}
+          &7旅途提示：&a开启
+          &7点击调整个人偏好。
+        actions:
+          - type: open-page
+            page: settings
+        variants:
+          - when:
+              type: state-equals
+              state: enabled
+              value: false
+            override:
+              tooltip: |-
+                &f个人偏好
+                &7玩家：{{ player name }}
+                &7旅途提示：&c关闭
+                &7点击调整个人偏好。
+      - id: welcome
+        type: text
+        x: 18
+        y: 81
+        align: left
+        text:
+          format: parts
+          color: '#716A64'
+          parts:
+            - 欢迎回来，
+            - format: literal
+              binding:
+                type: state
+                key: name
+      - id: headline
+        type: text
+        x: 18
+        y: 108
+        align: left
+        text:
+          format: literal
+          value: 出发，去探索。
+          font: rafter-mono
+          font-size: 20
+          color: '#262423'
+      - id: invitation
+        type: text
+        x: 18
+        y: 126
+        align: left
+        text:
+          format: literal
+          value: 看看图鉴，记录发现，开始下一段旅程。
+          color: '#716A64'
+      - id: explore-image
+        type: image
+        x: 18
+        y: 144
+        asset: rafter:solid-green
+        width: 117
+        height: 27
+        fit: stretch
+      - id: explore-label
+        type: text
+        x: 77
+        y: 153
+        align: center
+        text:
+          format: literal
+          value: 探索图鉴 →
+          color: '#FFFFFF'
+      - id: explore
+        type: hit-area
+        x: 18
+        y: 144
+        width: 117
+        height: 27
+        tooltip: 准备好行囊，世界就在前方。
+        actions:
+          - type: open-page
+            page: preview
+      - id: horizon
+        type: image
+        x: 441
+        y: 72
+        asset: rafter:hero
+      - id: section
+        type: text
+        x: 18
+        y: 198
+        align: left
+        text:
+          format: literal
+          value: 继续你的旅程
+          color: '#262423'
+      - id: journal-card-image
+        type: image
+        x: 18
+        y: 225
+        asset: rafter:atlas-card
+      - id: journal-card
+        type: hit-area
+        x: 18
+        y: 225
+        width: 189
+        height: 99
+        tooltip: 记录今天的新发现
+        actions:
+          - type: open-page
+            page: journal
+      - id: journal-title
+        type: text
+        x: 63
+        y: 243
+        align: left
+        text:
+          format: literal
+          value: 冒险手记
+          color: '#262423'
+      - id: journal-caption
+        type: text
+        x: 36
+        y: 270
+        align: left
+        text:
+          format: literal
+          value: 记录今天的新发现
+          color: '#716A64'
+      - id: journal-action
+        type: text
+        x: 36
+        y: 306
+        align: left
+        text:
+          format: literal
+          value: 打开手记
+          color: '#3C8527'
+      - id: journal-arrow
+        type: text
+        x: 180
+        y: 306
+        align: left
+        text:
+          format: literal
+          value: →
+          color: '#3C8527'
+      - id: profile-card-image
+        type: image
+        x: 216
+        y: 225
+        asset: rafter:journal-card
+      - id: profile-card
+        type: hit-area
+        x: 216
+        y: 225
+        width: 189
+        height: 99
+        tooltip: 设置你的名字与签名
+        actions:
+          - type: open-page
+            page: form
+      - id: profile-title
+        type: text
+        x: 261
+        y: 243
+        align: left
+        text:
+          format: literal
+          value: 个人资料
+          color: '#262423'
+      - id: profile-caption
+        type: text
+        x: 234
+        y: 270
+        align: left
+        text:
+          format: literal
+          value: 设置你的名字与签名
+          color: '#716A64'
+      - id: profile-action
+        type: text
+        x: 234
+        y: 306
+        align: left
+        text:
+          format: literal
+          value: 编辑资料
+          color: '#3C8527'
+      - id: profile-arrow
+        type: text
+        x: 378
+        y: 306
+        align: left
+        text:
+          format: literal
+          value: →
+          color: '#3C8527'
+      - id: settings-card-image
+        type: image
+        x: 414
+        y: 225
+        asset: rafter:profile-card
+      - id: settings-card
+        type: hit-area
+        x: 414
+        y: 225
+        width: 189
+        height: 99
+        tooltip: 调整你的游戏体验
+        actions:
+          - type: open-page
+            page: settings
+      - id: settings-title
+        type: text
+        x: 459
+        y: 243
+        align: left
+        text:
+          format: literal
+          value: 个人偏好
+          color: '#262423'
+      - id: settings-caption
+        type: text
+        x: 432
+        y: 270
+        align: left
+        text:
+          format: literal
+          value: 调整你的游戏体验
+          color: '#716A64'
+      - id: settings-action
+        type: text
+        x: 432
+        y: 306
+        align: left
+        text:
+          format: literal
+          value: 打开设置
+          color: '#3C8527'
+      - id: settings-arrow
+        type: text
+        x: 576
+        y: 306
+        align: left
+        text:
+          format: literal
+          value: →
+          color: '#3C8527'
+      - id: footer
+        type: text
+        x: 18
+        y: 342
+        align: left
+        text:
+          format: literal
+          value: Esc  返回游戏
+          font: rafter-mono
+          color: '#716A64'
+  form:
+    mode: native
+    title:
+      format: literal
+      value: 个人资料
+      color: '#F5F1ED'
+    width: 360
+    columns: 2
+    components:
+      - id: help
+        type: text
+        text:
+          format: literal
+          value: 让旅途遇见的人，记住你的名字。
+          color: '#D4CEC8'
+      - id: name
+        type: input
+        text: 昵称
+        state: name
+        max-length: 24
+      - id: note
+        type: input
+        text: 个人签名
+        state: note
+        multiline: true
+        max-length: 120
+      - id: save
+        type: button
+        text: 保存资料
+        actions:
+          - type: submit
+          - type: back
+      - id: cancel
+        type: button
+        text: 暂不修改
+        actions:
+          - type: back
+  preview:
+    mode: native
+    title:
+      format: literal
+      value: 探索图鉴
+      color: '#F5F1ED'
+    width: 360
+    components:
+      - id: intro
+        type: text
+        text:
+          format: literal
+          value: 准备好行囊，世界就在前方。
+          color: '#D4CEC8'
+      - id: compass
+        type: item
+        item: minecraft:compass
+        text: 指南针 · 总有一个方向值得出发
+      - id: spyglass
+        type: item
+        item: minecraft:spyglass
+        text: 望远镜 · 把远方，拉近一点
+      - id: boat
+        type: item
+        item: minecraft:oak_boat
+        text: 橡木船 · 顺着河流，发现新的风景
+      - id: route
+        type: button
+        text: 查看完整冒险路线
+        actions:
+          - type: open-page
+            page: timeline
+      - id: back
+        type: button
+        text: 返回玩家中心
+        actions:
+          - type: back
+  journal:
+    mode: canvas
+    title: ''
+    width: 621
+    height: 360
+    elements:
+      - id: frame
+        type: image
+        x: 0
+        y: 0
+        asset: rafter:journal-frame
+      - id: mark
+        type: image
+        x: 18
+        y: 9
+        asset: rafter:mark
+      - id: wordmark
+        type: text
+        x: 45
+        y: 18
+        align: left
+        style: heading
+        text:
+          format: literal
+          value: 玩家中心
+          font: rafter-mono
+          font-size: 20
+          color: '#F5F1ED'
+      - id: avatar
+        type: image
+        x: 279
+        y: 9
+        asset: rafter:avatar
+      - id: player-name
+        type: text
+        x: 306
+        y: 18
+        align: left
+        text:
+          format: literal
+          binding:
+            type: state
+            key: name
+          color: '#F5F1ED'
+      - id: close-image
+        type: image
+        x: 585
+        y: 9
+        asset: rafter:close
+      - id: close
+        type: hit-area
+        x: 585
+        y: 9
+        width: 18
+        height: 18
+        tooltip: 返回游戏
+        actions:
+          - type: close
+      - id: overview-image
+        type: image
+        x: 0
+        y: 36
+        asset: rafter:nav
+      - id: overview-label
+        type: text
+        x: 54
+        y: 45
+        align: center
+        text:
+          format: literal
+          value: 概览
+          color: '#D4CEC8'
+      - id: overview
+        type: hit-area
+        x: 0
+        y: 36
+        width: 108
+        height: 27
+        actions:
+          - type: open-page
+            page: home
+      - id: atlas-image
+        type: image
+        x: 108
+        y: 36
+        asset: rafter:nav
+      - id: atlas-label
+        type: text
+        x: 162
+        y: 45
+        align: center
+        text:
+          format: literal
+          value: 探索图鉴
+          color: '#D4CEC8'
+      - id: atlas
+        type: hit-area
+        x: 108
+        y: 36
+        width: 108
+        height: 27
+        actions:
+          - type: open-page
+            page: preview
+      - id: journal-image
+        type: image
+        x: 216
+        y: 36
+        asset: rafter:nav-active
+      - id: journal-label
+        type: text
+        x: 270
+        y: 45
+        align: center
+        text:
+          format: literal
+          value: 冒险手记
+          color: '#FFFFFF'
+      - id: journal
+        type: hit-area
+        x: 216
+        y: 36
+        width: 108
+        height: 27
+        actions:
+          - type: open-page
+            page: journal
+      - id: preferences-image
+        type: image
+        x: 324
+        y: 36
+        asset: rafter:nav
+      - id: preferences-label
+        type: text
+        x: 378
+        y: 45
+        align: center
+        text:
+          format: literal
+          value: 个人偏好
+          color: '#D4CEC8'
+      - id: preferences
+        type: hit-area
+        x: 324
+        y: 36
+        width: 108
+        height: 27
+        actions:
+          - type: open-page
+            page: settings
+      - id: heading
+        type: text
+        x: 18
+        y: 90
+        align: left
+        text:
+          format: literal
+          value: 冒险手记
+          font: rafter-mono
+          font-size: 20
+          color: '#262423'
+      - id: full-route-image
+        type: image
+        x: 441
+        y: 90
+        asset: rafter:solid-green
+        width: 162
+        height: 27
+        fit: stretch
+      - id: full-route-label
+        type: text
+        x: 522
+        y: 99
+        align: center
+        text:
+          format: literal
+          value: 完整冒险路线 →
+          color: '#FFFFFF'
+      - id: full-route
+        type: hit-area
+        x: 441
+        y: 90
+        width: 162
+        height: 27
+        tooltip: 十二段风景，慢慢走完。
+        actions:
+          - type: open-page
+            page: timeline
+      - id: subtitle
+        type: text
+        x: 18
+        y: 117
+        align: left
+        text:
+          format: literal
+          value: 不必赶路，留下值得记住的小事。
+          color: '#716A64'
+      - id: book
+        type: image
+        x: 18
+        y: 144
+        asset: rafter:journal
+      - id: goals-title
+        type: text
+        x: 36
+        y: 162
+        align: left
+        text:
+          format: literal
+          value: 旅途小目标
+          color: '#262423'
+      - id: mission-one-title
+        type: text
+        x: 45
+        y: 198
+        align: left
+        text:
+          format: literal
+          value: 看一次日出
+          color: '#262423'
+      - id: mission-one-caption
+        type: text
+        x: 45
+        y: 216
+        align: left
+        text:
+          format: literal
+          value: 给自己留一段安静的清晨。
+          color: '#716A64'
+      - id: mission-one-image
+        type: image
+        x: 333
+        y: 198
+        asset: rafter:solid-gray
+        width: 36
+        height: 27
+        fit: stretch
+        variants:
+          - when:
+              type: state-equals
+              state: first-journey
+              value: true
+            override:
+              asset: rafter:solid-green
+      - id: mission-one-label
+        type: text
+        x: 351
+        y: 207
+        align: center
+        text:
+          format: literal
+          value: □
+          color: '#FFFFFF'
+        variants:
+          - when:
+              type: state-equals
+              state: first-journey
+              value: true
+            override:
+              text:
+                format: literal
+                value: ☑
+                color: '#FFFFFF'
+      - id: mission-one
+        type: hit-area
+        x: 333
+        y: 198
+        width: 36
+        height: 27
+        tooltip: 标记或取消这个小目标
+        actions:
+          - type: toggle-state
+            state: first-journey
+      - id: mission-two-title
+        type: text
+        x: 45
+        y: 261
+        align: left
+        text:
+          format: literal
+          value: 发现一片新风景
+          color: '#262423'
+      - id: mission-two-caption
+        type: text
+        x: 45
+        y: 279
+        align: left
+        text:
+          format: literal
+          value: 沿着没走过的路，看看远方。
+          color: '#716A64'
+      - id: mission-two-image
+        type: image
+        x: 333
+        y: 261
+        asset: rafter:solid-gray
+        width: 36
+        height: 27
+        fit: stretch
+        variants:
+          - when:
+              type: state-equals
+              state: second-journey
+              value: true
+            override:
+              asset: rafter:solid-green
+      - id: mission-two-label
+        type: text
+        x: 351
+        y: 270
+        align: center
+        text:
+          format: literal
+          value: □
+          color: '#FFFFFF'
+        variants:
+          - when:
+              type: state-equals
+              state: second-journey
+              value: true
+            override:
+              text:
+                format: literal
+                value: ☑
+                color: '#FFFFFF'
+      - id: mission-two
+        type: hit-area
+        x: 333
+        y: 261
+        width: 36
+        height: 27
+        tooltip: 标记或取消这个小目标
+        actions:
+          - type: toggle-state
+            state: second-journey
+      - id: goals-note
+        type: text
+        x: 36
+        y: 315
+        align: left
+        text:
+          format: literal
+          value: 点击方框，标记你的旅途小事。
+          color: '#716A64'
+      - id: note-title
+        type: text
+        x: 414
+        y: 207
+        align: left
+        text:
+          format: literal
+          value: 旅行者的手记
+          color: '#262423'
+      - id: note-first
+        type: text
+        x: 414
+        y: 234
+        align: left
+        text:
+          format: literal
+          value: 沿着自己的节奏，
+          color: '#716A64'
+      - id: note-second
+        type: text
+        x: 414
+        y: 252
+        align: left
+        text:
+          format: literal
+          value: 发现世界。
+          color: '#716A64'
+      - id: edit-profile-image
+        type: image
+        x: 414
+        y: 288
+        asset: rafter:solid-green
+        width: 171
+        height: 27
+        fit: stretch
+      - id: edit-profile-label
+        type: text
+        x: 500
+        y: 297
+        align: center
+        text:
+          format: literal
+          value: 编辑个人资料 →
+          color: '#FFFFFF'
+      - id: edit-profile
+        type: hit-area
+        x: 414
+        y: 288
+        width: 171
+        height: 27
+        actions:
+          - type: open-page
+            page: form
+      - id: footer
+        type: text
+        x: 18
+        y: 342
+        align: left
+        text:
+          format: literal
+          value: Esc  返回游戏
+          font: rafter-mono
+          color: '#716A64'
+  settings:
+    mode: native
+    frame:
+      asset: rafter:solid-dark
+    title:
+      format: literal
+      value: 个人偏好
+      color: '#F5F1ED'
+    width: 360
+    columns: 2
+    components:
+      - id: intro
+        type: text
+        text:
+          format: literal
+          value: 找到属于自己的冒险节奏。
+          color: '#D4CEC8'
+      - id: enabled
+        type: checkbox
+        text: 接收旅途提示
+        state: enabled
+      - id: difficulty
+        type: select
+        text: 冒险节奏
+        state: difficulty
+        options:
+          normal: 悠然探索
+          hard: 挑战自我
+          nightmare: 极限冒险
+      - id: amount
+        type: slider
+        text: 提醒频率
+        state: amount
+        min: 0
+        max: 100
+        step: 5
+      - id: save
+        type: button
+        text: 保存偏好
+        actions:
+          - type: submit
+          - type: back
+      - id: cancel
+        type: button
+        text: 暂不修改
+        actions:
+          - type: back
+  timeline:
+    mode: canvas
+    title: ''
+    width: 621
+    height: 1953
+    elements:
+      - id: header
+        type: image
+        x: 0
+        y: 0
+        asset: rafter:long-header
+      - id: mark
+        type: image
+        x: 18
+        y: 9
+        asset: rafter:mark
+      - id: wordmark
+        type: text
+        x: 45
+        y: 18
+        align: left
+        style: heading
+        text:
+          format: literal
+          value: 玩家中心
+          font: rafter-mono
+          font-size: 20
+          color: '#F5F1ED'
+      - id: avatar
+        type: image
+        x: 279
+        y: 9
+        asset: rafter:avatar
+      - id: player-name
+        type: text
+        x: 306
+        y: 18
+        align: left
+        text:
+          format: literal
+          binding:
+            type: state
+            key: name
+          color: '#F5F1ED'
+      - id: close-image
+        type: image
+        x: 585
+        y: 9
+        asset: rafter:close
+      - id: close
+        type: hit-area
+        x: 585
+        y: 9
+        width: 18
+        height: 18
+        tooltip: 返回游戏
+        actions:
+          - type: close
+      - id: overview-image
+        type: image
+        x: 0
+        y: 36
+        asset: rafter:nav
+      - id: overview-label
+        type: text
+        x: 54
+        y: 45
+        align: center
+        text:
+          format: literal
+          value: 概览
+          color: '#D4CEC8'
+      - id: overview
+        type: hit-area
+        x: 0
+        y: 36
+        width: 108
+        height: 27
+        actions:
+          - type: open-page
+            page: home
+      - id: atlas-image
+        type: image
+        x: 108
+        y: 36
+        asset: rafter:nav
+      - id: atlas-label
+        type: text
+        x: 162
+        y: 45
+        align: center
+        text:
+          format: literal
+          value: 探索图鉴
+          color: '#D4CEC8'
+      - id: atlas
+        type: hit-area
+        x: 108
+        y: 36
+        width: 108
+        height: 27
+        actions:
+          - type: open-page
+            page: preview
+      - id: journal-image
+        type: image
+        x: 216
+        y: 36
+        asset: rafter:nav-active
+      - id: journal-label
+        type: text
+        x: 270
+        y: 45
+        align: center
+        text:
+          format: literal
+          value: 冒险手记
+          color: '#FFFFFF'
+      - id: journal
+        type: hit-area
+        x: 216
+        y: 36
+        width: 108
+        height: 27
+        actions:
+          - type: open-page
+            page: journal
+      - id: preferences-image
+        type: image
+        x: 324
+        y: 36
+        asset: rafter:nav
+      - id: preferences-label
+        type: text
+        x: 378
+        y: 45
+        align: center
+        text:
+          format: literal
+          value: 个人偏好
+          color: '#D4CEC8'
+      - id: preferences
+        type: hit-area
+        x: 324
+        y: 36
+        width: 108
+        height: 27
+        actions:
+          - type: open-page
+            page: settings
+      - id: paper-0
+        type: image
+        x: 0
+        y: 63
+        asset: rafter:paper
+      - id: paper-1
+        type: image
+        x: 0
+        y: 252
+        asset: rafter:paper
+      - id: paper-2
+        type: image
+        x: 0
+        y: 441
+        asset: rafter:paper
+      - id: paper-3
+        type: image
+        x: 0
+        y: 630
+        asset: rafter:paper
+      - id: paper-4
+        type: image
+        x: 0
+        y: 819
+        asset: rafter:paper
+      - id: paper-5
+        type: image
+        x: 0
+        y: 1008
+        asset: rafter:paper
+      - id: paper-6
+        type: image
+        x: 0
+        y: 1197
+        asset: rafter:paper
+      - id: paper-7
+        type: image
+        x: 0
+        y: 1386
+        asset: rafter:paper
+      - id: paper-8
+        type: image
+        x: 0
+        y: 1575
+        asset: rafter:paper
+      - id: paper-9
+        type: image
+        x: 0
+        y: 1764
+        asset: rafter:paper
+      - id: title
+        type: text
+        x: 18
+        y: 90
+        align: left
+        text:
+          format: literal
+          value: 每一程，都值得被记住。
+          font: rafter-mono
+          font-size: 20
+          color: '#262423'
+      - id: introduction
+        type: text
+        x: 18
+        y: 126
+        align: left
+        text:
+          format: literal
+          value: 从清晨到星空，给自己留十二个小目标。
+          color: '#716A64'
+      - id: card-01
+        type: image
+        x: 18
+        y: 153
+        asset: rafter:route-card
+      - id: chapter-01
+        type: text
+        x: 36
+        y: 171
+        align: left
+        text:
+          format: literal
+          value: 01  准备行囊
+          font: rafter-mono
+          font-size: 20
+          color: '#262423'
+      - id: line-a-01
+        type: text
+        x: 36
+        y: 207
+        align: left
+        text:
+          format: literal
+          value: 一支火把，一张地图，一份刚刚好的好奇心。
+          color: '#716A64'
+      - id: line-b-01
+        type: text
+        x: 36
+        y: 234
+        align: left
+        text:
+          format: literal
+          value: 把常用物品放在顺手的位置，就可以出发了。
+          color: '#716A64'
+      - id: bridge-01-image
+        type: image
+        x: 441
+        y: 243
+        asset: rafter:solid-green
+        width: 144
+        height: 27
+        fit: stretch
+      - id: bridge-01-label
+        type: text
+        x: 513
+        y: 252
+        align: center
+        text:
+          format: literal
+          value: 看看行囊 →
+          color: '#FFFFFF'
+      - id: bridge-01
+        type: hit-area
+        x: 441
+        y: 243
+        width: 144
+        height: 27
+        actions:
+          - type: open-page
+            page: preview
+      - id: card-02
+        type: image
+        x: 18
+        y: 297
+        asset: rafter:route-card
+      - id: chapter-02
+        type: text
+        x: 36
+        y: 315
+        align: left
+        text:
+          format: literal
+          value: 02  等一次日出
+          font: rafter-mono
+          font-size: 20
+          color: '#262423'
+      - id: line-a-02
+        type: text
+        x: 36
+        y: 351
+        align: left
+        text:
+          format: literal
+          value: 找一处高地，等天边的颜色慢慢变亮。
+          color: '#716A64'
+      - id: line-b-02
+        type: text
+        x: 36
+        y: 378
+        align: left
+        text:
+          format: literal
+          value: 不必赶路，听听清晨的风。
+          color: '#716A64'
+      - id: card-03
+        type: image
+        x: 18
+        y: 441
+        asset: rafter:route-card
+      - id: chapter-03
+        type: text
+        x: 36
+        y: 459
+        align: left
+        text:
+          format: literal
+          value: 03  走进草原
+          font: rafter-mono
+          font-size: 20
+          color: '#262423'
+      - id: line-a-03
+        type: text
+        x: 36
+        y: 495
+        align: left
+        text:
+          format: literal
+          value: 沿着草地上的小路，发现熟悉之外的风景。
+          color: '#716A64'
+      - id: line-b-03
+        type: text
+        x: 36
+        y: 522
+        align: left
+        text:
+          format: literal
+          value: 带上一点种子，让新的起点有自己的颜色。
+          color: '#716A64'
+      - id: card-04
+        type: image
+        x: 18
+        y: 585
+        asset: rafter:route-card
+      - id: chapter-04
+        type: text
+        x: 36
+        y: 603
+        align: left
+        text:
+          format: literal
+          value: 04  顺着河流
+          font: rafter-mono
+          font-size: 20
+          color: '#262423'
+      - id: line-a-04
+        type: text
+        x: 36
+        y: 639
+        align: left
+        text:
+          format: literal
+          value: 水面会把天空带到你身边。
+          color: '#716A64'
+      - id: line-b-04
+        type: text
+        x: 36
+        y: 666
+        align: left
+        text:
+          format: literal
+          value: 划一段小船，记住河岸边的一棵树。
+          color: '#716A64'
+      - id: card-05
+        type: image
+        x: 18
+        y: 729
+        asset: rafter:route-card
+      - id: chapter-05
+        type: text
+        x: 36
+        y: 747
+        align: left
+        text:
+          format: literal
+          value: 05  遇见村庄
+          font: rafter-mono
+          font-size: 20
+          color: '#262423'
+      - id: line-a-05
+        type: text
+        x: 36
+        y: 783
+        align: left
+        text:
+          format: literal
+          value: 停下来，看看这片土地上的生活。
+          color: '#716A64'
+      - id: line-b-05
+        type: text
+        x: 36
+        y: 810
+        align: left
+        text:
+          format: literal
+          value: 用一个坐标，记下愿意再来的地方。
+          color: '#716A64'
+      - id: card-06
+        type: image
+        x: 18
+        y: 873
+        asset: rafter:route-card
+      - id: chapter-06
+        type: text
+        x: 36
+        y: 891
+        align: left
+        text:
+          format: literal
+          value: 06  穿过森林
+          font: rafter-mono
+          font-size: 20
+          color: '#262423'
+      - id: line-a-06
+        type: text
+        x: 36
+        y: 927
+        align: left
+        text:
+          format: literal
+          value: 树叶把光分成很多小块。
+          color: '#716A64'
+      - id: line-b-06
+        type: text
+        x: 36
+        y: 954
+        align: left
+        text:
+          format: literal
+          value: 往前走，也别忘了给回来的路留一盏灯。
+          color: '#716A64'
+      - id: bridge-06-image
+        type: image
+        x: 441
+        y: 963
+        asset: rafter:solid-green
+        width: 144
+        height: 27
+        fit: stretch
+      - id: bridge-06-label
+        type: text
+        x: 513
+        y: 972
+        align: center
+        text:
+          format: literal
+          value: 看看行囊 →
+          color: '#FFFFFF'
+      - id: bridge-06
+        type: hit-area
+        x: 441
+        y: 963
+        width: 144
+        height: 27
+        actions:
+          - type: open-page
+            page: preview
+      - id: card-07
+        type: image
+        x: 18
+        y: 1017
+        asset: rafter:route-card
+      - id: chapter-07
+        type: text
+        x: 36
+        y: 1035
+        align: left
+        text:
+          format: literal
+          value: 07  寻找山顶
+          font: rafter-mono
+          font-size: 20
+          color: '#262423'
+      - id: line-a-07
+        type: text
+        x: 36
+        y: 1071
+        align: left
+        text:
+          format: literal
+          value: 换一个高度，再看看走过的路。
+          color: '#716A64'
+      - id: line-b-07
+        type: text
+        x: 36
+        y: 1098
+        align: left
+        text:
+          format: literal
+          value: 你会发现，世界比想象中更宽。
+          color: '#716A64'
+      - id: card-08
+        type: image
+        x: 18
+        y: 1161
+        asset: rafter:route-card
+      - id: chapter-08
+        type: text
+        x: 36
+        y: 1179
+        align: left
+        text:
+          format: literal
+          value: 08  照亮洞穴
+          font: rafter-mono
+          font-size: 20
+          color: '#262423'
+      - id: line-a-08
+        type: text
+        x: 36
+        y: 1215
+        align: left
+        text:
+          format: literal
+          value: 黑暗里的每一道光，都能指向新的可能。
+          color: '#716A64'
+      - id: line-b-08
+        type: text
+        x: 36
+        y: 1242
+        align: left
+        text:
+          format: literal
+          value: 带好火把，留出空间，按自己的节奏探索。
+          color: '#716A64'
+      - id: card-09
+        type: image
+        x: 18
+        y: 1305
+        asset: rafter:route-card
+      - id: chapter-09
+        type: text
+        x: 36
+        y: 1323
+        align: left
+        text:
+          format: literal
+          value: 09  建一个营地
+          font: rafter-mono
+          font-size: 20
+          color: '#262423'
+      - id: line-a-09
+        type: text
+        x: 36
+        y: 1359
+        align: left
+        text:
+          format: literal
+          value: 给今天的旅程，留一处可以休息的角落。
+          color: '#716A64'
+      - id: line-b-09
+        type: text
+        x: 36
+        y: 1386
+        align: left
+        text:
+          format: literal
+          value: 一张床，一扇门，就能成为安心的起点。
+          color: '#716A64'
+      - id: card-10
+        type: image
+        x: 18
+        y: 1449
+        asset: rafter:route-card
+      - id: chapter-10
+        type: text
+        x: 36
+        y: 1467
+        align: left
+        text:
+          format: literal
+          value: 10  看一片星空
+          font: rafter-mono
+          font-size: 20
+          color: '#262423'
+      - id: line-a-10
+        type: text
+        x: 36
+        y: 1503
+        align: left
+        text:
+          format: literal
+          value: 让喧闹留在远处，把时间交给夜色。
+          color: '#716A64'
+      - id: line-b-10
+        type: text
+        x: 36
+        y: 1530
+        align: left
+        text:
+          format: literal
+          value: 有些发现，不需要写得很大声。
+          color: '#716A64'
+      - id: card-11
+        type: image
+        x: 18
+        y: 1593
+        asset: rafter:route-card
+      - id: chapter-11
+        type: text
+        x: 36
+        y: 1611
+        align: left
+        text:
+          format: literal
+          value: 11  记录新发现
+          font: rafter-mono
+          font-size: 20
+          color: '#262423'
+      - id: line-a-11
+        type: text
+        x: 36
+        y: 1647
+        align: left
+        text:
+          format: literal
+          value: 把喜欢的风景，写成一句自己的话。
+          color: '#716A64'
+      - id: line-b-11
+        type: text
+        x: 36
+        y: 1674
+        align: left
+        text:
+          format: literal
+          value: 在个人资料里，留下一段此刻的心情。
+          color: '#716A64'
+      - id: bridge-11-image
+        type: image
+        x: 441
+        y: 1683
+        asset: rafter:solid-green
+        width: 144
+        height: 27
+        fit: stretch
+      - id: bridge-11-label
+        type: text
+        x: 513
+        y: 1692
+        align: center
+        text:
+          format: literal
+          value: 记录此刻 →
+          color: '#FFFFFF'
+      - id: bridge-11
+        type: hit-area
+        x: 441
+        y: 1683
+        width: 144
+        height: 27
+        actions:
+          - type: open-page
+            page: form
+      - id: card-12
+        type: image
+        x: 18
+        y: 1737
+        asset: rafter:route-card
+      - id: chapter-12
+        type: text
+        x: 36
+        y: 1755
+        align: left
+        text:
+          format: literal
+          value: 12  回到起点
+          font: rafter-mono
+          font-size: 20
+          color: '#262423'
+      - id: line-a-12
+        type: text
+        x: 36
+        y: 1791
+        align: left
+        text:
+          format: literal
+          value: 回头看看，那些微小的发现已经连成了路。
+          color: '#716A64'
+      - id: line-b-12
+        type: text
+        x: 36
+        y: 1818
+        align: left
+        text:
+          format: literal
+          value: 下一次出发，也许会从这里开始。
+          color: '#716A64'
+      - id: footer
+        type: image
+        x: 0
+        y: 1890
+        asset: rafter:footer
+      - id: end-note
+        type: text
+        x: 18
+        y: 1908
+        align: left
+        text:
+          format: literal
+          value: 旅途未完，下次见。
+          color: '#716A64'
+      - id: return-home-image
+        type: image
+        x: 441
+        y: 1908
+        asset: rafter:solid-green
+        width: 162
+        height: 27
+        fit: stretch
+      - id: return-home-label
+        type: text
+        x: 522
+        y: 1917
+        align: center
+        text:
+          format: literal
+          value: 回到概览 →
+          color: '#FFFFFF'
+      - id: return-home
+        type: hit-area
+        x: 441
+        y: 1908
+        width: 162
+        height: 27
+        actions:
+          - type: open-page
+            page: home

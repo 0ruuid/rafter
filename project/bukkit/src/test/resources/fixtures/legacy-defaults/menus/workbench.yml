@@ -1,0 +1,118 @@
+id: rafter:workbench
+entry: profile
+permission: rafter.use
+state:
+  nickname: 旅行者
+  notifications: true
+  difficulty: normal
+  volume: 50
+pages:
+  profile:
+    mode: canvas
+    title: ''
+    width: 360
+    height: 63
+    columns: 1
+    frame:
+      asset: rafter:studio/folio
+    elements:
+      - id: profile-heading
+        type: text
+        x: 27
+        y: 9
+        text:
+          format: literal
+          value: 整理行囊
+          font-size: 20
+          color: '#282D27'
+      - id: profile-description
+        type: text
+        x: 27
+        y: 36
+        text:
+          format: literal
+          value: 名字、偏好，都留在这一页。
+          color: '#65735E'
+      - id: profile-avatar
+        type: image
+        x: 306
+        y: 9
+        asset: rafter:avatar
+        width: 27
+        height: 27
+        fit: stretch
+    components:
+      - id: nickname-input
+        type: input
+        width: 306
+        text:
+          format: literal
+          value: 旅人称呼
+          color: '#282D27'
+        state: nickname
+        max-length: 10
+      - id: notifications-input
+        type: checkbox
+        text:
+          format: literal
+          value: 接收旅途提示
+          color: '#282D27'
+        state: notifications
+      - id: difficulty-input
+        type: select
+        width: 306
+        text:
+          format: literal
+          value: 冒险节奏
+          color: '#282D27'
+        state: difficulty
+        options:
+          easy:
+            format: literal
+            value: 悠然探索
+            color: '#FAF8EF'
+          normal:
+            format: literal
+            value: 标准旅程
+            color: '#FAF8EF'
+          hard:
+            format: literal
+            value: 挑战自我
+            color: '#FAF8EF'
+      - id: volume-input
+        type: slider
+        width: 306
+        text:
+          format: literal
+          value: 旅途音量
+          color: '#FAF8EF'
+        state: volume
+        min: 0
+        max: 100
+        step: 5
+      - id: save
+        type: button
+        width: 306
+        skin:
+          asset: rafter:studio/action-primary
+          inset: 1
+        text:
+          format: literal
+          value: 保存档案
+          color: '#FAF8EF'
+        actions:
+          - type: submit
+          - type: back
+      - id: return
+        type: button
+        role: exit
+        width: 90
+        skin:
+          asset: rafter:studio/action-secondary
+          inset: 1
+        text:
+          format: literal
+          value: 返回概览
+          color: '#2D3B2C'
+        actions:
+          - type: back

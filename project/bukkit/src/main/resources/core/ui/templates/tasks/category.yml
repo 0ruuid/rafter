@@ -1,0 +1,94 @@
+id: "rafter:tasks/category"
+params:
+  actions: []
+component:
+  id: "category"
+  type: "group"
+  elements:
+    -
+      id: "art"
+      type: "image"
+      x: 0
+      y: 0
+      width: 196
+      height: 38
+      fit: "contain"
+      asset: "rafter:tasks/category/default"
+      variants:
+        -
+          when:
+            type: "equals"
+            binding:
+              type: "list"
+              key: "selected"
+            value: true
+          override:
+            asset: "rafter:tasks/category/selected"
+    -
+      id: "label"
+      type: "text"
+      x: 12
+      y: 5
+      width: 100
+      overflow: "clip"
+      align: "left"
+      text:
+        format: "literal"
+        binding:
+          type: "item"
+          key: "label"
+        color: "#CDCFD0"
+    -
+      id: "count"
+      type: "text"
+      x: 184
+      y: 5
+      width: 60
+      overflow: "clip"
+      align: "right"
+      text:
+        format: "parts"
+        color: "#A9ACAD"
+        parts:
+          -
+            format: "literal"
+            binding:
+              type: "item"
+              key: "completed"
+          - " / "
+          -
+            format: "literal"
+            binding:
+              type: "item"
+              key: "total"
+    -
+      id: "progress"
+      type: "meter"
+      x: 12
+      y: 23
+      width: 172
+      height: 4
+      value:
+        type: "item"
+        key: "completed"
+      max:
+        type: "item"
+        key: "total"
+      fill: "#ADAFB0"
+      track: "#272A2B"
+      variants:
+        -
+          when:
+            type: "equals"
+            binding:
+              type: "list"
+              key: "selected"
+            value: true
+          override:
+            fill: "#609A50"
+    -
+      id: "hit"
+      type: "hit-area"
+      target: "art"
+      actions:
+        param: "actions"

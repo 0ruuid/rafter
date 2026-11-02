@@ -1,0 +1,351 @@
+id: "rafter:tasks/row"
+params:
+  detail-actions: []
+  claim-actions: []
+  track-actions: []
+component:
+  id: "row"
+  type: "group"
+  elements:
+    -
+      id: "art"
+      type: "image"
+      x: 0
+      y: 0
+      width: 536
+      height: 38
+      asset: "rafter:tasks/rows/active_default"
+      fit: "contain"
+      variants:
+        -
+          when:
+            type: "equals"
+            binding:
+              type: "item"
+              key: "phase"
+            value: "ready"
+          override:
+            asset: "rafter:tasks/rows/ready_default"
+        -
+          when:
+            type: "equals"
+            binding:
+              type: "item"
+              key: "phase"
+            value: "claimed"
+          override:
+            asset: "rafter:tasks/rows/claimed_default"
+        -
+          when:
+            type: "equals"
+            binding:
+              type: "item"
+              key: "phase"
+            value: "locked"
+          override:
+            asset: "rafter:tasks/rows/locked_default"
+        -
+          when:
+            type: "equals"
+            binding:
+              type: "item"
+              key: "phase"
+            value: "expired"
+          override:
+            asset: "rafter:tasks/rows/expired_default"
+    -
+      id: "title"
+      type: "text"
+      x: 12
+      y: 6
+      width: 300
+      overflow: "clip"
+      align: "left"
+      text:
+        format: "literal"
+        binding:
+          type: "item"
+          key: "title"
+        color: "#FAFAFA"
+      variants:
+        -
+          when:
+            type: "any"
+            conditions:
+              -
+                type: "equals"
+                binding:
+                  type: "item"
+                  key: "phase"
+                value: "claimed"
+              -
+                type: "equals"
+                binding:
+                  type: "item"
+                  key: "phase"
+                value: "locked"
+              -
+                type: "equals"
+                binding:
+                  type: "item"
+                  key: "phase"
+                value: "expired"
+          override:
+            text:
+              format: "literal"
+              binding:
+                type: "item"
+                key: "title"
+              color: "#A9ACAD"
+    -
+      id: "description"
+      type: "text"
+      x: 12
+      y: 23
+      width: 300
+      overflow: "clip"
+      align: "left"
+      text:
+        format: "literal"
+        binding:
+          type: "item"
+          key: "list-description"
+        color: "#CDCFD0"
+      variants:
+        -
+          when:
+            type: "any"
+            conditions:
+              -
+                type: "equals"
+                binding:
+                  type: "item"
+                  key: "phase"
+                value: "claimed"
+              -
+                type: "equals"
+                binding:
+                  type: "item"
+                  key: "phase"
+                value: "locked"
+              -
+                type: "equals"
+                binding:
+                  type: "item"
+                  key: "phase"
+                value: "expired"
+          override:
+            text:
+              format: "literal"
+              binding:
+                type: "item"
+                key: "list-description"
+              color: "#A9ACAD"
+    -
+      id: "time"
+      type: "text"
+      x: 428
+      y: 14
+      width: 96
+      overflow: "clip"
+      align: "right"
+      text:
+        format: "literal"
+        binding:
+          type: "item"
+          key: "list-time"
+        color: "#A9ACAD"
+      variants:
+        -
+          when:
+            type: "equals"
+            binding:
+              type: "item"
+              key: "time-tone"
+            value: "warning"
+          override:
+            text:
+              format: "literal"
+              binding:
+                type: "item"
+                key: "list-time"
+              color: "#DDB66D"
+        -
+          when:
+            type: "equals"
+            binding:
+              type: "item"
+              key: "time-tone"
+            value: "expired"
+          override:
+            text:
+              format: "literal"
+              binding:
+                type: "item"
+                key: "list-time"
+              color: "#C15E57"
+    -
+      id: "action-art"
+      type: "image"
+      x: 440
+      y: 7
+      width: 84
+      height: 24
+      asset: "rafter:tasks/buttons/row_track_default"
+      fit: "contain"
+      visible:
+        type: "any"
+        conditions:
+          -
+            type: "equals"
+            binding:
+              type: "item"
+              key: "phase"
+            value: "active"
+          -
+            type: "equals"
+            binding:
+              type: "item"
+              key: "phase"
+            value: "ready"
+      variants:
+        -
+          when:
+            type: "equals"
+            binding:
+              type: "item"
+              key: "phase"
+            value: "ready"
+          override:
+            asset: "rafter:tasks/buttons/row_claim_default"
+    -
+      id: "claim-label"
+      type: "text"
+      x: 490
+      y: 12
+      width: 40
+      overflow: "clip"
+      align: "center"
+      text:
+        format: "literal"
+        value: "领取奖励"
+        color: "#FAFAFA"
+      visible:
+        type: "equals"
+        binding:
+          type: "item"
+          key: "phase"
+        value: "ready"
+    -
+      id: "track-label"
+      type: "text"
+      x: 482
+      y: 12
+      width: 68
+      overflow: "clip"
+      align: "center"
+      text:
+        format: "literal"
+        value: "追踪任务"
+        color: "#1C1F20"
+      visible:
+        type: "equals"
+        binding:
+          type: "item"
+          key: "phase"
+        value: "active"
+      variants:
+        -
+          when:
+            type: "equals"
+            binding:
+              type: "item"
+              key: "tracked"
+            value: true
+          override:
+            text:
+              format: "literal"
+              value: "取消追踪"
+              color: "#1C1F20"
+    -
+      id: "status"
+      type: "text"
+      x: 482
+      y: 13
+      width: 84
+      overflow: "clip"
+      align: "center"
+      text:
+        format: "literal"
+        value: "已领取"
+        color: "#888A8B"
+      visible:
+        type: "any"
+        conditions:
+          -
+            type: "equals"
+            binding:
+              type: "item"
+              key: "phase"
+            value: "claimed"
+          -
+            type: "equals"
+            binding:
+              type: "item"
+              key: "phase"
+            value: "locked"
+          -
+            type: "equals"
+            binding:
+              type: "item"
+              key: "phase"
+            value: "expired"
+      variants:
+        -
+          when:
+            type: "equals"
+            binding:
+              type: "item"
+              key: "phase"
+            value: "locked"
+          override:
+            text:
+              format: "literal"
+              value: "未解锁"
+              color: "#888A8B"
+        -
+          when:
+            type: "equals"
+            binding:
+              type: "item"
+              key: "phase"
+            value: "expired"
+          override:
+            text:
+              format: "literal"
+              value: "已过期"
+              color: "#C15E57"
+    -
+      id: "body"
+      type: "hit-area"
+      target: "art"
+      actions:
+        param: "detail-actions"
+    -
+      id: "action"
+      type: "hit-area"
+      target: "action-art"
+      actions:
+        param: "track-actions"
+      variants:
+        -
+          when:
+            type: "equals"
+            binding:
+              type: "item"
+              key: "phase"
+            value: "ready"
+          override:
+            actions:
+              param: "claim-actions"
+      tooltip: "界面预览，不发放真实奖励"

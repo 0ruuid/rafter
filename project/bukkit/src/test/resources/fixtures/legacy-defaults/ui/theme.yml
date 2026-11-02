@@ -1,0 +1,22 @@
+# 字体
+defaults:
+  font: rafter-mono
+  font-size: 10
+oversample: 1
+
+# 样式（Canvas 底色使用独立图片，不从样式自动填充）
+styles:
+  heading:
+    font: rafter-mono
+    font-size: 20
+
+# 错误提示配色
+palette:
+  error: '#ff6666'
+# 控件文字
+controls:
+  close: 返回游戏
+  form-error: 请检查填写的内容。
+hide-dialog-warning: true
+hide-canvas-focus-outline: true
+hide-native-focus-outline: true

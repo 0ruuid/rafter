@@ -1,0 +1,72 @@
+id: rafter:friends/remove
+page:
+  mode: canvas
+  title: ""
+  width: 256
+  columns: 2
+  modal:
+    asset: rafter:friends/dialogs/remove_friend
+    background: "#4A4B53"
+    dim: 0.52
+    top: 102
+    content-top: 87
+    button-gap: 24
+  elements:
+    - id: title
+      type: slot
+      component:
+        type: text
+        x: 4
+        y: 12
+        width: 220
+      required: true
+      text-style:
+        color: "#FAFAFA"
+    - id: question
+      type: slot
+      component:
+        type: text
+        x: 4
+        y: 48
+        width: 248
+      required: true
+      text-style:
+        color: "#FAFAFA"
+    - id: close
+      type: hit-area
+      x: 236
+      y: 10
+      width: 20
+      height: 18
+      tooltip: 取消删除
+      actions:
+        - type: back
+  components:
+    - id: cancel
+      type: slot
+      component:
+        type: button
+        role: exit
+        width: 112
+        skin:
+          asset: rafter:friends/buttons/cancel_default
+          inset: 0
+        actions:
+          - type: back
+        text: 取消
+      text-style:
+        offset-y: -2
+        color: "#1C1F20"
+    - id: confirm
+      type: slot
+      component:
+        type: button
+        width: 112
+        skin:
+          asset: rafter:friends/buttons/confirm_remove_default
+          inset: 0
+          label-offset-x: 10
+      required: true
+      text-style:
+        offset-y: -2
+        color: "#FAFAFA"

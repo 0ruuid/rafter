@@ -1,0 +1,546 @@
+{
+  "menus/demo.yml": [
+    "423a27edb13dbae2b9ae85d1451ea0f08362e26e5a35789bab6b351d7fc3bb21",
+    "4e7d41f2ee7f6aa40936bea1f82549b3984d35104d38e95eff22045c27cff1f4",
+    "8f963962f0ca2ee9d89c44f39dbdb226c573a8d920f82fd3d78806d5868f1f1f",
+    "8ad707a10b1ebde91e59096955f3ddd75154cf55d887d45093ff083c9cd5cf4d",
+    "0a8ab82f3fcaabc25c7c96e29af1941f47606999fd465732c4a8103ae8316cee",
+    "6c72114a3c0b053721e1818c01654a33a9b0685bfb28650186a46eca624a3f2d",
+    "d89a824d0eeb2bff7960d20c471f0728833085f22c1b83502443be3429e65e49",
+    "e7872ae8b3d146230afbe366a40131341c7eac50a628a3cf2449182ac5696b4f",
+    "025d837b553ebc045bbedce15d18438a383ca7169ba9e35b0f84a2d7ea9e19e8",
+    "c827120a90fef72e190e5419039aad7f4ed73aea41b12e39684a228a971e3097",
+    "9e26f499af18e7382a440884c881c5a28f005e0de5855ace637a53fd0c8f6fb9",
+    "482010584476c2fcc358e9fda19821f64e540b6fdc9339b6c9b0de98dcaa817a"
+  ],
+  "templates/action-button.yml": [
+    "8f8982369726c8c8f41b706b7219043677d2b47601d7bd1142b0edc928f67c57",
+    "f4b64e75b6dc79da07e309b8f340dda4802a4132c6bb0a149bdc629dbaf30b34",
+    "3ab5f2f76b22d00bbda50e557304ec606b98fae730860acd6940e9f7d36c24ea",
+    "b6246facfae5e7c3f0ca389314ef82acd8d433778be73299fc853e3fb41aece8",
+    "fd60656da58ab4cdc1503318086f94e0bd1a9e7ead939e92eb7da6cf8f416845"
+  ],
+  "ui/assets.yml": [
+    "52e92abeadd3cd825252369365104ee82528cd65f6abf97bac18933d24ff97b1",
+    "95c0969d64aebd827f7e46b53f59c2465c9df98b3361882499824228cd8cb9cd",
+    "12d03bc397765a764c2072d07536f393a09122e154d9dd6ef8c741f0f6458eab",
+    "49a3f83add0a7dc56501225f100a20343058af15a0044ff2412d774b4537fce5",
+    "dd7b3a112819bbc665e478e78765823ee663f1589c6d76d5653c51481c42c400",
+    "5808ac94b5e2c12f799b69690bb35460b4eeb52e756719ea30a6a667c27b2a87"
+  ],
+  "ui/fonts/rafter-sans.ttf": [
+    "743ffed8cdf6b4cad6e830eba45d652cfffdf2f5a643a54ce1a8b0a9d6e3a553",
+    "46249e34480c458f1a6187f85be549b40a814b60a368a9e823003660802c27c9"
+  ],
+  "ui/fonts/OFL.txt": [
+    "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9",
+    "bc518cf64b8032c07690f33cc270c35c179255a6ac8efa7c165ebae7e8f76a63"
+  ],
+  "config.yml": [
+    "ee08f49d159d386eff9b683d2c6fc3c5feb163560ed5e74386013a1bd208efbe",
+    "e48ea063b3ab38e7eece5fd774d8348a80da7610d5b9574778f4e17ac51ed957",
+    "116fb778676adc5ef90809933945c877c7b79ae4a4e21b85a09dcc9569fc9021",
+    "f3ddccf759ca83972623f04db68523af06e12fba326fa0fd65071fde52359b02",
+    "059bc1b62d8856169fd83ba6417731862654c009f757306b1b2d501f5f732076",
+    "182adb526f44056c52b09938406963d02b7b8ca94599f8ade91789dad533f117"
+  ],
+  "ui/images/nav-active.png": [
+    "089518050526d183c845aad8babcd558562f920d78983182ff5c09e6d4221f8f",
+    "9fcc7080ae1a35b7d056213c5d9b4d816e520d6ca953d947b3a652c45a9f09d8"
+  ],
+  "ui/images/nav.png": [
+    "c6156c2fc258ece220f5e66ee1131bce9dcec769e22ea428b3879ebf86bbbe44",
+    "d4c2638fb1bd709b9f3ac318b96393daa88495b836965a0bd0bf901d674206de"
+  ],
+  "ui/images/hero.png": [
+    "f58c63232251a5cb9e62d85c95e234ec469b0e36300e477aeb8aa7e960da96ac",
+    "49d1a70b4752f9da9edbd59bdfd854e408a876589a45bfb33b80a9e64228a985"
+  ],
+  "ui/images/journal-card.png": [
+    "0b8ccde1ca312f766e0c2e7af2d04c61fa638745bb3ec26345e4b204688d3294",
+    "2b57871e23105689d4401ad8f040ead9541f2e330b8fe688fd2fa356d8e0d9b4"
+  ],
+  "ui/images/atlas-card.png": [
+    "96023c4affd1f79b44d6fb9a356dabb7ab1185db065e06f672d4471f732cb277",
+    "617a501039a38a6867574e1d33de7966c6f6117f4fb26979c7239310f6bcb5c2"
+  ],
+  "ui/images/journal.png": [
+    "dc3a60715f7f6c37bfded3c7e6e63ceb34f2ca1688f7d2c252451cc1cf594630",
+    "b871f513a60e8788fe143ec4e96a09cc5ec7cb7c28526442c55e0ce2305b5f7a"
+  ],
+  "ui/images/profile-card.png": [
+    "785d52403811d43655aa90ee9e978bc4ccc899df7048ec5092c002d71d438d97",
+    "5f4e8a36d80e44a898fecf4851d0b8bae82edd8bdde9d3b6ef4a8a684c845d7c"
+  ],
+  "ui/images/frame.png": [
+    "1f681d73ae4a5142e4216a4ca173a9e450fb0cf511f409b8f5db8e31e4fe09fe",
+    "d9ecee7e8e29af8183f065b2e19783832e8a8a78480388b3c83f8b068cf064bf"
+  ],
+  "ui/images/mark.png": [
+    "1867c7b3d85cd8094bc110c053db3f5cab72d6d5a17389dd5da9a2c635b30975",
+    "132774d8810510be1b65055ea34ffe0bc163212dde9bda42b18af2a4a246f574"
+  ],
+  "ui/fonts/rafter-mono.ttf": [
+    "e2dc97873d719bd50924329e89b0e3659c69bcac5c884007f6eab709fc1749a9"
+  ],
+  "ui/images/journal-frame.png": [
+    "9bb6393445300e06c10ba88b0e64a2e94a973c07cc1ca380bf2d1f6440442e19"
+  ],
+  "ui/images/avatar.png": [
+    "49534957af0820a42cbe17daa7a4bd9618330747f62f52dcf1190efd987684c6"
+  ],
+  "ui/images/close.png": [
+    "4f723e487169eb523d8d126996b757a22a0ff9105972691627453806a2601c25"
+  ],
+  "menus/player-preview.yml": [
+    "1d831698a559329fc8acbc3dadd302fa2d49bbc7f136973af7295ddcee2145d6"
+  ],
+  "ui/theme.json": [
+    "d28e1a774e8c565fa66f15871c856714314daa63a6b59c2f922417a79904df8d",
+    "18c5ad79ebceebe4bc859892311bdc952f7262798e8f53d9198f3dcb3a748192"
+  ],
+  "ui/theme.yml": [
+    "acb6c664eff4d9176e918135b777bf8898cf55748f0fac309b4d15c5fccbd591",
+    "1095fab87d4c12b2c82ac3dd1b81380fe805b884273cf66b2ed442f8af02d7ea",
+    "668e487c45e126f254ea54512cbe37ff2e87b86e0fea3c398c85ccde32d1fb1c",
+    "3dc33f444457b38208ba64a831c5d22b8abc84495bbcaeafde32a04ffb3cc067"
+  ],
+  "ui/licenses/rafter-mono.txt": [
+    "bc518cf64b8032c07690f33cc270c35c179255a6ac8efa7c165ebae7e8f76a63"
+  ],
+  "menus/controls.yml": [
+    "d2ea0d4e15aca5fba2e1b347bc4454918b370b50af1cbc24cca4aaa19c92e1e8",
+    "3686b507a97539bf2ce4b26df206c75cbed6765cd58632192af53f53239393a4"
+  ],
+  "menus/workbench.yml": [
+    "3ee81f4fd00287fe20d73160d48d1fc463857fc99f698279c5c405e8fbaebb0a"
+  ],
+  "ui/images/atlas-card@4x.png": [
+    "617a501039a38a6867574e1d33de7966c6f6117f4fb26979c7239310f6bcb5c2"
+  ],
+  "ui/images/avatar@4x.png": [
+    "49534957af0820a42cbe17daa7a4bd9618330747f62f52dcf1190efd987684c6"
+  ],
+  "ui/images/close@4x.png": [
+    "4f723e487169eb523d8d126996b757a22a0ff9105972691627453806a2601c25"
+  ],
+  "ui/images/footer.png": [
+    "c0b7e79523c5beb2fdd0a10ee63998bc1b4ee7125e7dc93c11c88093de60e0b1"
+  ],
+  "ui/images/frame@4x.png": [
+    "d9ecee7e8e29af8183f065b2e19783832e8a8a78480388b3c83f8b068cf064bf"
+  ],
+  "ui/images/hero@4x.png": [
+    "49d1a70b4752f9da9edbd59bdfd854e408a876589a45bfb33b80a9e64228a985"
+  ],
+  "ui/images/journal-card@4x.png": [
+    "2b57871e23105689d4401ad8f040ead9541f2e330b8fe688fd2fa356d8e0d9b4"
+  ],
+  "ui/images/journal-frame@4x.png": [
+    "9bb6393445300e06c10ba88b0e64a2e94a973c07cc1ca380bf2d1f6440442e19"
+  ],
+  "ui/images/journal@4x.png": [
+    "b871f513a60e8788fe143ec4e96a09cc5ec7cb7c28526442c55e0ce2305b5f7a"
+  ],
+  "ui/images/long-header@4x.png": [
+    "a68b424ab39481d0ffd1078282d97aa347b44cf025419083493dd10ceb06ceba"
+  ],
+  "ui/images/mark@4x.png": [
+    "132774d8810510be1b65055ea34ffe0bc163212dde9bda42b18af2a4a246f574"
+  ],
+  "ui/images/nav-active@4x.png": [
+    "9fcc7080ae1a35b7d056213c5d9b4d816e520d6ca953d947b3a652c45a9f09d8"
+  ],
+  "ui/images/nav@4x.png": [
+    "d4c2638fb1bd709b9f3ac318b96393daa88495b836965a0bd0bf901d674206de"
+  ],
+  "ui/images/paper.png": [
+    "a61ff7dce6c13d73e43041a7814c93a38e2317ef7e73711f1cf1b317561d6e79"
+  ],
+  "ui/images/profile-card@4x.png": [
+    "5f4e8a36d80e44a898fecf4851d0b8bae82edd8bdde9d3b6ef4a8a684c845d7c"
+  ],
+  "ui/images/route-card@4x.png": [
+    "90223bff5bd90a8f0fc1b435e94a4533464af7f5d8721c8d82e498c8b49ebd91"
+  ],
+  "ui/images/solid-dark.png": [
+    "aa4082df3484797ffdb85071c2b46fa4c67ad239a0ca4cbf99073ea2172bb110"
+  ],
+  "ui/images/solid-gray.png": [
+    "00370431b3fd87b6dc7ff000adc725c5b83f2357ce08040d8c3f9a56820e2b41"
+  ],
+  "ui/images/solid-green.png": [
+    "360ea15eaffa0b59a5ff7b6fc7b02ec9700981011702b93ac65747430f141679"
+  ],
+  "ui/images/studio/action-primary@4x.png": [
+    "b450a4fff3efca6ca172510a7ad7f86aa6224dc2f833402c241986031886e3aa"
+  ],
+  "ui/images/studio/action-secondary@4x.png": [
+    "826d06bb678ae33c34fe405bd4f5a033a8fead455cc19e47ff00737e497a8246"
+  ],
+  "ui/images/studio/card@2x.png": [
+    "186d51663e4a74c663351be9020aa53bc5b2dabbdc3349a0ae6e701c86ab9a6d"
+  ],
+  "ui/images/studio/folio@2x.png": [
+    "276b62025d25c33fe76ba84c8ed94336c30a90827a46d5d55ae7297cacdd0863"
+  ],
+  "ui/images/studio/map@4x.png": [
+    "1d54a834a9ab505edcc2f71a8fe0c14c2af308d73707b5b131beff9f7c5a70d1"
+  ],
+  "menus/friends.yml": [
+    "dfd8eebaaa386cbe2e0a02b34750c1bc8e186ff234ddb50df6c4ed37afc55f3b",
+    "2a1a47d1349949dd263cfa627b26b4955fca361a8c9ddeacf7f1bdf4c71d5271",
+    "6ad5de06c178d55638e7e3d1cc0dc931e3189294df99f42e454138c5d928aeb0",
+    "db4af16534258914e997c0cf5212cb36774d725af2b37a429649258e649c913b",
+    "b447860b7fa715e98793b08dc22c6b76a094fb7b9a7e38deaf019445b495f94c",
+    "2e62911dc0863b481e3c7b8e028258ba16c416f7773ab90071e1754aca7e324b",
+    "a9f938494c135d375912e2a492fabcd073ad6bd8f379ec59d46708489677cffe",
+    "6ddd367cac90c1cfa71daa7004e65f42dd7f511f7d86107f885141878b784096",
+    "cf5209236d885e9e410e555c3e9189eb671b794de2c318993274d0b50f38441b",
+    "fab55bd8030b05761398852e67ae1e2699a3a46953cf510fadc8698670150d81",
+    "3e955fd23cfeed65564215abb7cff68c222737a3a9e8494ddcc368e6902fd0d8",
+    "ff69ab8a5b299a13fe51afa66e26bcb6e72d3f32d7135843782f804ec8d948e1",
+    "7f91e35b10687463e90ac66bc62686cab2c2dad6f5d71a2cb8210f335422fb7d",
+    "15a5f7392522075c16e84d7477e9a50b67b3681dc48ed4aed9513ac06332de4f"
+  ],
+  "ui/images/friends/buttons/add_friend_default.png": [
+    "5af1674dfdf0c3c168c43cc71e6314fad732f28806598894b116fc75be3643fe",
+    "17ca8e5b38ec06f6493a84b00fc0334e03b5e52c8e8d774273b1c5e1f0d8ba13"
+  ],
+  "ui/images/friends/dialogs/remove_friend.png": [
+    "d1f1a0381aaca75cc5f9cf41c98c71cf92f31c32bc8b1ec4620020306f71e78b",
+    "de06bf85a17eb53ddaa7780ebc5031259fde16bf8473185c30b905f9ab420966",
+    "69844f79a5de3e1e4eed7bf9242906dac3f4e882f6d1a4b9f3eb545ada63e780"
+  ],
+  "ui/images/friends/panels/more_menu.png": [
+    "d72ece181594f70c8628ad76c1dd0e2dd34c0a3f551b17247d9cbcec0fbcdaf1",
+    "a78f38758b0b2d8fc6d324be049fff86c107a72ee8e6fd5f6a6c7672a2db7334"
+  ],
+  "ui/images/friends/panels/sidebar_default.png": [
+    "2def5c0e7a38518abb4232553c1b4d79ae37edf0e09972b4d59a43063b33fa1b",
+    "c248aca7fc9a542682a74a96faef8326513758965038d66014a1c0dfb0ff4fde"
+  ],
+  "ui/images/friends/panels/sidebar_disabled.png": [
+    "72f4978f8b2b5c55f0cf4917a2275bc9d14f7b302b0397f78e519474f795f091",
+    "6d0ac4cc306feadae43cb613add4018ee884aba610ce0168039aa2df9a3c1c0f"
+  ],
+  "ui/images/friends/requests/row_default.png": [
+    "c2a16a211bf497ccabf50d2c4942ea378ee9009f89e6202faa3d07b75d6c71d1",
+    "1dd25da744452f133896134b986eaf5b0aea8ccdc7aaad6c73df5b472a6ea74c"
+  ],
+  "ui/images/friends/rows/offline_default.png": [
+    "fb7deb3355a52c5bf09b93d5ac14e93af20e64bc58319d01fb333993213c6901",
+    "8c4ab6ccb11a13f52008f273b9966a1b4cc4f61529a95d51ecbb74b148468c7c"
+  ],
+  "ui/images/friends/rows/offline_selected.png": [
+    "4bafe0b596b84bc55c3de256b4de7cd447b207c96ebae3fe73badabce7961905",
+    "38a755ecca6f338b82887b1602d996ef946ccdb8615d75e432e498afb134dc55"
+  ],
+  "ui/images/friends/rows/online_default.png": [
+    "55b15d196c7f2b856931c08ba3df43f384acb03cc3af500bbebbbb7790f03d87",
+    "8c4ab6ccb11a13f52008f273b9966a1b4cc4f61529a95d51ecbb74b148468c7c"
+  ],
+  "ui/images/friends/rows/online_selected.png": [
+    "1b11e4719fb1d7d517d1839567ea63932f132ed5fb527564f7250bc566e28b80",
+    "38a755ecca6f338b82887b1602d996ef946ccdb8615d75e432e498afb134dc55"
+  ],
+  "ui/images/friends/panels/sidebar_open.png": [
+    "4dc354f6885fc50990fb7f0db4f17066070e8fc93b68ce187ef41fafc14a3c18",
+    "43a8d07f117c79171ce69ae1332d3c59ae5a973dce2efc7b85ae0556e0525680"
+  ],
+  "templates/friends/header.yml": [
+    "df6020149ed80b2c812b05f3345c22157f3017405d8e054e677b4c15f32d4584",
+    "a94966a760d89f1fe8764c06194b10059d5027855dfa09a8592dac56e35010ea"
+  ],
+  "templates/friends/row.yml": [
+    "eff16c5455846e628d9ef2ae2add33f78a66c4bfe8853c9ad80b0d06046e1a19",
+    "25f4d2891e4c280d6c2c5f4b753b97df968341db0aee9550504b78516862e477"
+  ],
+  "templates/friends/details.yml": [
+    "c5726a2679631ef6decf7664057320de6ddd96b795e30cdba9f7f1595056bb68",
+    "17218d9733df2a184ae6accfa0d98f9e820f6b549ca9caee808ab0a7ece3bd1e"
+  ],
+  "ui/skins/friends/add.yml": [
+    "b6619f741be1c4bb23d4cd3314684cd4304046517b4c7d39698b71f04688c1c9",
+    "38ed572bc1c3ce7ede8207520e446695a5cfe82a0d1d73613417ec23416322f2",
+    "40af70139fec426f2e2f5fc0e7ab7d915ea4feda620e31ce97fe37c2cc1bc169",
+    "86fd2540e0ac99cbde91ac70d1fa3e6f2f5975ed67cf00d1ec7e79aa15ff2da2"
+  ],
+  "ui/skins/friends/search.yml": [
+    "a1cc1f316d7d3b50cb35d6dd3b70b82430772e26004e84a095cfd66685490f98",
+    "043f3a45d50bdc3853427850968dcbeef4c1d0f69807e8e7ae9d72515cf338e2",
+    "cacb679ac8067340d8a273f4eb59154e9b359dd55ce38c984fe0913238eb9fbb"
+  ],
+  "ui/skins/friends/chat.yml": [
+    "5655cc091ac9c7b5df39567a887e7932e658bca75964d7cd3368e53be75f315e",
+    "ca64b863e065cf0980ec5135941bb81c0b7d0c78aa65b2807716d5d3d366ae0b",
+    "77f20f08a37eecdf46b31d437edccbd2d56a1779af05816e6ef1b7d65137535e"
+  ],
+  "ui/skins/friends/memo.yml": [
+    "5eeea487cee10e810cdcc4785198c4453f8c2332213d37e622104130dc1a7a93",
+    "6e91d23d3c9b30930afbb7be104337973b2726c26728bcc73f878d74d647eaba",
+    "aaa45104f0688151715f4c99c4d31297d76af0b794dcb26e4b39eefe0186bc16"
+  ],
+  "ui/skins/friends/remove.yml": [
+    "b8c73a5f508f656218c7c7fd10545471abdb9bd580b298c3ae635611a4a9f381",
+    "3e25a44dec1fb73af56050a453ad1c19afef07ca8ee00b55c453db0b39343e5c",
+    "ebe0d6275eb8405f620d305947121d118ea71a05b6da65303042e4c594a940d0"
+  ],
+  "ui/skins/friends/home.yml": [
+    "f23772f2e443a13a68530cceaa62e17c797c48c4476a4395d31c8c112998c215",
+    "ae1d01350194a86838e0834ed188b0849cbd5e91cae89ebbd433eaa9e1a95a49"
+  ],
+  "ui/images/friends/dialogs/search.png": [
+    "5a286b78dd6fd710409a13a4a68552497959256e39d59e8893846f5c56de0767",
+    "77cf2f6bc9b880581b0387b4676dab725ed3a90f11d9db8ab16eb407445eb1f6"
+  ],
+  "ui/images/friends/dialogs/memo.png": [
+    "5a286b78dd6fd710409a13a4a68552497959256e39d59e8893846f5c56de0767",
+    "77cf2f6bc9b880581b0387b4676dab725ed3a90f11d9db8ab16eb407445eb1f6"
+  ],
+  "ui/images/friends/backgrounds/list_pane.png": [
+    "09d3468551d7418e3d3df58cacdc7f4d74e24e8486b5b5949bd4eec447977016"
+  ],
+  "ui/images/friends/backgrounds/window.png": [
+    "952e3f2b7b633d9c0f576cfb0f6304318bc814386526d215574a8611da1399c1"
+  ],
+  "ui/images/friends/buttons/cancel_default.png": [
+    "dcbbe0df9cbd9940db865cf105ce7eab22e34086253746a6a79adb872d5f5718"
+  ],
+  "ui/images/friends/buttons/confirm_remove_default.png": [
+    "23c0309b0d70ca075bb0fa57f02c9439d2da5a205da5baee7897708336bb8507"
+  ],
+  "ui/images/friends/buttons/confirm_search_default.png": [
+    "cbb80187284cca826a6b6b3def36bf9e20a9e588803c9969738994fb619eede5"
+  ],
+  "ui/images/friends/buttons/page_next_default.png": [
+    "2a79282b157c178f04a5c1361545098a429ae810bd920be0803725d043712dff"
+  ],
+  "ui/images/friends/buttons/page_next_disabled.png": [
+    "471d4411d84043d86c59887e9bb5ce29b507fded1d7c4c5f8b1ee4de189f0602"
+  ],
+  "ui/images/friends/buttons/page_previous_default.png": [
+    "638600042acfbbc538854ab8d823e32bab9ede99d604d6fc31c1526110b8243c"
+  ],
+  "ui/images/friends/buttons/page_previous_disabled.png": [
+    "275471d98ba0cdc3775b51992001090ae7cc144080d5bc094cc19295913eb769"
+  ],
+  "ui/images/friends/dialogs/add.png": [
+    "8c5d9a051b157408a545b4f452a388b2e9e7b8d42f7bc66430d73fc49d8e5399"
+  ],
+  "ui/images/friends/dialogs/chat.png": [
+    "c6bf46315b58d7f1ce8cbc04d70b6e14f1d3adb8f3f109feb5b84fe456b32aa3"
+  ],
+  "ui/images/friends/layers/header.png": [
+    "cf7f6ead5f072cc398b4dbd420a6b783cf95d0e1a046afef88fb1a275ade1de4"
+  ],
+  "ui/images/friends/panels/sidebar_offline.png": [
+    "c78da35ff10dd5e1fb45a5e0722fc175577e9cc037b183fd5fd3f2170ed1a082"
+  ],
+  "ui/images/friends/search/default.png": [
+    "b84c127fa645a4f835b6d5fecc802aac7d309d83cf9c09567b8ffd5d97050333"
+  ],
+  "ui/images/friends/tabs/active.png": [
+    "ed66133d91bd238747a3813dc16a3157fe54cedec4f4c90319b825cf271c84ea"
+  ],
+  "ui/images/friends/tabs/default.png": [
+    "7f84211b7a23c58eefffbc54cecaacdea05586baff22895a283ceeb964230332"
+  ],
+  "data/friends.yml": [
+    "268b06a7559cab9bf5e6a72f8ee7ed7a9952c02b79453a021df3ad720127ef70"
+  ],
+  "data/requests.yml": [
+    "647062b2d5eb3f978295883d082974cad56e2e1b030067202ec969b06e9f79ba"
+  ],
+  "templates/friends/request-row.yml": [
+    "db401cd4789b97b46bb9e95ece66a8c051e53ae723a08911f85b185350957776"
+  ],
+  "core/menus/tasks.yml": [
+    "7a2319668491302820564ede8d9771e41473bdcd78dad460e392c3bc84a8a1ef",
+    "98912afc4480ec9d8bae6ee4ab4ec16533ade766fd5a2e7fb2601de4d56039ec"
+  ],
+  "core/ui/images/tasks/menus/types_achievements_page_1.png": [
+    "c26fbe0027c589a2e698f3517355b12bdf238f64aa2597d5713da712cc06ee44",
+    "b6205a81d671214e289bedd20b2ddf4a1d4876c8a8088ed02453056c293d9822"
+  ],
+  "core/ui/images/tasks/menus/types_achievements_page_2.png": [
+    "1037431a1771b9d825127366bea5899b36405cb65aa4dd406ec8df608498881f",
+    "387111c33af284983296f66b9db1f26fdca148f1db17e42c403cd4d94bf9b58f"
+  ],
+  "core/ui/images/tasks/menus/types_commissions_page_1.png": [
+    "478d571f980441eea59abe832e0ad30d5fb868eec2cf49b61d0c36e41e73dadf",
+    "37965adb999b8876dfc663c530248aabf59ec6bb7bc6e4f438b568e3a5ff18a2"
+  ],
+  "core/ui/images/tasks/menus/types_commissions_page_2.png": [
+    "e2ef3e7fbb8e6e9d7ff81728b2efbdc54bc30148f1660c62b333ec4732effd14",
+    "8fd5e1d2d5f1f605ff1fae01efe515e65135219e5dadd922b7a6052c677be246"
+  ],
+  "core/ui/images/tasks/menus/types_daily_page_1.png": [
+    "50632d8f7a504ce7e6595f11d77e5d3b9db2e134c868e3fae2dd70a24db19c8c",
+    "64b9bc044ee8493ffec4ef5673db315c2f3ae474fa075eaba3e93c771b5b0512"
+  ],
+  "core/ui/images/tasks/menus/types_daily_page_2.png": [
+    "e2ef3e7fbb8e6e9d7ff81728b2efbdc54bc30148f1660c62b333ec4732effd14",
+    "8fd5e1d2d5f1f605ff1fae01efe515e65135219e5dadd922b7a6052c677be246"
+  ],
+  "core/ui/images/tasks/menus/types_events_page_1.png": [
+    "90add678aaf3ba6839f6c089859782aa57b91b713845d244dbd3602a235bebc2",
+    "f1a0d1a247d197560eaeef1820976f8af32f7096b0695179a66b3e31386a03f1"
+  ],
+  "core/ui/images/tasks/menus/types_events_page_2.png": [
+    "e2ef3e7fbb8e6e9d7ff81728b2efbdc54bc30148f1660c62b333ec4732effd14",
+    "8fd5e1d2d5f1f605ff1fae01efe515e65135219e5dadd922b7a6052c677be246"
+  ],
+  "core/ui/images/tasks/menus/types_story_page_1.png": [
+    "c26fbe0027c589a2e698f3517355b12bdf238f64aa2597d5713da712cc06ee44",
+    "b6205a81d671214e289bedd20b2ddf4a1d4876c8a8088ed02453056c293d9822"
+  ],
+  "core/ui/images/tasks/menus/types_story_page_2.png": [
+    "3baa36a5d6ac1a0c796d285bb0730772880f2f15e77175850ccc5f674a41bf3c",
+    "9cdd3ec11c28bf907b098422122aec4b00169478b8196d668bae3eac53243d2a"
+  ],
+  "core/ui/images/tasks/menus/types_weekly_page_1.png": [
+    "ac17a6eed90f7e6d64595674380fa5d7df2eb8fe48cb7c6730e6a834a6163468",
+    "cacc536eb7cc5bd3db6fa379dfdc0e150d76b7cce1ebb73beb3866a08e35fff2"
+  ],
+  "core/ui/images/tasks/menus/types_weekly_page_2.png": [
+    "e2ef3e7fbb8e6e9d7ff81728b2efbdc54bc30148f1660c62b333ec4732effd14",
+    "8fd5e1d2d5f1f605ff1fae01efe515e65135219e5dadd922b7a6052c677be246"
+  ],
+  "core/ui/skins/tasks/journal.yml": [
+    "55e61d8e5683103abc942b08de005faef155508976f2e6247fded6bd501b57aa",
+    "78c2037794ed1e204ce048b792c4c6808b35081bdc0e60ea88bf2fa0556c9cfe"
+  ],
+  "core/ui/images/tasks/dialogs/dim.png": [
+    "1c4c4508709401c13a2fd119e7a13c0ba4ceef6920b15068ec6dea506ca86798"
+  ],
+  "core/ui/images/tasks/rows/claimed_default__pad1.png": [
+    "e8b87a954579ced8140d102129b4e60abf212d16773b0b6b9bdea51f014b4b3c"
+  ],
+  "core/ui/images/tasks/dialogs/weekly_builder__pad4.png": [
+    "d913f1304b1a891b858e120fdf7f5c7cc7797aab1d45643cf6fe2ec01df57a41"
+  ],
+  "core/ui/images/tasks/progress/commissions.png": [
+    "188fe5e9ef85f9bf264ad4c65c4fd78a2baa0cce37cd9f675055e48bd47e02ab"
+  ],
+  "core/ui/images/tasks/progress/events.png": [
+    "188fe5e9ef85f9bf264ad4c65c4fd78a2baa0cce37cd9f675055e48bd47e02ab"
+  ],
+  "core/ui/images/tasks/rows/expired_default__pad1.png": [
+    "e8b87a954579ced8140d102129b4e60abf212d16773b0b6b9bdea51f014b4b3c"
+  ],
+  "core/ui/images/tasks/dialogs/farm__pad4.png": [
+    "458ce8efc83bf51c14c9bedb2c14ecb472dc236b41242baddae19b42bf73b42b"
+  ],
+  "core/ui/images/tasks/dialogs/rush_delivery__pad4.png": [
+    "266dfe637caf3c67433cb8d376a0d14ac25ef3ad5a69b9656039bb392272def7"
+  ],
+  "core/ui/images/tasks/rows/expired_default__pad7.png": [
+    "d87d817e2cfbc40ce637ac6cc6b74c1556ea5d12d08bcc626e57065e02978fcd"
+  ],
+  "core/ui/images/tasks/layers/header__pad3.png": [
+    "6f5005204bd749f30f7e896ec2e74cd0ff59c544f3e44c5d4aef8a854ad6cdd9"
+  ],
+  "core/ui/images/tasks/progress/daily.png": [
+    "75b1609d55013720488cd3c83be1ac4be88d1b099f7355f927f7d035c291bb2e"
+  ],
+  "core/ui/images/tasks/rows/claimed_default__pad4.png": [
+    "4eed105fce7e46146b04c312bedf5a1e42eda579193642c7a5460563a900ec1b"
+  ],
+  "core/ui/images/tasks/buttons/dialog_claimed__pad7.png": [
+    "90f043dbcd4d2430d75c04ef4eff22129fd45a90d508007b378d3c596284d10c"
+  ],
+  "core/ui/images/tasks/backgrounds/window__pad3.png": [
+    "03a1c55fc78225f5c12229626eb3d2995e07f113aad6b693ef887e1170ee760d"
+  ],
+  "core/ui/images/tasks/rows/locked_default__pad7.png": [
+    "d87d817e2cfbc40ce637ac6cc6b74c1556ea5d12d08bcc626e57065e02978fcd"
+  ],
+  "core/ui/images/tasks/rows/locked_default__pad1.png": [
+    "e8b87a954579ced8140d102129b4e60abf212d16773b0b6b9bdea51f014b4b3c"
+  ],
+  "core/ui/images/tasks/buttons/type_open_default.png": [
+    "306ee9ad5e95535804573a8b2f27090495b06a586e75d81bb43fcf1c6dbb944b"
+  ],
+  "core/ui/images/tasks/rows/active_default__pad7.png": [
+    "74c048f01310591ddedfd0b5e0174e67f55d80745bd2a6900967181591d2f497"
+  ],
+  "core/ui/images/tasks/rows/ready_default__pad7.png": [
+    "b856bdeb008226331792eedbc889b20beb8902eef06a7dec7180467285d64a07"
+  ],
+  "core/data/tasks.yml": [
+    "e52d93711a40a25e2c5b370ea2fb9fa4ac08a7b58a0cbce41394e6bed8b5de2a"
+  ],
+  "core/ui/images/tasks/buttons/previous_default__pad6.png": [
+    "0bea7c55909a691146fa947412b9720331d5cf96919f95f3cc453bc9a62112bd"
+  ],
+  "core/ui/images/tasks/buttons/previous_disabled__pad6.png": [
+    "90971c157562f083fe33bdf2b21e4827c1ab7d17e379b64d03b51ac115bc655b"
+  ],
+  "core/ui/images/tasks/progress/weekly.png": [
+    "ba751cbe77ef70573d5d79c0b8dd965c3e0ecee83c5df12d426012110a2b64b3"
+  ],
+  "core/ui/images/tasks/dialogs/commission_supply__pad4.png": [
+    "47dc2a34d4d668b3cf840dda8f798d9c4773072773838cd062c598d1cdbce575"
+  ],
+  "core/ui/images/tasks/buttons/next_disabled__pad6.png": [
+    "2a9ce99ae20d187158b1a007b9e08af788392e3b2a0516cb9bc85052d604147a"
+  ],
+  "core/ui/images/tasks/dialogs/camp_greeting__pad4.png": [
+    "b8fcce069ed3d08c732b4b9f2e71a3aae275973d50b9e7b959ba1fc38ef4c8fa"
+  ],
+  "core/ui/images/tasks/rows/active_default__pad1.png": [
+    "d0c9097ea38978f8c737b8a552cbfe6519010aed53979de70837815ca6c4d2ae"
+  ],
+  "core/ui/images/tasks/dialogs/weekly_builder_goals_2__pad4.png": [
+    "afdc6e93d1900997f2096c1f59cfcc80b74bcb62dcf57d7868ccca28524b6244"
+  ],
+  "core/ui/images/tasks/dialogs/forest_patrol__pad4.png": [
+    "5b2d774c214704066ea5b46da8073126789a7acc4b7256a29610f37d97a4c0de"
+  ],
+  "core/ui/images/tasks/progress/achievements.png": [
+    "188fe5e9ef85f9bf264ad4c65c4fd78a2baa0cce37cd9f675055e48bd47e02ab"
+  ],
+  "core/ui/images/tasks/rows/expired_default__pad4.png": [
+    "4eed105fce7e46146b04c312bedf5a1e42eda579193642c7a5460563a900ec1b"
+  ],
+  "core/ui/images/tasks/progress/story.png": [
+    "188fe5e9ef85f9bf264ad4c65c4fd78a2baa0cce37cd9f675055e48bd47e02ab"
+  ],
+  "core/ui/images/tasks/rows/locked_default__pad4.png": [
+    "4eed105fce7e46146b04c312bedf5a1e42eda579193642c7a5460563a900ec1b"
+  ],
+  "core/ui/images/tasks/buttons/next_default__pad6.png": [
+    "d7bcb26b02f3f79e6d6e3c36c2eed057b1d6e38368075c49df893d78ce532c95"
+  ],
+  "core/ui/images/tasks/dialogs/weekly_explorer__pad4.png": [
+    "d43694b75d6b8b93ccd35dfbd67c28346d979fe204d417ec0e8c5e35171e250d"
+  ],
+  "core/ui/images/tasks/dialogs/craft__pad4.png": [
+    "de1bcd800388659ceb648485b641a236f748c12fa9c0481b3367d562f16db7a1"
+  ],
+  "core/ui/images/tasks/rows/ready_default__pad1.png": [
+    "4b9a271b16ef0b525b18cd7e314ca127924724b74ff8a53f9dcb875b7a2027cd"
+  ],
+  "core/ui/templates/tasks/row.yml": [
+    "feef7d103beb707d751ab3a7731c37230339a57ef8f62e55b38f38dcddeb86af"
+  ],
+  "core/ui/images/tasks/rows/active_default__pad4.png": [
+    "e939516b9271c12db0d663db1ba2b338205c4f48a3a4887285609dff6063d1e3"
+  ],
+  "core/ui/images/tasks/rows/ready_default__pad4.png": [
+    "e0eb3bf5fb40ac4e0a5e07b38170c45505d5801ffbf995274ceade3188da6bd1"
+  ],
+  "core/ui/images/tasks/buttons/type_closed_default.png": [
+    "32860756fbcb4daaba2b2ea0805076068b8d705690c832951b1574fc387ebc29"
+  ],
+  "core/ui/images/tasks/dialogs/ore_supply__pad4.png": [
+    "d603327b6baa156b3672d99acd2b4110851b820a285552c07b7e144bd0b2d6ad"
+  ],
+  "core/ui/images/tasks/rows/claimed_default__pad7.png": [
+    "d87d817e2cfbc40ce637ac6cc6b74c1556ea5d12d08bcc626e57065e02978fcd"
+  ],
+  "core/ui/images/tasks/dialogs/first_steps__pad4.png": [
+    "1ff554017a44eb22bd45ca8bde9040bdd49e6d02c2facc493455222c54bd3868"
+  ]
+}

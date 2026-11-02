@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rafter UI"
+  short_description: "从素材与需求完成 Rafter Dialog 界面、Kether 与交互"
+  default_prompt: "使用 $rafter-ui，按目标 Rafter 能力完成界面、交互与定向检查。"

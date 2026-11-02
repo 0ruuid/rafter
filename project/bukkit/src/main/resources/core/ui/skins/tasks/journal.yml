@@ -1,0 +1,1315 @@
+# 左栏与主窗整体居中；设计坐标不含资源包补边。
+id: "rafter:tasks/journal"
+page:
+  mode: "canvas"
+  title: ""
+  width: 800
+  height: 360
+  elements:
+    -
+      id: "window"
+      type: "image"
+      x: 228
+      y: 12
+      width: 560
+      height: 336
+      asset: "rafter:tasks/backgrounds/window"
+      fit: "contain"
+    -
+      id: "header"
+      type: "image"
+      x: 228
+      y: 12
+      width: 560
+      height: 336
+      asset: "rafter:tasks/layers/header"
+      fit: "contain"
+    -
+      id: "main-labels"
+      type: "group"
+      elements:
+        -
+          id: "title"
+          type: "text"
+          x: 268
+          y: 24
+          width: 244
+          overflow: "clip"
+          align: "left"
+          text:
+            format: "literal"
+            value: "任务清单"
+            color: "#FAFAFA"
+        -
+          id: "ready-count"
+          type: "text"
+          x: 744
+          y: 24
+          width: 208
+          overflow: "clip"
+          align: "right"
+          text:
+            format: "parts"
+            color: "#A9ACAD"
+            parts:
+              - "待领取 "
+              -
+                format: "literal"
+                binding:
+                  type: "list"
+                  list: "tasks"
+                  key: "count"
+                  field: "phase"
+                  value: "ready"
+              - " 项奖励"
+        -
+          id: "category"
+          type: "text"
+          x: 252
+          y: 59
+          width: 128
+          overflow: "clip"
+          align: "left"
+          text:
+            format: "literal"
+            binding:
+              type: "record"
+              source: "categories"
+              state: "category"
+              key: "label"
+            color: "#FAFAFA"
+        -
+          id: "progress-label"
+          type: "text"
+          x: 392
+          y: 56
+          width: 168
+          overflow: "clip"
+          align: "left"
+          text:
+            format: "parts"
+            color: "#CDCFD0"
+            parts:
+              - "本类进度  "
+              -
+                format: "literal"
+                binding:
+                  type: "record"
+                  source: "categories"
+                  state: "category"
+                  key: "completed"
+              - " / "
+              -
+                format: "literal"
+                binding:
+                  type: "record"
+                  source: "categories"
+                  state: "category"
+                  key: "total"
+        -
+          id: "reset"
+          type: "text"
+          x: 776
+          y: 60
+          width: 192
+          overflow: "clip"
+          align: "right"
+          text:
+            format: "literal"
+            binding:
+              type: "record"
+              source: "categories"
+              state: "category"
+              key: "reset"
+            color: "#A9ACAD"
+        -
+          id: "progress"
+          type: "meter"
+          x: 392
+          y: 72
+          width: 168
+          height: 4
+          value:
+            type: "record"
+            source: "categories"
+            state: "category"
+            key: "completed"
+          max:
+            type: "record"
+            source: "categories"
+            state: "category"
+            key: "total"
+          fill: "#609A50"
+          track: "#272A2B"
+        -
+          id: "empty-title"
+          type: "text"
+          x: 508
+          y: 178
+          width: 512
+          overflow: "clip"
+          align: "center"
+          text:
+            format: "literal"
+            value: "暂无任务"
+            color: "#A9ACAD"
+          visible:
+            type: "equals"
+            binding:
+              type: "list"
+              list: "tasks"
+              key: "total"
+            value: 0
+        -
+          id: "empty-hint"
+          type: "text"
+          x: 508
+          y: 202
+          width: 512
+          overflow: "clip"
+          align: "center"
+          text:
+            format: "literal"
+            value: "可以切换左侧任务类型"
+            color: "#A9ACAD"
+          visible:
+            type: "equals"
+            binding:
+              type: "list"
+              list: "tasks"
+              key: "total"
+            value: 0
+        -
+          id: "page"
+          type: "text"
+          x: 288
+          y: 318
+          width: 48
+          overflow: "clip"
+          align: "center"
+          text:
+            format: "parts"
+            color: "#CDCFD0"
+            parts:
+              -
+                format: "literal"
+                binding:
+                  type: "list"
+                  list: "tasks"
+                  key: "page"
+              - " / "
+              -
+                format: "literal"
+                binding:
+                  type: "list"
+                  list: "tasks"
+                  key: "pages"
+          variants:
+            -
+              when:
+                type: "equals"
+                binding:
+                  type: "list"
+                  list: "tasks"
+                  key: "total"
+                value: 0
+              override:
+                text:
+                  format: "literal"
+                  value: "0 项"
+                  color: "#CDCFD0"
+        -
+          id: "footer"
+          type: "text"
+          x: 356
+          y: 318
+          width: 408
+          overflow: "clip"
+          align: "left"
+          text:
+            format: "literal"
+            value: "选择任务，查看完整条件和奖励"
+            color: "#A9ACAD"
+    -
+      id: "tasks"
+      type: "slot"
+      required: true
+      component:
+        type: "list"
+        x: 240
+        y: 88
+        template: "rafter:tasks/row"
+        page-size: 5
+        row-height: 42
+    -
+      id: "back"
+      type: "hit-area"
+      x: 240
+      y: 18
+      width: 20
+      height: 27
+      actions:
+        -
+          type: "close"
+    -
+      id: "close"
+      type: "hit-area"
+      x: 756
+      y: 18
+      width: 20
+      height: 27
+      actions:
+        -
+          type: "close"
+    -
+      id: "type-panel"
+      type: "image"
+      x: 12
+      y: 54
+      width: 204
+      height: 240
+      asset: "rafter:tasks/menus/type_panel"
+      fit: "contain"
+    -
+      id: "types-heading"
+      type: "text"
+      x: 24
+      y: 64
+      width: 148
+      overflow: "clip"
+      align: "left"
+      text:
+        format: "literal"
+        value: "任务类型"
+        color: "#FAFAFA"
+    -
+      id: "categories"
+      type: "slot"
+      required: true
+      component:
+        type: "list"
+        x: 16
+        y: 88
+        template: "rafter:tasks/category"
+        page-size: 4
+        row-height: 42
+    -
+      id: "types-page"
+      type: "text"
+      x: 114
+      y: 270
+      width: 124
+      overflow: "clip"
+      align: "center"
+      text:
+        format: "parts"
+        color: "#CDCFD0"
+        parts:
+          -
+            format: "literal"
+            binding:
+              type: "list"
+              list: "categories"
+              key: "page"
+          - " / "
+          -
+            format: "literal"
+            binding:
+              type: "list"
+              list: "categories"
+              key: "pages"
+    -
+      id: "tasks-previous-art"
+      type: "image"
+      x: 240
+      y: 312
+      width: 20
+      height: 24
+      asset: "rafter:tasks/buttons/previous_disabled"
+      fit: "contain"
+      variants:
+        -
+          when:
+            type: "equals"
+            binding:
+              type: "list"
+              list: "tasks"
+              key: "has-previous"
+            value: true
+          override:
+            asset: "rafter:tasks/buttons/previous_default"
+    -
+      id: "tasks-previous-hit"
+      type: "hit-area"
+      target: "tasks-previous-art"
+      actions:
+        -
+          type: "page-list"
+          list: "tasks"
+          step: -1
+      enabled:
+        type: "equals"
+        binding:
+          type: "list"
+          list: "tasks"
+          key: "has-previous"
+        value: true
+    -
+      id: "tasks-next-art"
+      type: "image"
+      x: 316
+      y: 312
+      width: 20
+      height: 24
+      asset: "rafter:tasks/buttons/next_disabled"
+      fit: "contain"
+      variants:
+        -
+          when:
+            type: "equals"
+            binding:
+              type: "list"
+              list: "tasks"
+              key: "has-next"
+            value: true
+          override:
+            asset: "rafter:tasks/buttons/next_default"
+    -
+      id: "tasks-next-hit"
+      type: "hit-area"
+      target: "tasks-next-art"
+      actions:
+        -
+          type: "page-list"
+          list: "tasks"
+          step: 1
+      enabled:
+        type: "equals"
+        binding:
+          type: "list"
+          list: "tasks"
+          key: "has-next"
+        value: true
+    -
+      id: "categories-previous-art"
+      type: "image"
+      x: 24
+      y: 264
+      width: 20
+      height: 24
+      asset: "rafter:tasks/buttons/previous_disabled"
+      fit: "contain"
+      variants:
+        -
+          when:
+            type: "equals"
+            binding:
+              type: "list"
+              list: "categories"
+              key: "has-previous"
+            value: true
+          override:
+            asset: "rafter:tasks/buttons/previous_default"
+    -
+      id: "categories-previous-hit"
+      type: "hit-area"
+      target: "categories-previous-art"
+      actions:
+        -
+          type: "page-list"
+          list: "categories"
+          step: -1
+      enabled:
+        type: "equals"
+        binding:
+          type: "list"
+          list: "categories"
+          key: "has-previous"
+        value: true
+    -
+      id: "categories-next-art"
+      type: "image"
+      x: 184
+      y: 264
+      width: 20
+      height: 24
+      asset: "rafter:tasks/buttons/next_disabled"
+      fit: "contain"
+      variants:
+        -
+          when:
+            type: "equals"
+            binding:
+              type: "list"
+              list: "categories"
+              key: "has-next"
+            value: true
+          override:
+            asset: "rafter:tasks/buttons/next_default"
+    -
+      id: "categories-next-hit"
+      type: "hit-area"
+      target: "categories-next-art"
+      actions:
+        -
+          type: "page-list"
+          list: "categories"
+          step: 1
+      enabled:
+        type: "equals"
+        binding:
+          type: "list"
+          list: "categories"
+          key: "has-next"
+        value: true
+  popups:
+    detail:
+      hide-underlay:
+        - "main-labels"
+        - "tasks"
+      elements:
+        -
+          id: "detail-outside"
+          type: "hit-area"
+          x: 0
+          y: 0
+          width: 800
+          height: 360
+          actions:
+            -
+              type: "close-popup"
+        -
+          id: "detail-dim"
+          type: "image"
+          x: 228
+          y: 12
+          width: 560
+          height: 336
+          fit: "contain"
+          asset: "rafter:tasks/dialogs/dim"
+        -
+          id: "detail-art"
+          type: "image"
+          x: 240
+          y: 40
+          width: 536
+          height: 280
+          asset: "rafter:tasks/dialogs/base"
+          fit: "contain"
+        -
+          id: "left-shield"
+          type: "hit-area"
+          x: 240
+          y: 36
+          width: 284
+          height: 288
+          actions: []
+          enabled:
+            type: "constant"
+            value: false
+        -
+          id: "right-shield"
+          type: "hit-area"
+          x: 536
+          y: 36
+          width: 240
+          height: 288
+          actions: []
+          enabled:
+            type: "constant"
+            value: false
+        -
+          id: "backdrop-title"
+          type: "text"
+          x: 268
+          y: 24
+          width: 244
+          overflow: "clip"
+          align: "left"
+          text:
+            format: "literal"
+            value: "任务清单"
+            color: "#828282"
+        -
+          id: "detail-heading"
+          type: "text"
+          x: 256
+          y: 53
+          width: 120
+          overflow: "clip"
+          align: "left"
+          text:
+            format: "literal"
+            value: "任务详情"
+            color: "#A9ACAD"
+        -
+          id: "goals-heading"
+          type: "text"
+          x: 552
+          y: 53
+          width: 144
+          overflow: "clip"
+          align: "left"
+          text:
+            format: "literal"
+            value: "任务目标"
+            color: "#FAFAFA"
+        -
+          id: "detail-title"
+          type: "text"
+          x: 256
+          y: 89
+          width: 252
+          overflow: "clip"
+          align: "left"
+          text:
+            format: "literal"
+            binding:
+              type: "record"
+              source: "tasks"
+              state: "selected-task"
+              key: "title"
+            color: "#FAFAFA"
+        -
+          id: "detail-category"
+          type: "text"
+          x: 256
+          y: 109
+          width: 252
+          overflow: "clip"
+          align: "left"
+          text:
+            format: "literal"
+            binding:
+              type: "record"
+              source: "tasks"
+              state: "selected-task"
+              key: "category-label"
+            color: "#A9ACAD"
+        -
+          id: "description-1"
+          type: "text"
+          x: 256
+          y: 131
+          width: 252
+          overflow: "clip"
+          align: "left"
+          text:
+            format: "literal"
+            binding:
+              type: "record"
+              source: "tasks"
+              state: "selected-task"
+              key: "description-1"
+            color: "#CDCFD0"
+        -
+          id: "description-2"
+          type: "text"
+          x: 256
+          y: 145
+          width: 252
+          overflow: "clip"
+          align: "left"
+          text:
+            format: "literal"
+            binding:
+              type: "record"
+              source: "tasks"
+              state: "selected-task"
+              key: "description-2"
+            color: "#CDCFD0"
+        -
+          id: "detail-time"
+          type: "text"
+          x: 256
+          y: 182
+          width: 252
+          overflow: "clip"
+          align: "left"
+          text:
+            format: "literal"
+            binding:
+              type: "record"
+              source: "tasks"
+              state: "selected-task"
+              key: "detail-time"
+            color: "#A9ACAD"
+          variants:
+            -
+              when:
+                type: "equals"
+                binding:
+                  type: "record"
+                  source: "tasks"
+                  state: "selected-task"
+                  key: "time-tone"
+                value: "warning"
+              override:
+                text:
+                  format: "literal"
+                  binding:
+                    type: "record"
+                    source: "tasks"
+                    state: "selected-task"
+                    key: "detail-time"
+                  color: "#DDB66D"
+            -
+              when:
+                type: "equals"
+                binding:
+                  type: "record"
+                  source: "tasks"
+                  state: "selected-task"
+                  key: "time-tone"
+                value: "expired"
+              override:
+                text:
+                  format: "literal"
+                  binding:
+                    type: "record"
+                    source: "tasks"
+                    state: "selected-task"
+                    key: "detail-time"
+                  color: "#C15E57"
+        -
+          id: "rewards"
+          type: "text"
+          x: 256
+          y: 221
+          width: 100
+          overflow: "clip"
+          align: "left"
+          text:
+            format: "literal"
+            value: "完成奖励"
+            color: "#A9ACAD"
+        -
+          id: "reward-hint"
+          type: "text"
+          x: 508
+          y: 221
+          width: 132
+          overflow: "clip"
+          align: "right"
+          text:
+            format: "literal"
+            value: "领取后存入背包"
+            color: "#A9ACAD"
+        -
+          id: "experience"
+          type: "text"
+          x: 376
+          y: 241
+          width: 132
+          overflow: "clip"
+          align: "left"
+          text:
+            format: "parts"
+            color: "#CDCFD0"
+            parts:
+              - "冒险经验  +"
+              -
+                format: "literal"
+                binding:
+                  type: "record"
+                  source: "tasks"
+                  state: "selected-task"
+                  key: "experience"
+        -
+          id: "reputation"
+          type: "text"
+          x: 376
+          y: 257
+          width: 132
+          overflow: "clip"
+          align: "left"
+          text:
+            format: "parts"
+            color: "#CDCFD0"
+            parts:
+              - "委托声望  +"
+              -
+                format: "literal"
+                binding:
+                  type: "record"
+                  source: "tasks"
+                  state: "selected-task"
+                  key: "reputation"
+        -
+          id: "goals-summary"
+          type: "text"
+          x: 552
+          y: 89
+          width: 136
+          overflow: "clip"
+          align: "left"
+          text:
+            format: "literal"
+            value: "已完成目标"
+            color: "#A9ACAD"
+        -
+          id: "goals-count"
+          type: "text"
+          x: 760
+          y: 89
+          width: 60
+          overflow: "clip"
+          align: "right"
+          text:
+            format: "parts"
+            color: "#CDCFD0"
+            parts:
+              -
+                format: "literal"
+                binding:
+                  type: "source"
+                  source: "goals"
+                  key: "count"
+                  field: "complete"
+                  value: true
+              - " / "
+              -
+                format: "literal"
+                binding:
+                  type: "source"
+                  source: "goals"
+                  key: "size"
+        -
+          id: "detail-state"
+          type: "text"
+          x: 508
+          y: 53
+          width: 88
+          overflow: "clip"
+          align: "right"
+          text:
+            format: "literal"
+            value: "进行中"
+            color: "#A9ACAD"
+          variants:
+            -
+              when:
+                type: "equals"
+                binding:
+                  type: "record"
+                  source: "tasks"
+                  state: "selected-task"
+                  key: "phase"
+                value: "ready"
+              override:
+                text:
+                  format: "literal"
+                  value: "待领取"
+                  color: "#A9ACAD"
+            -
+              when:
+                type: "equals"
+                binding:
+                  type: "record"
+                  source: "tasks"
+                  state: "selected-task"
+                  key: "phase"
+                value: "claimed"
+              override:
+                text:
+                  format: "literal"
+                  value: "已领取"
+                  color: "#A9ACAD"
+            -
+              when:
+                type: "equals"
+                binding:
+                  type: "record"
+                  source: "tasks"
+                  state: "selected-task"
+                  key: "phase"
+                value: "locked"
+              override:
+                text:
+                  format: "literal"
+                  value: "未解锁"
+                  color: "#A9ACAD"
+            -
+              when:
+                type: "equals"
+                binding:
+                  type: "record"
+                  source: "tasks"
+                  state: "selected-task"
+                  key: "phase"
+                value: "expired"
+              override:
+                text:
+                  format: "literal"
+                  value: "已过期"
+                  color: "#A9ACAD"
+        -
+          id: "goals"
+          type: "slot"
+          required: true
+          component:
+            type: "list"
+            x: 548
+            y: 110
+            template: "rafter:tasks/goal"
+            page-size: 3
+            row-height: 54
+        -
+          id: "detail-close-art"
+          type: "image"
+          x: 744
+          y: 48
+          width: 20
+          height: 20
+          asset: "rafter:tasks/buttons/close_default"
+          fit: "contain"
+        -
+          id: "detail-close"
+          type: "hit-area"
+          target: "detail-close-art"
+          actions:
+            -
+              type: "close-popup"
+        -
+          id: "cancel-art"
+          type: "image"
+          x: 256
+          y: 286
+          width: 112
+          height: 24
+          asset: "rafter:tasks/buttons/cancel_default"
+          fit: "contain"
+        -
+          id: "cancel-label"
+          type: "text"
+          x: 312
+          y: 291
+          width: 96
+          overflow: "clip"
+          align: "center"
+          text:
+            format: "literal"
+            value: "返回列表"
+            color: "#1C1F20"
+        -
+          id: "detail-cancel"
+          type: "hit-area"
+          target: "cancel-art"
+          actions:
+            -
+              type: "close-popup"
+        -
+          id: "primary-art"
+          type: "image"
+          x: 396
+          y: 286
+          width: 112
+          height: 24
+          asset: "rafter:tasks/buttons/dialog_track_default"
+          fit: "contain"
+          variants:
+            -
+              when:
+                type: "equals"
+                binding:
+                  type: "record"
+                  source: "tasks"
+                  state: "selected-task"
+                  key: "phase"
+                value: "ready"
+              override:
+                asset: "rafter:tasks/buttons/dialog_claim_default"
+            -
+              when:
+                type: "equals"
+                binding:
+                  type: "record"
+                  source: "tasks"
+                  state: "selected-task"
+                  key: "phase"
+                value: "claimed"
+              override:
+                asset: "rafter:tasks/buttons/dialog_claimed"
+            -
+              when:
+                type: "equals"
+                binding:
+                  type: "record"
+                  source: "tasks"
+                  state: "selected-task"
+                  key: "phase"
+                value: "locked"
+              override:
+                asset: "rafter:tasks/buttons/dialog_locked"
+            -
+              when:
+                type: "equals"
+                binding:
+                  type: "record"
+                  source: "tasks"
+                  state: "selected-task"
+                  key: "phase"
+                value: "expired"
+              override:
+                asset: "rafter:tasks/buttons/dialog_expired"
+        -
+          id: "primary-label"
+          type: "text"
+          x: 452
+          y: 291
+          width: 96
+          overflow: "clip"
+          align: "center"
+          text:
+            format: "literal"
+            value: "追踪任务"
+            color: "#1C1F20"
+          visible:
+            type: "not"
+            condition:
+              type: "equals"
+              binding:
+                type: "record"
+                source: "tasks"
+                state: "selected-task"
+                key: "phase"
+              value: "ready"
+          variants:
+            -
+              when:
+                type: "equals"
+                binding:
+                  type: "record"
+                  source: "tasks"
+                  state: "selected-task"
+                  key: "phase"
+                value: "claimed"
+              override:
+                text:
+                  format: "literal"
+                  value: "已领取"
+                  color: "#888A8B"
+            -
+              when:
+                type: "equals"
+                binding:
+                  type: "record"
+                  source: "tasks"
+                  state: "selected-task"
+                  key: "phase"
+                value: "locked"
+              override:
+                text:
+                  format: "literal"
+                  value: "未解锁"
+                  color: "#888A8B"
+            -
+              when:
+                type: "equals"
+                binding:
+                  type: "record"
+                  source: "tasks"
+                  state: "selected-task"
+                  key: "phase"
+                value: "expired"
+              override:
+                text:
+                  format: "literal"
+                  value: "已过期"
+                  color: "#888A8B"
+            -
+              when:
+                type: "equals"
+                binding:
+                  type: "record"
+                  source: "tasks"
+                  state: "selected-task"
+                  key: "tracked"
+                value: true
+              override:
+                text:
+                  format: "literal"
+                  value: "取消追踪"
+                  color: "#1C1F20"
+        -
+          id: "claim-label"
+          type: "text"
+          x: 460
+          y: 291
+          width: 40
+          overflow: "clip"
+          align: "center"
+          text:
+            format: "literal"
+            value: "领取奖励"
+            color: "#FAFAFA"
+          visible:
+            type: "equals"
+            binding:
+              type: "record"
+              source: "tasks"
+              state: "selected-task"
+              key: "phase"
+            value: "ready"
+        -
+          id: "primary"
+          type: "slot"
+          required: true
+          component:
+            type: "hit-area"
+            target: "primary-art"
+            enabled:
+              type: "any"
+              conditions:
+                -
+                  type: "equals"
+                  binding:
+                    type: "record"
+                    source: "tasks"
+                    state: "selected-task"
+                    key: "phase"
+                  value: "ready"
+                -
+                  type: "equals"
+                  binding:
+                    type: "record"
+                    source: "tasks"
+                    state: "selected-task"
+                    key: "phase"
+                  value: "active"
+            actions: []
+        -
+          id: "goal-page"
+          type: "text"
+          x: 656
+          y: 291
+          width: 144
+          overflow: "clip"
+          align: "center"
+          text:
+            format: "parts"
+            color: "#A9ACAD"
+            parts:
+              - "第 "
+              -
+                format: "literal"
+                binding:
+                  type: "list"
+                  list: "goals"
+                  key: "page"
+              - " / "
+              -
+                format: "literal"
+                binding:
+                  type: "list"
+                  list: "goals"
+                  key: "pages"
+              - " 页"
+          visible:
+            type: "at-least"
+            binding:
+              type: "list"
+              list: "goals"
+              key: "pages"
+            value: 2
+        -
+          id: "goal-hint"
+          type: "text"
+          x: 656
+          y: 291
+          width: 144
+          overflow: "clip"
+          align: "center"
+          text:
+            format: "literal"
+            value: "按目标数量完成任务"
+            color: "#A9ACAD"
+          visible:
+            type: "not"
+            condition:
+              type: "at-least"
+              binding:
+                type: "list"
+                list: "goals"
+                key: "pages"
+              value: 2
+          variants:
+            -
+              when:
+                type: "any"
+                conditions:
+                  -
+                    type: "equals"
+                    binding:
+                      type: "record"
+                      source: "tasks"
+                      state: "selected-task"
+                      key: "phase"
+                    value: "ready"
+                  -
+                    type: "equals"
+                    binding:
+                      type: "record"
+                      source: "tasks"
+                      state: "selected-task"
+                      key: "phase"
+                    value: "claimed"
+              override:
+                text:
+                  format: "literal"
+                  value: "全部目标已完成"
+                  color: "#A9ACAD"
+        -
+          id: "reward-0"
+          type: "image"
+          x: 256
+          y: 241
+          width: 20
+          height: 20
+          asset: "rafter:tasks/items/slot_default"
+          fit: "contain"
+          visible:
+            type: "at-least"
+            binding:
+              type: "record"
+              source: "tasks"
+              state: "selected-task"
+              key: "item-count"
+            value: 1
+        -
+          id: "reward-1"
+          type: "image"
+          x: 280
+          y: 241
+          width: 20
+          height: 20
+          asset: "rafter:tasks/items/slot_default"
+          fit: "contain"
+          visible:
+            type: "at-least"
+            binding:
+              type: "record"
+              source: "tasks"
+              state: "selected-task"
+              key: "item-count"
+            value: 2
+        -
+          id: "reward-2"
+          type: "image"
+          x: 304
+          y: 241
+          width: 20
+          height: 20
+          asset: "rafter:tasks/items/slot_default"
+          fit: "contain"
+          visible:
+            type: "at-least"
+            binding:
+              type: "record"
+              source: "tasks"
+              state: "selected-task"
+              key: "item-count"
+            value: 3
+        -
+          id: "reward-3"
+          type: "image"
+          x: 328
+          y: 241
+          width: 20
+          height: 20
+          asset: "rafter:tasks/items/slot_default"
+          fit: "contain"
+          visible:
+            type: "at-least"
+            binding:
+              type: "record"
+              source: "tasks"
+              state: "selected-task"
+              key: "item-count"
+            value: 4
+        -
+          id: "goal-previous-art"
+          type: "image"
+          x: 552
+          y: 286
+          width: 20
+          height: 20
+          asset: "rafter:tasks/buttons/goal_previous_disabled"
+          fit: "contain"
+          visible:
+            type: "at-least"
+            binding:
+              type: "list"
+              list: "goals"
+              key: "pages"
+            value: 2
+          variants:
+            -
+              when:
+                type: "equals"
+                binding:
+                  type: "list"
+                  list: "goals"
+                  key: "has-previous"
+                value: true
+              override:
+                asset: "rafter:tasks/buttons/goal_previous_default"
+        -
+          id: "goal-previous"
+          type: "hit-area"
+          target: "goal-previous-art"
+          actions:
+            -
+              type: "page-list"
+              list: "goals"
+              step: -1
+          enabled:
+            type: "equals"
+            binding:
+              type: "list"
+              list: "goals"
+              key: "has-previous"
+            value: true
+        -
+          id: "goal-next-art"
+          type: "image"
+          x: 740
+          y: 286
+          width: 20
+          height: 20
+          asset: "rafter:tasks/buttons/goal_next_disabled"
+          fit: "contain"
+          visible:
+            type: "at-least"
+            binding:
+              type: "list"
+              list: "goals"
+              key: "pages"
+            value: 2
+          variants:
+            -
+              when:
+                type: "equals"
+                binding:
+                  type: "list"
+                  list: "goals"
+                  key: "has-next"
+                value: true
+              override:
+                asset: "rafter:tasks/buttons/goal_next_default"
+        -
+          id: "goal-next"
+          type: "hit-area"
+          target: "goal-next-art"
+          actions:
+            -
+              type: "page-list"
+              list: "goals"
+              step: 1
+          enabled:
+            type: "equals"
+            binding:
+              type: "list"
+              list: "goals"
+              key: "has-next"
+            value: true

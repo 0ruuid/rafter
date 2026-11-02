@@ -1,0 +1,80 @@
+id: rafter:friends/row
+params:
+  actions:
+    - type: select-item
+component:
+  id: row
+  type: group
+  elements:
+    - id: image
+      type: image
+      x: 0
+      y: 0
+      asset: rafter:friends/rows/offline_default
+      variants:
+        - when:
+            type: all
+            conditions:
+              - type: equals
+                binding:
+                  type: item
+                  key: online
+                value: true
+              - type: equals
+                binding:
+                  type: list
+                  key: selected
+                value: true
+          override:
+            asset: rafter:friends/rows/online_selected
+        - when:
+            type: equals
+            binding:
+              type: list
+              key: selected
+            value: true
+          override:
+            asset: rafter:friends/rows/offline_selected
+        - when:
+            type: equals
+            binding:
+              type: item
+              key: online
+            value: true
+          override:
+            asset: rafter:friends/rows/online_default
+      width: 300
+      height: 40
+      fit: contain
+    - id: name
+      type: text
+      x: 44
+      y: 8
+      text:
+        format: literal
+        binding:
+          type: item
+          key: name
+        color: "#FAFAFA"
+      width: 226
+      overflow: clip
+    - id: subtitle
+      type: text
+      x: 44
+      y: 22
+      text:
+        format: literal
+        binding:
+          type: item
+          key: subtitle
+        color: "#CDCFD0"
+      width: 226
+      overflow: clip
+    - id: hit
+      type: hit-area
+      x: 0
+      y: 0
+      width: 300
+      height: 36
+      actions:
+        param: actions

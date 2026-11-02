@@ -1,0 +1,74 @@
+id: preview:friends
+items:
+  - id: friend-1
+    name: 林间旅人
+    online: true
+    subtitle: 在线 · 林地探索者
+    status: 在线 · 已是好友
+    summary: 等级 36 · 青苔工坊
+  - id: friend-2
+    name: 青苔石匠
+    online: true
+    subtitle: 在线 · 家园开放
+    status: 在线 · 已是好友
+    summary: 等级 23 · 方块旅途
+  - id: friend-3
+    name: 晚风拾光
+    online: true
+    subtitle: 在线 · 正在主城
+    status: 在线 · 已是好友
+    summary: 等级 24 · 方块旅途
+  - id: friend-4
+    name: 山谷来客
+    online: false
+    subtitle: 离线 · 2 小时前在线
+    status: 离线 · 已是好友
+    summary: 等级 25 · 方块旅途
+  - id: friend-5
+    name: 麦田守望
+    online: false
+    subtitle: 离线 · 3 天前在线
+    status: 离线 · 已是好友
+    summary: 等级 26 · 方块旅途
+  - id: friend-6
+    name: 星河牧羊
+    online: false
+    subtitle: 离线 · 1 天前在线
+    status: 离线 · 已是好友
+    summary: 等级 27 · 方块旅途
+  - id: friend-7
+    name: 海岸听风
+    online: false
+    subtitle: 离线 · 数天前在线
+    status: 离线 · 已是好友
+    summary: 等级 28 · 方块旅途
+  - id: friend-8
+    name: 矿洞拾星
+    online: false
+    subtitle: 离线 · 数天前在线
+    status: 离线 · 已是好友
+    summary: 等级 29 · 方块旅途
+  - id: friend-9
+    name: 雪原行者
+    online: false
+    subtitle: 离线 · 数天前在线
+    status: 离线 · 已是好友
+    summary: 等级 30 · 方块旅途
+  - id: friend-10
+    name: 溪边种田
+    online: false
+    subtitle: 离线 · 数天前在线
+    status: 离线 · 已是好友
+    summary: 等级 31 · 方块旅途
+  - id: friend-11
+    name: 远山归客
+    online: false
+    subtitle: 离线 · 数天前在线
+    status: 离线 · 已是好友
+    summary: 等级 32 · 方块旅途
+  - id: friend-12
+    name: 松林守夜
+    online: false
+    subtitle: 离线 · 数天前在线
+    status: 离线 · 已是好友
+    summary: 等级 33 · 方块旅途

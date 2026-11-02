@@ -1,0 +1,287 @@
+# 虚构快照，时间固定；本地领取和追踪仅作会话预览。
+id: "preview:tasks"
+items:
+  -
+    id: "forest_patrol"
+    category: "daily"
+    title: "林地巡护"
+    list-description: "巡视林地，为营地收集沿途资源。"
+    phase: "ready"
+    tracked: false
+    category-label: "日常任务"
+    description-1: "巡视附近的林地，收集营地需要的资源。"
+    description-2: "完成以下目标后，即可领取奖励。"
+    list-time: ""
+    detail-time: ""
+    time-tone: "muted"
+    item-count: 4
+    experience: 120
+    reputation: 8
+    goals:
+      -
+        id: "1"
+        name: "采集橡木原木"
+        current: 16
+        required: 16
+        complete: true
+      -
+        id: "2"
+        name: "在林地完成一次巡查"
+        current: 1
+        required: 1
+        complete: true
+  -
+    id: "farm"
+    category: "daily"
+    title: "田间小事"
+    list-description: "照料营地农田，带回一批新鲜作物。"
+    phase: "active"
+    tracked: false
+    category-label: "日常任务"
+    description-1: "营地需要一批新鲜作物。"
+    description-2: "请在时限结束前完成收获。"
+    list-time: "剩余 00:12:48"
+    detail-time: "剩余 00:12:48 · 截止 10/26 18:48"
+    time-tone: "warning"
+    item-count: 2
+    experience: 90
+    reputation: 5
+    goals:
+      -
+        id: "1"
+        name: "播种小麦"
+        current: 12
+        required: 12
+        complete: true
+      -
+        id: "2"
+        name: "收获成熟作物"
+        current: 6
+        required: 16
+        complete: false
+  -
+    id: "ore_supply"
+    category: "daily"
+    title: "矿洞补给"
+    list-description: "深入矿洞，为营地补充建造材料。"
+    phase: "active"
+    tracked: false
+    category-label: "日常任务"
+    description-1: "为营地补充基础建造材料。"
+    description-2: "请在截止时间前提交这批补给。"
+    list-time: "截止 10/27 06:00"
+    detail-time: "截止 2026/10/27 06:00"
+    time-tone: "muted"
+    item-count: 3
+    experience: 100
+    reputation: 6
+    goals:
+      -
+        id: "1"
+        name: "收集圆石"
+        current: 0
+        required: 32
+        complete: false
+      -
+        id: "2"
+        name: "收集煤炭"
+        current: 0
+        required: 8
+        complete: false
+  -
+    id: "camp_greeting"
+    category: "daily"
+    title: "营地问候"
+    list-description: "认识营地居民，听听他们的故事。"
+    phase: "claimed"
+    tracked: false
+    category-label: "日常任务"
+    description-1: "你已经拜访了营地居民。"
+    description-2: "本次奖励已领取。"
+    list-time: ""
+    detail-time: ""
+    time-tone: "muted"
+    item-count: 1
+    experience: 60
+    reputation: 3
+    goals:
+      -
+        id: "1"
+        name: "拜访营地居民"
+        current: 3
+        required: 3
+        complete: true
+  -
+    id: "craft"
+    category: "daily"
+    title: "匠心初成"
+    list-description: "完成基础委托，逐步学习营地工艺。"
+    phase: "locked"
+    tracked: false
+    category-label: "日常任务"
+    description-1: "这项委托暂未开放。"
+    description-2: "完成前置任务后可以接取。"
+    list-time: ""
+    detail-time: ""
+    time-tone: "muted"
+    item-count: 4
+    experience: 180
+    reputation: 12
+    goals:
+      -
+        id: "1"
+        name: "完成前置：田间小事"
+        current: 0
+        required: 1
+        complete: false
+      -
+        id: "2"
+        name: "提升营地声望"
+        current: 2
+        required: 5
+        complete: false
+  -
+    id: "rush_delivery"
+    category: "daily"
+    title: "限时补给"
+    list-description: "将一批急需的补给送往营地。"
+    phase: "expired"
+    tracked: false
+    category-label: "日常任务"
+    description-1: "本次补给委托的时限已经结束。"
+    description-2: "无法继续追踪或领取这次奖励。"
+    list-time: "截止 10/26 18:30"
+    detail-time: "已截止 · 2026/10/26 18:30"
+    time-tone: "expired"
+    item-count: 2
+    experience: 80
+    reputation: 4
+    goals:
+      -
+        id: "1"
+        name: "将补给交给营地管理员"
+        current: 0
+        required: 1
+        complete: false
+  -
+    id: "weekly_builder"
+    category: "weekly"
+    title: "共建营地"
+    list-description: "参与公共建设，让营地更加完善。"
+    phase: "active"
+    tracked: false
+    category-label: "周常任务"
+    description-1: "参与本周的营地建设。"
+    description-2: "在周常结算前完成全部目标。"
+    list-time: "截止 11/02 06:00"
+    detail-time: "截止 2026/11/02 06:00"
+    time-tone: "muted"
+    item-count: 4
+    experience: 360
+    reputation: 20
+    goals:
+      -
+        id: "1"
+        name: "完成营地建造项目"
+        current: 3
+        required: 4
+        complete: false
+      -
+        id: "2"
+        name: "提交橡木原木"
+        current: 16
+        required: 32
+        complete: false
+      -
+        id: "3"
+        name: "修整营地道路"
+        current: 2
+        required: 3
+        complete: false
+      -
+        id: "4"
+        name: "摆放公共照明"
+        current: 4
+        required: 6
+        complete: false
+  -
+    id: "weekly_explorer"
+    category: "weekly"
+    title: "远行见闻"
+    list-description: "探索周边区域，分享本周的见闻。"
+    phase: "ready"
+    tracked: false
+    category-label: "周常任务"
+    description-1: "这周的远行记录已经收齐。"
+    description-2: "可以领取本次探索奖励。"
+    list-time: "截止 11/02 06:00"
+    detail-time: "截止 2026/11/02 06:00"
+    time-tone: "muted"
+    item-count: 3
+    experience: 300
+    reputation: 16
+    goals:
+      -
+        id: "1"
+        name: "探索新的区域"
+        current: 3
+        required: 3
+        complete: true
+      -
+        id: "2"
+        name: "回到营地报到"
+        current: 1
+        required: 1
+        complete: true
+  -
+    id: "commission_supply"
+    category: "commissions"
+    title: "营地备料"
+    list-description: "为营地筹备下一批建造材料。"
+    phase: "active"
+    tracked: false
+    category-label: "自由委托"
+    description-1: "为营地筹备下一批建造材料。"
+    description-2: "这项委托没有单独的截止时间。"
+    list-time: ""
+    detail-time: ""
+    time-tone: "muted"
+    item-count: 3
+    experience: 180
+    reputation: 12
+    goals:
+      -
+        id: "1"
+        name: "提交营地需要的木料"
+        current: 8
+        required: 16
+        complete: false
+  -
+    id: "first_steps"
+    category: "story"
+    title: "初到营地"
+    list-description: "熟悉营地，开启你的冒险旅程。"
+    phase: "active"
+    tracked: false
+    category-label: "主线任务"
+    description-1: "先熟悉营地，完成你的第一份委托。"
+    description-2: "主线任务没有额外倒计时。"
+    list-time: ""
+    detail-time: ""
+    time-tone: "muted"
+    item-count: 1
+    experience: 150
+    reputation: 10
+    goals:
+      -
+        id: "1"
+        name: "向营地管理员报到"
+        current: 1
+        required: 1
+        complete: true
+      -
+        id: "2"
+        name: "完成第一份委托"
+        current: 0
+        required: 1
+        complete: false

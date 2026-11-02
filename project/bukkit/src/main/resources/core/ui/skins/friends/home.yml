@@ -1,0 +1,798 @@
+id: rafter:friends/home
+page:
+  mode: canvas
+  title: ""
+  width: 560
+  height: 342
+  elements:
+    - id: window
+      type: image
+      x: 0
+      y: 0
+      asset: rafter:friends/backgrounds/window
+      width: 560
+      height: 336
+      fit: contain
+    - id: header
+      type: template
+      key: rafter:friends/header
+      params: {}
+    - id: tab-all-image
+      type: image
+      x: 12
+      y: 36
+      asset: rafter:friends/tabs/default
+      width: 92
+      height: 34
+      fit: contain
+      variants:
+        - when:
+            type: state-equals
+            state: tab
+            value: all
+          override:
+            asset: rafter:friends/tabs/active
+    - id: tab-all-label
+      type: text
+      x: 58
+      y: 46
+      text:
+        format: parts
+        color: "#1C1F20"
+        parts:
+          - "全部好友 "
+          - format: literal
+            binding:
+              type: source
+              key: size
+              source: friends
+      align: center
+      width: 76
+      variants:
+        - when:
+            type: state-equals
+            state: tab
+            value: all
+          override:
+            text:
+              format: parts
+              color: "#FAFAFA"
+              parts:
+                - "全部好友 "
+                - format: literal
+                  binding:
+                    type: source
+                    key: size
+                    source: friends
+    - id: tab-all-hit
+      type: hit-area
+      x: 12
+      y: 45
+      width: 92
+      height: 27
+      actions:
+        - type: set-state
+          state: page
+          value: 0
+        - type: set-state
+          state: tab
+          value: all
+    - id: tab-online-image
+      type: image
+      x: 116
+      y: 36
+      asset: rafter:friends/tabs/default
+      width: 92
+      height: 34
+      fit: contain
+      variants:
+        - when:
+            type: state-equals
+            state: tab
+            value: online
+          override:
+            asset: rafter:friends/tabs/active
+    - id: tab-online-label
+      type: text
+      x: 162
+      y: 46
+      text:
+        format: parts
+        color: "#1C1F20"
+        parts:
+          - "在线好友 "
+          - format: literal
+            binding:
+              type: source
+              key: count
+              source: friends
+              field: online
+              value: true
+      align: center
+      width: 76
+      variants:
+        - when:
+            type: state-equals
+            state: tab
+            value: online
+          override:
+            text:
+              format: parts
+              color: "#FAFAFA"
+              parts:
+                - "在线好友 "
+                - format: literal
+                  binding:
+                    type: source
+                    key: count
+                    source: friends
+                    field: online
+                    value: true
+    - id: tab-online-hit
+      type: hit-area
+      x: 116
+      y: 45
+      width: 92
+      height: 27
+      actions:
+        - type: set-state
+          state: page
+          value: 0
+        - type: set-state
+          state: tab
+          value: online
+    - id: tab-requests-image
+      type: image
+      x: 220
+      y: 36
+      asset: rafter:friends/tabs/default
+      width: 92
+      height: 34
+      fit: contain
+      variants:
+        - when:
+            type: state-equals
+            state: tab
+            value: requests
+          override:
+            asset: rafter:friends/tabs/active
+    - id: tab-requests-label
+      type: text
+      x: 266
+      y: 46
+      text:
+        format: parts
+        color: "#1C1F20"
+        parts:
+          - "好友申请 "
+          - format: literal
+            binding:
+              type: source
+              key: size
+              source: requests
+      align: center
+      width: 76
+      variants:
+        - when:
+            type: state-equals
+            state: tab
+            value: requests
+          override:
+            text:
+              format: parts
+              color: "#FAFAFA"
+              parts:
+                - "好友申请 "
+                - format: literal
+                  binding:
+                    type: source
+                    key: size
+                    source: requests
+    - id: tab-requests-hit
+      type: hit-area
+      x: 220
+      y: 45
+      width: 92
+      height: 27
+      actions:
+        - type: set-state
+          state: page
+          value: 0
+        - type: set-state
+          state: tab
+          value: requests
+    - id: search-image
+      type: image
+      x: 356
+      y: 36
+      asset: rafter:friends/search/default
+      width: 192
+      height: 34
+      fit: contain
+    - id: search-label
+      type: text
+      x: 386
+      y: 48
+      text: "&{#A9ACAD}搜索玩家"
+      width: 154
+    - id: search-hit
+      type: hit-area
+      x: 356
+      y: 45
+      width: 192
+      height: 27
+      actions:
+        - type: open-page
+          page: search
+      tooltip: 搜索好友
+    - id: requests
+      type: slot
+      component:
+        type: list
+        x: 12
+        y: 72
+        template: rafter:friends/request-row
+        visible:
+          type: state-equals
+          state: tab
+          value: requests
+        slots:
+          - y: 0
+            params:
+              height: 56
+              name-y: 11
+              message-y: 29
+              label-y: 21
+              hit-y: 18
+          - y: 63
+            params:
+              height: 50
+              name-y: 8
+              message-y: 26
+              label-y: 18
+              hit-y: 18
+          - y: 117
+            params:
+              height: 62
+              name-y: 14
+              message-y: 32
+              label-y: 24
+              hit-y: 27
+      required: true
+    - id: list-pane
+      type: image
+      x: 12
+      y: 72
+      asset: rafter:friends/backgrounds/list_pane
+      width: 310
+      height: 220
+      fit: contain
+      visible:
+        type: not
+        condition:
+          type: state-equals
+          state: tab
+          value: requests
+    - id: friends
+      type: slot
+      component:
+        type: list
+        x: 12
+        y: 72
+        template: rafter:friends/row
+        page-size: 6
+        row-height: 36
+        visible:
+          type: not
+          condition:
+            type: state-equals
+            state: tab
+            value: requests
+      required: true
+    - id: details
+      type: slot
+      component:
+        type: template
+        key: rafter:friends/details
+        x: 332
+        y: 72
+        visible:
+          type: all
+          conditions:
+            - type: not
+              condition:
+                type: state-equals
+                state: tab
+                value: requests
+            - type: not
+              condition:
+                type: equals
+                binding:
+                  type: record
+                  key: id
+                  source: friends
+                  state: selected-id
+                value: null
+    - id: empty-state
+      type: group
+      visible:
+        type: all
+        conditions:
+          - type: not
+            condition:
+              type: state-equals
+              state: tab
+              value: requests
+          - type: equals
+            binding:
+              type: record
+              key: id
+              source: friends
+              state: selected-id
+            value: null
+      elements:
+        - id: empty-title
+          type: text
+          x: 162
+          y: 146
+          text: "&{#FAFAFA}还没有添加好友"
+          align: center
+          width: 268
+        - id: details-image
+          type: image
+          x: 332
+          y: 72
+          asset: rafter:friends/panels/sidebar_disabled
+          width: 216
+          height: 220
+          fit: contain
+        - id: details-name
+          type: text
+          x: 396
+          y: 88
+          text: "&{#A9ACAD}尚未选择好友"
+          width: 140
+        - id: details-status
+          type: text
+          x: 396
+          y: 108
+          text: "&{#CDCFD0}等待选择"
+          width: 140
+        - id: details-summary
+          type: text
+          x: 344
+          y: 138
+          text: "&{#A9ACAD}添加好友后可查看资料"
+          width: 192
+        - id: details-chat-label
+          type: text
+          x: 376
+          y: 175
+          text: "&{#A9ACAD}私聊"
+          width: 136
+        - id: details-chat-hit
+          type: hit-area
+          x: 344
+          y: 171
+          width: 192
+          height: 18
+          actions: []
+          enabled:
+            type: constant
+            value: false
+          tooltip: 请先选择好友
+        - id: details-teleport-label
+          type: text
+          x: 376
+          y: 199
+          text: "&{#A9ACAD}传送申请"
+          width: 136
+        - id: details-teleport-hit
+          type: hit-area
+          x: 344
+          y: 198
+          width: 192
+          height: 18
+          actions: []
+          enabled:
+            type: constant
+            value: false
+          tooltip: 请先选择好友
+        - id: details-profile-label
+          type: text
+          x: 376
+          y: 223
+          text: "&{#A9ACAD}查看资料"
+          width: 136
+        - id: details-profile-hit
+          type: hit-area
+          x: 344
+          y: 225
+          width: 192
+          height: 18
+          actions: []
+          enabled:
+            type: constant
+            value: false
+        - id: details-more-label
+          type: text
+          x: 376
+          y: 247
+          text: "&{#A9ACAD}更多操作"
+          width: 136
+        - id: details-more-hit
+          type: hit-area
+          x: 344
+          y: 252
+          width: 192
+          height: 18
+          actions: []
+          enabled:
+            type: constant
+            value: false
+          tooltip: 请先选择好友
+    - id: add-image
+      type: image
+      x: 12
+      y: 297
+      asset: rafter:friends/buttons/add_friend_default
+      width: 120
+      height: 30
+      fit: contain
+    - id: add-label
+      type: text
+      x: 82
+      y: 305
+      text: "&{#FAFAFA}加好友"
+      align: center
+      width: 30
+    - id: add-hit
+      type: hit-area
+      x: 12
+      y: 306
+      width: 120
+      height: 27
+      actions:
+        - type: open-page
+          page: add
+    - id: previous-image
+      type: image
+      x: 196
+      y: 297
+      asset: rafter:friends/buttons/page_previous_disabled
+      width: 20
+      height: 30
+      fit: contain
+      variants:
+        - when:
+            type: all
+            conditions:
+              - type: not
+                condition:
+                  type: state-equals
+                  state: tab
+                  value: requests
+              - type: equals
+                binding:
+                  type: list
+                  key: has-previous
+                  list: friends
+                value: true
+          override:
+            asset: rafter:friends/buttons/page_previous_default
+        - when:
+            type: all
+            conditions:
+              - type: state-equals
+                state: tab
+                value: requests
+              - type: equals
+                binding:
+                  type: list
+                  key: has-previous
+                  list: requests
+                value: true
+          override:
+            asset: rafter:friends/buttons/page_previous_default
+    - id: previous-hit
+      type: hit-area
+      x: 196
+      y: 306
+      width: 20
+      height: 27
+      actions:
+        - type: page-list
+          list: friends
+          step: -1
+      enabled:
+        type: all
+        conditions:
+          - type: not
+            condition:
+              type: state-equals
+              state: tab
+              value: requests
+          - type: equals
+            binding:
+              type: list
+              key: has-previous
+              list: friends
+            value: true
+      variants:
+        - when:
+            type: state-equals
+            state: tab
+            value: requests
+          override:
+            actions:
+              - type: page-list
+                list: requests
+                step: -1
+            enabled:
+              type: equals
+              binding:
+                type: list
+                key: has-previous
+                list: requests
+              value: true
+    - id: next-image
+      type: image
+      x: 292
+      y: 297
+      asset: rafter:friends/buttons/page_next_disabled
+      width: 20
+      height: 30
+      fit: contain
+      variants:
+        - when:
+            type: all
+            conditions:
+              - type: not
+                condition:
+                  type: state-equals
+                  state: tab
+                  value: requests
+              - type: equals
+                binding:
+                  type: list
+                  key: has-next
+                  list: friends
+                value: true
+          override:
+            asset: rafter:friends/buttons/page_next_default
+        - when:
+            type: all
+            conditions:
+              - type: state-equals
+                state: tab
+                value: requests
+              - type: equals
+                binding:
+                  type: list
+                  key: has-next
+                  list: requests
+                value: true
+          override:
+            asset: rafter:friends/buttons/page_next_default
+    - id: next-hit
+      type: hit-area
+      x: 292
+      y: 306
+      width: 20
+      height: 27
+      actions:
+        - type: page-list
+          list: friends
+          step: 1
+      enabled:
+        type: all
+        conditions:
+          - type: not
+            condition:
+              type: state-equals
+              state: tab
+              value: requests
+          - type: equals
+            binding:
+              type: list
+              key: has-next
+              list: friends
+            value: true
+      variants:
+        - when:
+            type: state-equals
+            state: tab
+            value: requests
+          override:
+            actions:
+              - type: page-list
+                list: requests
+                step: 1
+            enabled:
+              type: equals
+              binding:
+                type: list
+                key: has-next
+                list: requests
+              value: true
+    - id: page-label
+      type: text
+      x: 254
+      y: 306
+      text:
+        format: parts
+        color: "#CDCFD0"
+        parts:
+          - format: literal
+            binding:
+              type: list
+              key: page
+              list: friends
+          - " / "
+          - format: literal
+            binding:
+              type: list
+              key: pages
+              list: friends
+      align: center
+      width: 68
+      variants:
+        - when:
+            type: state-equals
+            state: tab
+            value: requests
+          override:
+            text:
+              format: parts
+              color: "#CDCFD0"
+              parts:
+                - format: literal
+                  binding:
+                    type: list
+                    key: page
+                    list: requests
+                - " / "
+                - format: literal
+                  binding:
+                    type: list
+                    key: pages
+                    list: requests
+        - when:
+            type: equals
+            binding:
+              type: list
+              key: total
+              list: friends
+            value: 0
+          override:
+            text: "&{#CDCFD0}0 位好友"
+    - id: footer-note
+      type: text
+      x: 332
+      y: 306
+      text:
+        format: literal
+        binding:
+          type: state
+          key: preview-message
+        color: "#A9ACAD"
+      width: 216
+  popups:
+    more:
+      elements:
+        - id: more-sidebar-open
+          type: image
+          x: 332
+          y: 72
+          asset: rafter:friends/panels/sidebar_open
+          width: 216
+          height: 220
+          fit: contain
+        - id: more-selected-name
+          type: text
+          x: 396
+          y: 88
+          text:
+            format: literal
+            binding:
+              type: record
+              key: name
+              source: friends
+              state: selected-id
+            color: "#FAFAFA"
+          width: 140
+        - id: more-anchor-label
+          type: text
+          x: 376
+          y: 247
+          text: "&{#FAFAFA}更多操作"
+          width: 136
+        - id: more-toggle
+          type: hit-area
+          x: 344
+          y: 243
+          width: 192
+          height: 27
+          actions:
+            - type: close-popup
+          tooltip: 收起更多操作
+        - id: more-background
+          type: image
+          x: 344
+          y: 108
+          asset: rafter:friends/panels/more_menu
+        - id: more-title
+          type: text
+          x: 356
+          y: 116
+          text: "&{#FAFAFA}更多操作"
+          width: 168
+        - id: more-home-label
+          type: text
+          x: 380
+          y: 142
+          text: "&{#CDCFD0}访问家园"
+          width: 144
+        - id: more-home-hit
+          type: hit-area
+          x: 348
+          y: 144
+          width: 184
+          height: 18
+          actions:
+            param: more-home-hit-actions
+        - id: more-trade-label
+          type: text
+          x: 380
+          y: 164
+          text: "&{#CDCFD0}发起交易"
+          width: 144
+        - id: more-trade-hit
+          type: hit-area
+          x: 348
+          y: 162
+          width: 184
+          height: 18
+          actions:
+            param: more-trade-hit-actions
+        - id: more-memo-label
+          type: text
+          x: 380
+          y: 186
+          text: "&{#CDCFD0}设置备注"
+          width: 144
+        - id: more-memo-hit
+          type: hit-area
+          x: 348
+          y: 189
+          width: 184
+          height: 18
+          actions:
+            - type: open-page
+              page: memo
+        - id: more-remove-label
+          type: text
+          x: 380
+          y: 214
+          text: "&{#CDCFD0}删除好友"
+          width: 144
+        - id: more-remove-hit
+          type: hit-area
+          x: 348
+          y: 216
+          width: 184
+          height: 18
+          actions:
+            - type: open-page
+              page: remove
+      hide-underlay:
+        - details.name
+        - details.status
+        - details.summary
+        - details.chat-label
+        - details.teleport-label
+        - details.profile-label
+        - details.more-label
+params:
+  more-home-hit-actions: []
+  more-trade-hit-actions: []

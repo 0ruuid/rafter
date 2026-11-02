@@ -1,0 +1,1071 @@
+id: rafter:player-profile/home
+page:
+  mode: canvas
+  title: ""
+  width: 560
+  height: 342
+  elements:
+    - id: window
+      type: image
+      asset: rafter:player-profile/background
+      x: 0
+      y: 0
+    - id: back-image
+      type: image
+      asset: rafter:player-profile/back
+      x: 12
+      y: 8
+    - id: back-hit
+      type: hit-area
+      target: back-image
+      actions:
+        - type: close
+      tooltip: 返回游戏
+    - id: close-image
+      type: image
+      asset: rafter:player-profile/close
+      x: 528
+      y: 8
+    - id: close-hit
+      type: hit-area
+      target: close-image
+      actions:
+        - type: close
+      tooltip: 关闭玩家资料
+    - id: heading
+      type: text
+      x: 40
+      y: 12
+      width: 248
+      text:
+        format: literal
+        value: 玩家资料
+        color: "#FAFAFA"
+    - id: notice
+      type: slot
+      component:
+        type: text
+        x: 516
+        y: 12
+        width: 208
+        align: right
+      required: true
+      text-style:
+        color: "#A9ACAD"
+    - id: equipment
+      type: group
+      elements:
+        - id: equipment-title
+          type: text
+          x: 24
+          y: 58
+          width: 52
+          text:
+            format: literal
+            value: 装备
+            color: "#A9ACAD"
+        - id: avatar-title
+          type: text
+          x: 138
+          y: 58
+          width: 100
+          text:
+            format: literal
+            value: 玩家形象
+            color: "#A9ACAD"
+          align: center
+        - id: equipment-note
+          type: text
+          x: 24
+          y: 276
+          width: 188
+          text:
+            format: literal
+            value: 装备仅供查看 · 暂无快照
+            color: "#A9ACAD"
+        - id: equipment-90
+          type: text
+          x: 56
+          y: 90
+          width: 20
+          text:
+            format: literal
+            value: 头盔
+            color: "#A9ACAD"
+        - id: equipment-126
+          type: text
+          x: 56
+          y: 126
+          width: 20
+          text:
+            format: literal
+            value: 胸甲
+            color: "#A9ACAD"
+        - id: equipment-162
+          type: text
+          x: 56
+          y: 162
+          width: 20
+          text:
+            format: literal
+            value: 护腿
+            color: "#A9ACAD"
+        - id: equipment-198
+          type: text
+          x: 56
+          y: 198
+          width: 20
+          text:
+            format: literal
+            value: 靴子
+            color: "#A9ACAD"
+        - id: main-hand
+          type: text
+          x: 108
+          y: 224
+          width: 28
+          text:
+            format: literal
+            value: 主手
+            color: "#A9ACAD"
+          align: center
+        - id: off-hand
+          type: text
+          x: 168
+          y: 224
+          width: 28
+          text:
+            format: literal
+            value: 副手
+            color: "#A9ACAD"
+          align: center
+    - id: info
+      type: group
+      visible:
+        type: not
+        condition:
+          type: equals
+          binding:
+            type: record
+            source: profile
+            state: selected-player
+            key: id
+          value: null
+      elements:
+        - id: name
+          type: text
+          x: 248
+          y: 58
+          width: 288
+          text:
+            format: literal
+            binding:
+              type: record
+              source: profile
+              state: selected-player
+              key: name
+            color: "#FAFAFA"
+        - id: title
+          type: text
+          x: 248
+          y: 82
+          width: 204
+          text:
+            format: literal
+            binding:
+              type: record
+              source: profile
+              state: selected-player
+              key: title
+            color: "#CDCFD0"
+        - id: status-dot
+          type: image
+          asset: rafter:player-profile/online
+          x: 464
+          y: 85
+          variants:
+            - when:
+                type: not
+                condition:
+                  type: all
+                  conditions:
+                    - type: not
+                      condition:
+                        type: equals
+                        binding:
+                          type: record
+                          source: profile
+                          state: selected-player
+                          key: id
+                        value: null
+                    - type: equals
+                      binding:
+                        type: record
+                        source: profile
+                        state: selected-player
+                        key: online
+                      value: true
+              override:
+                asset: rafter:player-profile/offline
+        - id: status
+          type: text
+          x: 476
+          y: 82
+          width: 60
+          text:
+            format: literal
+            value: 在线
+            color: "#CDCFD0"
+          variants:
+            - when:
+                type: not
+                condition:
+                  type: all
+                  conditions:
+                    - type: not
+                      condition:
+                        type: equals
+                        binding:
+                          type: record
+                          source: profile
+                          state: selected-player
+                          key: id
+                        value: null
+                    - type: equals
+                      binding:
+                        type: record
+                        source: profile
+                        state: selected-player
+                        key: online
+                      value: true
+              override:
+                text:
+                  format: literal
+                  value: 离线
+                  color: "#A9ACAD"
+        - id: level
+          type: text
+          x: 248
+          y: 104
+          width: 72
+          text:
+            format: parts
+            color: "#CDCFD0"
+            parts:
+              - "等级 "
+              - format: literal
+                binding:
+                  type: record
+                  source: profile
+                  state: selected-player
+                  key: level
+                color: "#CDCFD0"
+        - id: guild
+          type: text
+          x: 332
+          y: 104
+          width: 204
+          text:
+            format: parts
+            color: "#A9ACAD"
+            parts:
+              - "公会 · "
+              - format: literal
+                binding:
+                  type: record
+                  source: profile
+                  state: selected-player
+                  key: guild
+                color: "#A9ACAD"
+        - id: playtime-label
+          type: text
+          x: 248
+          y: 136
+          width: 76
+          text:
+            format: literal
+            value: 累计在线
+            color: "#A9ACAD"
+        - id: playtime
+          type: text
+          x: 336
+          y: 136
+          width: 200
+          text:
+            format: literal
+            binding:
+              type: record
+              source: profile
+              state: selected-player
+              key: playtime
+            color: "#CDCFD0"
+        - id: joined-label
+          type: text
+          x: 248
+          y: 158
+          width: 76
+          text:
+            format: literal
+            value: 加入时间
+            color: "#A9ACAD"
+        - id: joined
+          type: text
+          x: 336
+          y: 158
+          width: 200
+          text:
+            format: literal
+            binding:
+              type: record
+              source: profile
+              state: selected-player
+              key: joined
+            color: "#CDCFD0"
+        - id: achievement-title
+          type: text
+          x: 248
+          y: 190
+          width: 180
+          text:
+            format: literal
+            value: 精选成就
+            color: "#A9ACAD"
+        - id: count-label
+          type: text
+          x: 248
+          y: 266
+          width: 100
+          text:
+            format: literal
+            value: 已解锁
+            color: "#A9ACAD"
+        - id: badge-explorer
+          type: template
+          key: rafter:player-profile/badge
+          params:
+            x: 264
+            y: 207
+            asset: rafter:player-profile/badges/explorer
+            name:
+              format: literal
+              binding:
+                type: record
+                source: profile
+                state: selected-player
+                key: explorer-name
+              color: "#CDCFD0"
+            description:
+              format: literal
+              binding:
+                type: record
+                source: profile
+                state: selected-player
+                key: explorer-description
+              color: "#CDCFD0"
+            visible:
+              type: equals
+              binding:
+                type: record
+                source: profile
+                state: selected-player
+                key: explorer-unlocked
+              value: true
+        - id: badge-builder
+          type: template
+          key: rafter:player-profile/badge
+          params:
+            x: 360
+            y: 207
+            asset: rafter:player-profile/badges/builder
+            name:
+              format: literal
+              binding:
+                type: record
+                source: profile
+                state: selected-player
+                key: builder-name
+              color: "#CDCFD0"
+            description:
+              format: literal
+              binding:
+                type: record
+                source: profile
+                state: selected-player
+                key: builder-description
+              color: "#CDCFD0"
+            visible:
+              type: equals
+              binding:
+                type: record
+                source: profile
+                state: selected-player
+                key: builder-unlocked
+              value: true
+        - id: badge-helper
+          type: template
+          key: rafter:player-profile/badge
+          params:
+            x: 456
+            y: 207
+            asset: rafter:player-profile/badges/helper
+            name:
+              format: literal
+              binding:
+                type: record
+                source: profile
+                state: selected-player
+                key: helper-name
+              color: "#CDCFD0"
+            description:
+              format: literal
+              binding:
+                type: record
+                source: profile
+                state: selected-player
+                key: helper-description
+              color: "#CDCFD0"
+            visible:
+              type: equals
+              binding:
+                type: record
+                source: profile
+                state: selected-player
+                key: helper-unlocked
+              value: true
+        - id: empty-badges
+          type: text
+          x: 248
+          y: 224
+          width: 288
+          text:
+            format: literal
+            value: 暂无精选成就
+            color: "#A9ACAD"
+          visible:
+            type: all
+            conditions:
+              - type: not
+                condition:
+                  type: equals
+                  binding:
+                    type: record
+                    source: profile
+                    state: selected-player
+                    key: explorer-unlocked
+                  value: true
+              - type: not
+                condition:
+                  type: equals
+                  binding:
+                    type: record
+                    source: profile
+                    state: selected-player
+                    key: builder-unlocked
+                  value: true
+              - type: not
+                condition:
+                  type: equals
+                  binding:
+                    type: record
+                    source: profile
+                    state: selected-player
+                    key: helper-unlocked
+                  value: true
+        - id: count
+          type: text
+          x: 536
+          y: 266
+          width: 176
+          text:
+            format: parts
+            color: "#CDCFD0"
+            parts:
+              - format: literal
+                binding:
+                  type: record
+                  source: profile
+                  state: selected-player
+                  key: unlocked
+                color: "#CDCFD0"
+              - " / "
+              - format: literal
+                binding:
+                  type: record
+                  source: profile
+                  state: selected-player
+                  key: total
+                color: "#CDCFD0"
+          align: right
+        - id: achievement-link
+          type: group
+          elements:
+            - id: image
+              type: image
+              asset: rafter:player-profile/achievement-link
+              x: 452
+              y: 184
+            - id: label
+              type: text
+              x: 456
+              y: 190
+              width: 56
+              text:
+                format: literal
+                value: 全部成就
+                color: "#CDCFD0"
+            - id: hit
+              type: hit-area
+              target: image
+              actions:
+                - type: open-page
+                  page: achievements
+              tooltip: 查看完整成就说明
+    - id: empty
+      type: group
+      visible:
+        type: not
+        condition:
+          type: not
+          condition:
+            type: equals
+            binding:
+              type: record
+              source: profile
+              state: selected-player
+              key: id
+            value: null
+      elements:
+        - id: title
+          type: text
+          x: 392
+          y: 158
+          width: 288
+          text:
+            format: literal
+            value: 暂无玩家资料
+            color: "#FAFAFA"
+          align: center
+        - id: help
+          type: text
+          x: 392
+          y: 185
+          width: 288
+          text:
+            format: literal
+            value: 请先选择有效玩家或接入资料数据源
+            color: "#A9ACAD"
+          align: center
+    - id: relationship-image
+      type: image
+      asset: rafter:player-profile/add
+      x: 12
+      y: 300
+      variants:
+        - when:
+            type: not
+            condition:
+              type: not
+              condition:
+                type: equals
+                binding:
+                  type: record
+                  source: profile
+                  state: selected-player
+                  key: id
+                value: null
+          override:
+            asset: rafter:player-profile/add-disabled
+        - when:
+            type: equals
+            binding:
+              type: record
+              source: profile
+              state: selected-player
+              key: friend
+            value: true
+          override:
+            asset: rafter:player-profile/added
+    - id: relationship-label
+      type: text
+      x: 80
+      y: 306
+      width: 72
+      text:
+        format: literal
+        value: 加好友
+        color: "#FAFAFA"
+      align: center
+      variants:
+        - when:
+            type: not
+            condition:
+              type: not
+              condition:
+                type: equals
+                binding:
+                  type: record
+                  source: profile
+                  state: selected-player
+                  key: id
+                value: null
+          override:
+            text:
+              format: literal
+              value: 不可用
+              color: "#888A8B"
+        - when:
+            type: equals
+            binding:
+              type: record
+              source: profile
+              state: selected-player
+              key: friend
+            value: true
+          override:
+            text:
+              format: literal
+              value: 已是好友
+              color: "#888A8B"
+    - id: relationship
+      type: slot
+      component:
+        type: hit-area
+        target: relationship-image
+      required: true
+    - id: relationship-status
+      type: text
+      x: 136
+      y: 307
+      width: 88
+      text:
+        format: literal
+        value: 未添加好友
+        color: "#A9ACAD"
+      variants:
+        - when:
+            type: not
+            condition:
+              type: not
+              condition:
+                type: equals
+                binding:
+                  type: record
+                  source: profile
+                  state: selected-player
+                  key: id
+                value: null
+          override:
+            text:
+              format: literal
+              value: 资料不可用
+              color: "#A9ACAD"
+        - when:
+            type: not
+            condition:
+              type: all
+              conditions:
+                - type: not
+                  condition:
+                    type: equals
+                    binding:
+                      type: record
+                      source: profile
+                      state: selected-player
+                      key: id
+                    value: null
+                - type: equals
+                  binding:
+                    type: record
+                    source: profile
+                    state: selected-player
+                    key: online
+                  value: true
+          override:
+            text:
+              format: literal
+              value: 最近同步示例
+              color: "#A9ACAD"
+        - when:
+            type: equals
+            binding:
+              type: record
+              source: profile
+              state: selected-player
+              key: friend
+            value: true
+          override:
+            text:
+              format: literal
+              value: 好友关系已建立
+              color: "#A9ACAD"
+    - id: chat-image
+      type: image
+      asset: rafter:player-profile/chat
+      x: 236
+      y: 300
+      variants:
+        - when:
+            type: not
+            condition:
+              type: all
+              conditions:
+                - type: not
+                  condition:
+                    type: equals
+                    binding:
+                      type: record
+                      source: profile
+                      state: selected-player
+                      key: id
+                    value: null
+                - type: equals
+                  binding:
+                    type: record
+                    source: profile
+                    state: selected-player
+                    key: online
+                  value: true
+          override:
+            asset: rafter:player-profile/chat-disabled
+    - id: chat-label
+      type: text
+      x: 268
+      y: 307
+      width: 56
+      text:
+        format: literal
+        value: 私聊
+        color: "#CDCFD0"
+      variants:
+        - when:
+            type: not
+            condition:
+              type: all
+              conditions:
+                - type: not
+                  condition:
+                    type: equals
+                    binding:
+                      type: record
+                      source: profile
+                      state: selected-player
+                      key: id
+                    value: null
+                - type: equals
+                  binding:
+                    type: record
+                    source: profile
+                    state: selected-player
+                    key: online
+                  value: true
+          override:
+            text:
+              format: literal
+              value: 私聊
+              color: "#888A8B"
+    - id: chat
+      type: slot
+      component:
+        type: hit-area
+        target: chat-image
+      required: true
+    - id: teleport-image
+      type: image
+      asset: rafter:player-profile/teleport
+      x: 344
+      y: 300
+      variants:
+        - when:
+            type: not
+            condition:
+              type: all
+              conditions:
+                - type: not
+                  condition:
+                    type: equals
+                    binding:
+                      type: record
+                      source: profile
+                      state: selected-player
+                      key: id
+                    value: null
+                - type: equals
+                  binding:
+                    type: record
+                    source: profile
+                    state: selected-player
+                    key: online
+                  value: true
+          override:
+            asset: rafter:player-profile/teleport-disabled
+    - id: teleport-label
+      type: text
+      x: 376
+      y: 307
+      width: 56
+      text:
+        format: literal
+        value: 传送申请
+        color: "#CDCFD0"
+      variants:
+        - when:
+            type: not
+            condition:
+              type: all
+              conditions:
+                - type: not
+                  condition:
+                    type: equals
+                    binding:
+                      type: record
+                      source: profile
+                      state: selected-player
+                      key: id
+                    value: null
+                - type: equals
+                  binding:
+                    type: record
+                    source: profile
+                    state: selected-player
+                    key: online
+                  value: true
+          override:
+            text:
+              format: literal
+              value: 传送申请
+              color: "#888A8B"
+    - id: teleport
+      type: slot
+      component:
+        type: hit-area
+        target: teleport-image
+      required: true
+    - id: more-image
+      type: image
+      asset: rafter:player-profile/more
+      x: 452
+      y: 300
+      variants:
+        - when:
+            type: not
+            condition:
+              type: not
+              condition:
+                type: equals
+                binding:
+                  type: record
+                  source: profile
+                  state: selected-player
+                  key: id
+                value: null
+          override:
+            asset: rafter:player-profile/more-disabled
+    - id: more-label
+      type: text
+      x: 484
+      y: 307
+      width: 40
+      text:
+        format: literal
+        value: 更多操作
+        color: "#CDCFD0"
+      variants:
+        - when:
+            type: not
+            condition:
+              type: not
+              condition:
+                type: equals
+                binding:
+                  type: record
+                  source: profile
+                  state: selected-player
+                  key: id
+                value: null
+          override:
+            text:
+              format: literal
+              value: 更多操作
+              color: "#888A8B"
+    - id: more
+      type: slot
+      component:
+        type: hit-area
+        target: more-image
+      required: true
+  popups:
+    more:
+      hide-underlay:
+        - info.badge-builder
+        - info.badge-helper
+        - info.count
+        - info.achievement-link
+        - info.empty-badges
+        - more-image
+        - more-label
+      elements:
+        - id: popup-panel
+          type: image
+          asset: rafter:player-profile/more-menu
+          x: 364
+          y: 171
+          variants:
+            - when:
+                type: not
+                condition:
+                  type: all
+                  conditions:
+                    - type: not
+                      condition:
+                        type: equals
+                        binding:
+                          type: record
+                          source: profile
+                          state: selected-player
+                          key: id
+                        value: null
+                    - type: equals
+                      binding:
+                        type: record
+                        source: profile
+                        state: selected-player
+                        key: online
+                      value: true
+              override:
+                asset: rafter:player-profile/more-menu-offline
+        - id: popup-heading
+          type: text
+          x: 376
+          y: 175
+          width: 160
+          text:
+            format: literal
+            value: 更多操作
+            color: "#FAFAFA"
+        - id: popup-anchor-image
+          type: image
+          asset: rafter:player-profile/more-open
+          x: 452
+          y: 300
+        - id: popup-anchor-label
+          type: text
+          x: 484
+          y: 307
+          width: 40
+          text:
+            format: literal
+            value: 更多操作
+            color: "#FAFAFA"
+        - id: popup-anchor
+          type: hit-area
+          target: popup-anchor-image
+          actions:
+            - type: close-popup
+          tooltip: 收起更多操作
+        - id: popup-home-label
+          type: text
+          x: 400
+          y: 197
+          width: 136
+          text:
+            format: literal
+            value: 访问家园
+            color: "#CDCFD0"
+        - id: popup-home
+          type: slot
+          component:
+            type: hit-area
+            x: 368
+            y: 189
+            width: 176
+            height: 27
+          required: true
+        - id: popup-trade-label
+          type: text
+          x: 400
+          y: 224
+          width: 136
+          text:
+            format: literal
+            value: 发起交易
+            color: "#CDCFD0"
+          variants:
+            - when:
+                type: not
+                condition:
+                  type: all
+                  conditions:
+                    - type: not
+                      condition:
+                        type: equals
+                        binding:
+                          type: record
+                          source: profile
+                          state: selected-player
+                          key: id
+                        value: null
+                    - type: equals
+                      binding:
+                        type: record
+                        source: profile
+                        state: selected-player
+                        key: online
+                      value: true
+              override:
+                text:
+                  format: literal
+                  value: 发起交易
+                  color: "#888A8B"
+        - id: popup-trade
+          type: slot
+          component:
+            type: hit-area
+            x: 368
+            y: 216
+            width: 176
+            height: 27
+          required: true
+        - id: popup-memo-label
+          type: text
+          x: 400
+          y: 251
+          width: 136
+          text:
+            format: literal
+            value: 设置备注
+            color: "#CDCFD0"
+        - id: popup-memo
+          type: slot
+          component:
+            type: hit-area
+            x: 368
+            y: 243
+            width: 176
+            height: 27
+          required: true
+        - id: popup-name-label
+          type: text
+          x: 400
+          y: 278
+          width: 136
+          text:
+            format: literal
+            value: 查看名称
+            color: "#CDCFD0"
+        - id: popup-name
+          type: slot
+          component:
+            type: hit-area
+            x: 368
+            y: 270
+            width: 176
+            height: 27
+          required: true
+        - id: popup-outside-footer
+          type: hit-area
+          x: 364
+          y: 297
+          width: 88
+          height: 27
+          actions:
+            - type: close-popup

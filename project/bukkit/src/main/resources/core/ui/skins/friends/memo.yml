@@ -1,0 +1,80 @@
+id: rafter:friends/memo
+page:
+  mode: canvas
+  title: ""
+  width: 256
+  columns: 2
+  modal:
+    feedback: description
+    asset: rafter:friends/dialogs/memo
+    background: "#4A4B53"
+    dim: 0.52
+    top: 94
+    content-top: 41
+    button-gap: 24
+  elements:
+    - id: title
+      type: slot
+      component:
+        type: text
+        x: 4
+        y: 12
+        width: 220
+        height: 10
+      required: true
+      text-style:
+        color: "#FAFAFA"
+    - id: close
+      type: hit-area
+      x: 236
+      y: 0
+      width: 20
+      height: 27
+      tooltip: 返回好友列表
+      actions:
+        - type: back
+  components:
+    - id: description
+      type: slot
+      component:
+        type: text
+        width: 248
+      required: true
+      text-style:
+        offset-y: 3
+        color: "#CDCFD0"
+    - id: input
+      type: slot
+      component:
+        type: input
+        width: 248
+        label-visible: false
+        multiline: false
+      required: true
+    - id: cancel
+      type: slot
+      component:
+        type: button
+        role: exit
+        width: 112
+        skin:
+          asset: rafter:friends/buttons/cancel_default
+          inset: 0
+        actions:
+          - type: back
+        text: 取消
+      text-style:
+        offset-y: -1
+        color: "#1C1F20"
+    - id: confirm
+      type: slot
+      component:
+        type: button
+        width: 112
+        skin:
+          asset: rafter:friends/buttons/confirm_search_default
+          inset: 0
+      required: true
+      text-style:
+        offset-y: -1
+        color: "#FAFAFA"
