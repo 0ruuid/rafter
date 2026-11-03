@@ -33,7 +33,7 @@ class PreviewContext(
         require(start in menu.pages) { "Unknown modal preview origin $start" }
         session =
             UiSession(UUID(0, 0), menu.copy(spec = menu.spec.copy(entry = start)), scenario.args)
-        scenario.state.forEach(session::setState)
+        session.patchState(scenario.state)
         if (page.spec.modal != null) {
             require(start != pageId) { "Modal preview requires a Canvas origin" }
             scenario.originPopup?.let(session::openPopup)
@@ -41,7 +41,8 @@ class PreviewContext(
             require(
                 origin.spec.mode == PageMode.CANVAS &&
                     origin.spec.components.isEmpty() &&
-                    origin.spec.frame == null
+                    origin.spec.frame == null &&
+                    origin.spec.modal == null
             ) {
                 "Modal preview origin must be a Canvas without native controls or a dialog frame"
             }

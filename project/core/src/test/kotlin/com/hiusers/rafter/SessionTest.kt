@@ -3,6 +3,7 @@ package com.hiusers.rafter
 import com.hiusers.rafter.api.ParameterSpec
 import com.hiusers.rafter.api.ParameterType
 import com.hiusers.rafter.api.ProviderDescriptor
+import com.hiusers.rafter.asset.ModalBackdropLayout
 import com.hiusers.rafter.model.*
 import com.hiusers.rafter.runtime.*
 import java.util.UUID
@@ -115,6 +116,98 @@ class SessionTest {
                 )
                 .isNotEmpty()
         )
+    }
+
+    @Test
+    fun modalReplacementReusesBackdropWithoutHistoryChainOrDraftCommit() {
+        val pages =
+            listOf(
+                PageSpec(
+                    id = "canvas",
+                    mode = PageMode.CANVAS,
+                    title = TextSpec(),
+                    width = 180,
+                    columns = 1,
+                    components = emptyList(),
+                    height = 90,
+                    popups = mapOf("popup" to PopupSpec(emptyList())),
+                ),
+                PageSpec(
+                    id = "modal1",
+                    mode = PageMode.CANVAS,
+                    title = TextSpec(),
+                    width = 180,
+                    columns = 1,
+                    components = emptyList(),
+                    modal = ModalSpec("rafter:panel", "#101820"),
+                ),
+                PageSpec(
+                    id = "modal2",
+                    mode = PageMode.CANVAS,
+                    title = TextSpec(),
+                    width = 180,
+                    columns = 1,
+                    components = emptyList(),
+                    modal = ModalSpec("rafter:panel", "#101820"),
+                ),
+            ).associateBy { it.id }
+        val menuSpec =
+            MenuSpec(
+                id = "test:modal-chain",
+                entry = "canvas",
+                permission = null,
+                state = mapOf<String, Any?>("draft" to "old"),
+                pages = pages,
+                source = "test.yml",
+            )
+        val menu =
+            CompiledMenu(
+                menuSpec,
+                pages.mapValues { (_, page) -> CompiledPage(page, emptyList(), 90) },
+            )
+        val session = UiSession(UUID.randomUUID(), menu, emptyMap())
+        session.ready(session.beginRender(), emptyList())
+        val backdrop =
+            FrozenCanvas(
+                page = "canvas",
+                generation = session.generation,
+                layout = ModalBackdropLayout(180, 90),
+                title = "",
+                titleWidth = 0,
+                parts = emptyList(),
+            )
+        session.rememberCanvas(backdrop)
+        session.openPopup("popup")
+
+        session.navigate("modal1")
+        assertSame(backdrop, session.modalBackdrop)
+        val oldHandle = session.ready(session.beginRender(), listOf("old")).getValue("old")
+        session.form["draft"] = "typed"
+        val oldGeneration = session.generation
+
+        session.navigate("modal2")
+        assertEquals(oldGeneration + 1, session.generation)
+        assertEquals(SessionPhase.CREATED, session.phase)
+        assertNull(session.consume(oldHandle, session.lastInteraction))
+        assertSame(backdrop, session.modalBackdrop)
+        assertTrue(session.form.isEmpty())
+        assertEquals("old", session.state["draft"])
+
+        session.navigate("modal1")
+        assertSame(backdrop, session.modalBackdrop)
+        session.form["draft"] = "typed-again"
+        session.back()
+        assertEquals("canvas", session.page)
+        assertEquals("popup", session.popup)
+        assertNull(session.modalBackdrop)
+        assertTrue(session.form.isEmpty())
+        assertEquals("old", session.state["draft"])
+
+        session.navigate("modal1")
+        session.navigate("canvas")
+        session.back()
+        assertEquals("canvas", session.page)
+        assertNull(session.modalBackdrop, "Leaving a modal must not leave it in history")
     }
 
     @Test

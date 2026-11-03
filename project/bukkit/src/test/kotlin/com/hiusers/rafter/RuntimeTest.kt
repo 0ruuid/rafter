@@ -163,6 +163,7 @@ class RuntimeTest {
         val shown = mutableListOf<DialogView>()
         var visible: DialogView? = null
         var clears = 0
+        var afterShow: ((DialogView) -> Unit)? = null
         var nativeItems: Map<String, org.bukkit.inventory.ItemStack> = emptyMap()
 
         override fun supported(player: Player) = true
@@ -178,6 +179,7 @@ class RuntimeTest {
             shown += view
             visible = view
             nativeItems = items.toMap()
+            afterShow?.invoke(view)
         }
 
         override fun clear(player: Player) {
@@ -2159,5 +2161,707 @@ class RuntimeTest {
         assertFalse(engine.open(player, "test:menu").join().opened)
         assertTrue(wire.shown.isEmpty())
         assertNull(wire.visible)
+    }
+
+    private fun modalCandidate(
+        originProvider: String? = null,
+        formProvider: String? = null,
+        canvasEntry: Boolean = true,
+    ): Candidate {
+        val ui = temp.resolve("core/ui")
+        val panel = ui.resolve("images/form-panel.png")
+        Files.createDirectories(panel.parent)
+        javax.imageio.ImageIO.write(
+            java.awt.image.BufferedImage(260, 220, java.awt.image.BufferedImage.TYPE_INT_ARGB),
+            "png",
+            panel.toFile(),
+        )
+        val document = AutoAssets.document(ui)
+        val base = AssetCompiler.compile(ui, document)
+        fun text(id: String, value: String, provider: String? = null) =
+            mapOf<String, Any?>(
+                "id" to id,
+                "type" to "text",
+                "width" to 240,
+                "height" to 18,
+            ) +
+                if (provider == null) mapOf("text" to value)
+                else mapOf("binding" to mapOf("type" to "data", "key" to provider))
+        fun button(id: String, vararg actions: Map<String, Any?>) =
+            mapOf(
+                "id" to id,
+                "type" to "button",
+                "text" to id,
+                "width" to 98,
+                "actions" to actions.toList(),
+            )
+        fun page(target: String) = mapOf("type" to "open-page", "page" to target)
+        val exit = button("cancel", mapOf("type" to "back")) + ("role" to "exit")
+        val feedback = text("feedback", "", formProvider) + ("y" to 3)
+        fun modal(components: List<Map<String, Any?>>, feedback: Map<String, Any?>) =
+            mapOf(
+                "mode" to "canvas",
+                "title" to "",
+                "width" to 240,
+                "columns" to 2,
+                "modal" to
+                    mapOf(
+                        "asset" to "rafter:form-panel",
+                        "background" to "#101820",
+                        "feedback" to "feedback",
+                    ),
+                "elements" to listOf(feedback),
+                "components" to components,
+            )
+        val origin =
+            if (canvasEntry)
+                mapOf(
+                    "mode" to "canvas",
+                    "title" to "",
+                    "width" to 240,
+                    "height" to 90,
+                    "elements" to
+                        listOf(
+                            text("background", "Workspace", originProvider),
+                            mapOf(
+                                "id" to "edit",
+                                "type" to "hit-area",
+                                "width" to 90,
+                                "height" to 18,
+                                "y" to 36,
+                                "actions" to listOf(page("form")),
+                            ),
+                        ),
+                )
+            else
+                mapOf(
+                    "mode" to "native",
+                    "components" to listOf(text("background", "Workspace") - "height"),
+                )
+        val form =
+            modal(
+                listOf(
+                    mapOf(
+                        "id" to "name",
+                        "type" to "input",
+                        "state" to "name",
+                        "width" to 220,
+                        "max-length" to 16,
+                        "label-visible" to false,
+                    ),
+                    mapOf(
+                        "id" to "message",
+                        "type" to "input",
+                        "state" to "message",
+                        "width" to 220,
+                        "max-length" to 200,
+                        "multiline" to true,
+                        "multiline-height" to 48,
+                        "max-lines" to 6,
+                        "label-visible" to false,
+                    ),
+                    exit,
+                    button(
+                        "review",
+                        mapOf("type" to "submit"),
+                        mapOf("type" to "provider", "provider" to "test:save"),
+                        page("confirm"),
+                    ),
+                ),
+                feedback,
+            )
+        val confirm =
+            modal(
+                listOf(
+                    button("edit", page("form")),
+                    button(
+                        "finish",
+                        mapOf("type" to "provider", "provider" to "test:finish"),
+                        mapOf("type" to "close"),
+                    ),
+                ),
+                text("feedback", "") + ("y" to 3),
+            )
+        val source =
+            mapOf(
+                "id" to "test:form",
+                "entry" to "home",
+                "state" to
+                    mapOf(
+                        "name" to "",
+                        "message" to "",
+                        "status" to "",
+                        "payload" to emptyMap<String, Any?>(),
+                    ),
+                "pages" to
+                    mapOf(
+                        "home" to origin,
+                        "form" to form,
+                        "confirm" to confirm,
+                    ),
+            )
+        val result =
+            MenuCompiler(base.dimensions(), imageSources = base.sourceDimensions())
+                .compile(mapOf("form.yml" to source, "other.yml" to other()))
+        val snapshot = assertNotNull(result.snapshot, result.diagnostics.toString())
+        assets =
+            AssetCompiler.compile(
+                ui,
+                document,
+                previous = base.allocation,
+                modal = ModalAssets.collect(snapshot, base.sourceDimensions()),
+            )
+        return Candidate(snapshot, assets, "test:form", 600_000)
+    }
+
+    @Test
+    fun openOptionsExposeBothOpenSignaturesAndJavaConstructors() {
+        val signatures =
+            RafterService::class.java.methods.filter { it.name == "open" }
+                .map { it.parameterTypes.toList() }.toSet()
+        val original = listOf(Player::class.java, String::class.java, Map::class.java)
+        assertEquals(setOf(original, original + UiOpenOptions::class.java), signatures)
+        val defaults = UiOpenOptions::class.java.getConstructor().newInstance()
+        assertTrue(defaults.initialState.isEmpty())
+        assertNull(defaults.initialPage)
+        val stateOnly =
+            UiOpenOptions::class.java.getConstructor(Map::class.java)
+                .newInstance(mapOf("name" to "Prefilled"))
+        assertEquals(mapOf("name" to "Prefilled"), stateOnly.initialState)
+        assertNull(stateOnly.initialPage)
+    }
+
+    @Test
+    fun confirmationExecutesOnceAndClosesWithoutAnExtraFrameOrRefreshWaitCycle() {
+        val finishing = CompletableFuture<UiActionResult>()
+        var calls = 0
+        engine.registerAction(
+            plugin,
+            "test:save",
+            ProviderDescriptor("save"),
+            ActionProvider { _, _ -> CompletableFuture.completedFuture(UiActionResult()) },
+        )
+        engine.registerAction(
+            plugin,
+            "test:finish",
+            ProviderDescriptor("finish"),
+            ActionProvider { context, _ ->
+                assertEquals("Draft", context.state["name"])
+                assertEquals("Notes", context.state["message"])
+                calls++
+                finishing
+            },
+        )
+        engine.install(modalCandidate())
+        val opened =
+            engine.open(
+                player,
+                "test:form",
+                emptyMap(),
+                UiOpenOptions(mapOf("name" to "Draft", "message" to "Notes"), "form"),
+            ).join()
+        val review = wire.visible!!.buttons.single { it.node.id == "review" }.handle!!
+        engine.click(player, review, mapOf("name" to "Draft", "message" to "Notes"))
+        val confirm = wire.visible!!.buttons.single { it.node.id == "finish" }.handle!!
+        engine.click(player, confirm, emptyMap())
+        engine.click(player, confirm, emptyMap())
+        val refresh = engine.refresh(player, assertNotNull(opened.sessionId))
+        assertFalse(refresh.isDone)
+        finishing.complete(UiActionResult())
+        assertEquals(1, calls)
+        assertNull(wire.visible)
+        assertEquals(listOf(false, true, true), wire.shown.map { it.modal })
+        assertEquals(UiFailureCode.SUPERSEDED, failure(refresh))
+    }
+
+    @Test
+    fun initialStateAndArgsAreFrozenBeforeMainThreadDispatchAndFirstProviderRead() {
+        lateinit var observed: UiContext
+        engine.registerData(
+            plugin,
+            "test:slow",
+            ProviderDescriptor("initial values"),
+            DataProvider { context, _ ->
+                observed = context
+                CompletableFuture.completedFuture(context.state["status"])
+            },
+        )
+        engine.install(
+            candidate(
+                slow() +
+                    mapOf(
+                        "state" to
+                            mapOf(
+                                "status" to "",
+                                "payload" to emptyMap<String, Any?>(),
+                            )
+                    )
+            )
+        )
+        val names = mutableListOf("original")
+        val nested = linkedMapOf<String, Any?>("names" to names)
+        val patch = linkedMapOf<String, Any?>("status" to "draft", "payload" to nested)
+        val args = linkedMapOf<String, Any?>("source" to names)
+        lateinit var opening: CompletableFuture<OpenResult>
+        background {
+            opening = engine.open(player, "test:menu", args, UiOpenOptions(patch))
+        }
+        assertFalse(opening.isDone)
+        names += "changed"
+        nested["extra"] = true
+        patch["status"] = "changed"
+        args.clear()
+        drainMain()
+        assertTrue(opening.join().opened)
+        assertEquals("draft", wire.plain())
+        assertEquals(mapOf("names" to listOf("original")), observed.state["payload"])
+        assertEquals(mapOf("source" to listOf("original")), observed.args)
+        assertFailsWith<UnsupportedOperationException> {
+            (observed.state as MutableMap)["status"] = "bad"
+        }
+        assertFailsWith<UnsupportedOperationException> {
+            (observed.state["payload"] as MutableMap<String, Any?>)["bad"] = true
+        }
+    }
+
+    @Test
+    fun invalidOpenOptionsKeepTheOldSessionAndNeverReadProviders() {
+        var reads = 0
+        engine.registerData(
+            plugin,
+            "test:origin",
+            ProviderDescriptor("origin"),
+            DataProvider { _, _ ->
+                reads++
+                CompletableFuture.completedFuture("Workspace")
+            },
+        )
+        engine.install(modalCandidate(originProvider = "test:origin"))
+        val old = assertNotNull(engine.open(player, "test:other").join().sessionId)
+        val shown = wire.shown.size
+        val clears = wire.clears
+        var deep: Any? = "leaf"
+        repeat(34) { deep = listOf(deep) }
+        for (
+            invalid in
+                listOf(
+                    mapOf("undeclared" to true),
+                    mapOf("name" to 1),
+                    mapOf("name" to "x".repeat(17)),
+                    mapOf("message" to "x".repeat(201)),
+                    mapOf("payload" to deep),
+                    mapOf("payload" to mapOf("future" to CompletableFuture<Any?>())),
+                )
+        ) {
+            val result =
+                engine
+                    .open(
+                        player,
+                        "test:form",
+                        emptyMap(),
+                        UiOpenOptions(
+                            linkedMapOf<String, Any?>("status" to "partial") + invalid,
+                            "form",
+                        ),
+                    )
+                    .join()
+            assertEquals(
+                UiFailureCode.INVALID_ARGUMENT,
+                result.failure,
+                invalid.keys.toString(),
+            )
+        }
+        for (target in listOf("", "missing")) {
+            assertEquals(
+                UiFailureCode.INVALID_ARGUMENT,
+                engine
+                    .open(
+                        player,
+                        "test:form",
+                        emptyMap(),
+                        UiOpenOptions(initialPage = target),
+                    )
+                    .join()
+                    .failure,
+            )
+        }
+        assertEquals(
+            UiFailureCode.INVALID_ARGUMENT,
+            engine
+                .open(player, "test:form", mapOf("bad" to Any()), UiOpenOptions())
+                .join()
+                .failure,
+        )
+        assertEquals(shown, wire.shown.size)
+        assertEquals(clears, wire.clears)
+        assertEquals(0, reads)
+        engine.refresh(player, old).join()
+        assertEquals("replacement", wire.plain())
+    }
+
+    @Test
+    fun initialListStateUsesTheExistingPageSelectionAndBooleanConstraints() {
+        val list = itemListCandidate()
+        val other = candidate(other())
+        engine.install(
+            list.copy(
+                snapshot = list.snapshot.copy(menus = list.snapshot.menus + other.snapshot.menus)
+            )
+        )
+        val old = assertNotNull(engine.open(player, "test:other").join().sessionId)
+        for (
+            invalid in
+                listOf(
+                    mapOf("page" to -1),
+                    mapOf("page" to 0.5),
+                    mapOf("selected" to 1),
+                    mapOf("filtered" to "yes"),
+                )
+        ) {
+            assertEquals(
+                UiFailureCode.INVALID_ARGUMENT,
+                engine
+                    .open(player, "test:menu", emptyMap(), UiOpenOptions(invalid))
+                    .join()
+                    .failure,
+            )
+        }
+        engine.refresh(player, old).join()
+        assertEquals("replacement", wire.plain())
+    }
+
+    @Test
+    fun initialNonModalPageAndOrdinaryOpenKeepTheirOwnEntryBehavior() {
+        val doc =
+            minimal() +
+                mapOf(
+                    "pages" to
+                        mapOf(
+                            "main" to
+                                mapOf(
+                                    "mode" to "native",
+                                    "components" to
+                                        listOf(
+                                            mapOf(
+                                                "id" to "label",
+                                                "type" to "text",
+                                                "text" to "entry",
+                                            )
+                                        ),
+                                ),
+                            "target" to
+                                mapOf(
+                                    "mode" to "native",
+                                    "components" to
+                                        listOf(
+                                            mapOf(
+                                                "id" to "label",
+                                                "type" to "text",
+                                                "text" to "target",
+                                            )
+                                        ),
+                                ),
+                        )
+                )
+        engine.install(candidate(doc))
+        assertTrue(
+            engine
+                .open(
+                    player,
+                    "test:menu",
+                    emptyMap(),
+                    UiOpenOptions(initialPage = "target"),
+                )
+                .join()
+                .opened
+        )
+        assertEquals("target", wire.plain())
+        assertEquals(1, wire.shown.size)
+        assertTrue(engine.open(player, "test:menu").join().opened)
+        assertEquals("entry", wire.plain())
+    }
+
+    @Test
+    fun prefilledModalOpensOnlyAfterARealCanvasAndFinalTargetSend() {
+        val origin = CompletableFuture<Any?>()
+        val form = CompletableFuture<Any?>()
+        val contexts = mutableListOf<UiContext>()
+        engine.registerData(
+            plugin,
+            "test:origin",
+            ProviderDescriptor("origin"),
+            DataProvider { context, _ ->
+                contexts += context
+                origin
+            },
+        )
+        engine.registerData(
+            plugin,
+            "test:form",
+            ProviderDescriptor("form"),
+            DataProvider { context, _ ->
+                contexts += context
+                form
+            },
+        )
+        engine.install(modalCandidate("test:origin", "test:form"))
+        val opening =
+            engine.open(
+                player,
+                "test:form",
+                emptyMap(),
+                UiOpenOptions(
+                    mapOf("name" to "Prefilled", "message" to "First line\nSecond line"),
+                    "form",
+                ),
+            )
+        assertEquals("Prefilled", contexts.single().state["name"])
+        assertEquals("home", contexts.single().page)
+        assertFalse(opening.isDone)
+        origin.complete("Workspace")
+        assertEquals(listOf(false), wire.shown.map { it.modal })
+        assertEquals("form", contexts.last().page)
+        assertEquals("First line\nSecond line", contexts.last().state["message"])
+        assertFalse(opening.isDone, "Sending the backdrop does not complete open")
+        form.complete("")
+        val result = opening.join()
+        assertTrue(result.opened)
+        assertEquals(listOf(false, true), wire.shown.map { it.modal })
+        assertTrue(contexts.all { it.sessionId == result.sessionId })
+        assertEquals(
+            listOf("Prefilled", "First line\nSecond line"),
+            wire.visible!!.inputs.map { it.initial },
+        )
+        assertFalse((wire.visible!!.inputs[0].node.content as NodeContent.TextInput).multiline)
+        assertTrue((wire.visible!!.inputs[1].node.content as NodeContent.TextInput).multiline)
+        assertTrue(wire.visible!!.title.toRawMessage().contains("Workspace"))
+    }
+
+    @Test
+    fun modalReplacementSubmitsExplicitlyReusesBackdropAndDoesNotStackHistoryOrFrames() {
+        var originReads = 0
+        val saved = mutableListOf<UiContext>()
+        engine.registerData(
+            plugin,
+            "test:origin",
+            ProviderDescriptor("origin"),
+            DataProvider { _, _ ->
+                originReads++
+                CompletableFuture.completedFuture("Workspace")
+            },
+        )
+        engine.registerAction(
+            plugin,
+            "test:save",
+            ProviderDescriptor("save"),
+            ActionProvider { context, _ ->
+                saved += context
+                CompletableFuture.completedFuture(UiActionResult(mapOf("status" to "ready")))
+            },
+        )
+        engine.install(modalCandidate(originProvider = "test:origin"))
+        val opened =
+            engine
+                .open(
+                    player,
+                    "test:form",
+                    emptyMap(),
+                    UiOpenOptions(mapOf("name" to "Initial"), "form"),
+                )
+                .join()
+        val stale = wire.visible!!.buttons.single { it.node.id == "review" }.handle!!
+        engine.click(player, stale, mapOf("name" to "Updated", "message" to "One\nTwo"))
+        assertTrue(wire.visible!!.modal)
+        assertTrue(wire.visible!!.inputs.isEmpty())
+        assertEquals("Updated", saved.single().state["name"])
+        assertEquals("One\nTwo", saved.single().state["message"])
+        assertEquals(opened.sessionId, saved.single().sessionId)
+        val shown = wire.shown.size
+        engine.click(player, stale, emptyMap())
+        assertEquals(shown, wire.shown.size)
+        clickButton("edit")
+        assertEquals(listOf("Updated", "One\nTwo"), wire.visible!!.inputs.map { it.initial })
+        assertEquals(1, originReads, "Replacing a modal must not render its frozen origin again")
+        val cancel = wire.visible!!.buttons.single { it.node.id == "cancel" }.handle!!
+        engine.click(player, cancel, mapOf("name" to "Not submitted", "message" to "discarded"))
+        assertFalse(wire.visible!!.modal)
+        assertEquals(listOf(false, true, true, true, false), wire.shown.map { it.modal })
+        assertEquals(2, originReads)
+        val edit = canvasTokens().first()
+        engine.click(player, edit, emptyMap())
+        assertEquals(listOf("Updated", "One\nTwo"), wire.visible!!.inputs.map { it.initial })
+        assertEquals(1, saved.size)
+    }
+
+    @Test
+    fun modalInitialPageRejectsAnUnsuitableEntryWithoutClosingTheOldView() {
+        engine.install(modalCandidate(canvasEntry = false))
+        val old = assertNotNull(engine.open(player, "test:other").join().sessionId)
+        val clears = wire.clears
+        assertEquals(
+            UiFailureCode.INVALID_ARGUMENT,
+            engine
+                .open(
+                    player,
+                    "test:form",
+                    emptyMap(),
+                    UiOpenOptions(initialPage = "form"),
+                )
+                .join()
+                .failure,
+        )
+        assertEquals(clears, wire.clears)
+        engine.refresh(player, old).join()
+        assertEquals("replacement", wire.plain())
+    }
+
+    @Test
+    fun interruptedModalInitializationNeverReopensOrClearsItsReplacement() {
+        val candidate =
+            modalCandidate("test:origin", "test:form").copy(
+                runtime =
+                    com.hiusers.rafter.runtime.RuntimePolicy(renderTimeoutMillis = 1_000)
+            )
+        for (stage in 0..1) {
+            for (
+                interruption in
+                    listOf("close", "replace", "reload", "timeout", "provider")
+            ) {
+                now = 0
+                val origin = CompletableFuture<Any?>()
+                val form = CompletableFuture<Any?>()
+                lateinit var sessionId: UUID
+                val registration =
+                    engine.registerData(
+                        plugin,
+                        "test:origin",
+                        ProviderDescriptor("origin"),
+                        DataProvider { context, _ ->
+                            sessionId = context.sessionId
+                            origin
+                        },
+                    )
+                val formRegistration =
+                    engine.registerData(
+                        plugin,
+                        "test:form",
+                        ProviderDescriptor("form"),
+                        DataProvider { _, _ -> form },
+                    )
+                engine.install(candidate)
+                val opening =
+                    engine.open(
+                        player,
+                        "test:form",
+                        emptyMap(),
+                        UiOpenOptions(initialPage = "form"),
+                    )
+                if (stage == 1) origin.complete("Workspace")
+                assertFalse(opening.isDone)
+                when (interruption) {
+                    "close" -> engine.close(player, sessionId).join()
+                    "replace" -> assertTrue(engine.open(player, "test:other").join().opened)
+                    "reload" -> engine.install(candidate)
+                    "timeout" -> {
+                        now = 1_000_000_001L
+                        engine.tick()
+                    }
+                    "provider" -> registration.close()
+                }
+                val expected =
+                    when (interruption) {
+                        "timeout" -> UiFailureCode.TIMED_OUT
+                        "provider" -> UiFailureCode.PROVIDER_UNAVAILABLE
+                        else -> UiFailureCode.SUPERSEDED
+                    }
+                assertEquals(expected, opening.join().failure, "$stage/$interruption")
+                if (interruption != "replace")
+                    assertTrue(engine.open(player, "test:other").join().opened)
+                val shown = wire.shown.size
+                val clears = wire.clears
+                background {
+                    origin.complete("late")
+                    form.complete("")
+                }
+                drainMain()
+                assertEquals(shown, wire.shown.size, "$stage/$interruption")
+                assertEquals(clears, wire.clears, "$stage/$interruption")
+                assertEquals("replacement", wire.plain())
+                registration.close()
+                formRegistration.close()
+            }
+        }
+    }
+
+    @Test
+    fun twoStageModalInitializationSharesOneRenderDeadline() {
+        val origin = CompletableFuture<Any?>()
+        val form = CompletableFuture<Any?>()
+        engine.registerData(
+            plugin,
+            "test:origin",
+            ProviderDescriptor("origin"),
+            DataProvider { _, _ -> origin },
+        )
+        engine.registerData(
+            plugin,
+            "test:form",
+            ProviderDescriptor("form"),
+            DataProvider { _, _ -> form },
+        )
+        engine.install(
+            modalCandidate("test:origin", "test:form").copy(
+                runtime =
+                    com.hiusers.rafter.runtime.RuntimePolicy(renderTimeoutMillis = 1_000)
+            )
+        )
+        val opening =
+            engine.open(
+                player,
+                "test:form",
+                emptyMap(),
+                UiOpenOptions(initialPage = "form"),
+            )
+        now = 900_000_000L
+        origin.complete("Workspace")
+        assertFalse(opening.isDone)
+        now = 1_100_000_000L
+        form.complete("")
+        assertEquals(UiFailureCode.TIMED_OUT, opening.join().failure)
+        assertEquals(listOf(false), wire.shown.map { it.modal })
+        assertNull(wire.visible)
+    }
+
+    @Test
+    fun reentrantReplacementDuringBackdropSendDoesNotRemoveTheNewPendingFrame() {
+        val pending = CompletableFuture<Any?>()
+        engine.registerData(
+            plugin,
+            "test:slow",
+            ProviderDescriptor("pending"),
+            DataProvider { _, _ -> pending },
+        )
+        val base = modalCandidate()
+        val replacement = candidate(slow())
+        engine.install(
+            base.copy(
+                snapshot =
+                    base.snapshot.copy(
+                        menus = base.snapshot.menus + replacement.snapshot.menus
+                    )
+            )
+        )
+        lateinit var newer: CompletableFuture<OpenResult>
+        wire.afterShow = {
+            wire.afterShow = null
+            newer = engine.open(player, "test:menu")
+        }
+        val old = engine.open(player, "test:form", emptyMap(), UiOpenOptions(initialPage = "form"))
+        assertEquals(UiFailureCode.SUPERSEDED, old.join().failure)
+        assertFalse(newer.isDone)
+        pending.complete("new frame")
+        assertTrue(newer.join().opened)
+        assertEquals("new frame", wire.plain())
+        assertEquals(listOf(false, false), wire.shown.map { it.modal })
     }
 }

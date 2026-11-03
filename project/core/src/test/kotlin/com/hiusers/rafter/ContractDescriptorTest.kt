@@ -90,13 +90,22 @@ class ContractDescriptorTest {
             assertFalse("schema-version" in assertIs<List<*>>(schema["required"]))
             assertEquals(false, schema["additionalProperties"])
         }
-        assertEquals(12, AuthoringContract.VERSION)
+        assertEquals(13, AuthoringContract.VERSION)
         val service = objectValue(manifest["service-api"])
         assertEquals("node-row-record-or-null", service["item-context"])
         assertEquals("client-flow-template-rows", service["native-lists"])
         assertEquals("expected-session-id-required", service["refresh"])
         assertEquals("expected-session-id-required", service["close"])
         assertEquals("declared-state-atomic", objectValue(service["action-result"])["state-patch"])
+        val open = objectValue(service["open"])
+        assertEquals("declared-state-atomic-before-first-read", open["initial-state"])
+        assertEquals("entry-or-existing-page", open["initial-page"])
+        assertEquals("present-entry-canvas-then-modal", open["initial-modal"])
+        assertEquals("final-target-sent", open["completion"])
+        val nativeModal = objectValue(manifest["native-modal"])
+        assertEquals("canvas-only-without-frame-or-current-modal", nativeModal["opener"])
+        assertEquals("forbidden", nativeModal["entry"])
+        assertEquals("same-layer-reuse-backdrop-no-history-push", nativeModal["replacement"])
         for (export in
             listOf(
                 manifest,

@@ -13,6 +13,8 @@ python3 scripts/author.py pack --project /absolute/path/to/Rafter --archive
 
 `describe --project ...` 同时导出该项目的编译布局和规则。工具不会连接服务器，扩展清单以目标服务器导出为准。`pack` 只读取配置中显式声明的合并源，不启动自托管，也不发送资源包。
 
+能力字段见 `service-api.open` 和 `native-modal.replacement`。服务 API 可用 `initialPage` 指定入口或已有页，`initialState` 在首读前原子校验；modal 目标先呈现入口 Canvas，再切换到目标页。modal 同层替换复用背景且不追加历史。表单只有显式 `submit` 才写入状态，Esc、关闭或返回不自动保存原生输入；`ActionProvider` 返回链不要等待同会话 `refresh`。
+
 退出码：`0`=本次离线范围通过，`1`=错误，`2`=结构可编译但目标 Kether／扩展未验证，`64`=用法或工具不可用。stdout 是 JSON（help 除外）；不能只看进程是否生成了图片。
 
 ## 派生产物
@@ -28,7 +30,11 @@ python3 scripts/author.py pack --project /absolute/path/to/Rafter --archive
 
 ## 预览场景
 
-场景 YAML 是工具样例，不是服务器菜单。用 `preview.schema.json` 校验字段；普通页面不需要创建场景文件。
+场景 YAML 是工具样例，不是服务器菜单。用 `preview.schema.json` 校验字段；普通页面不需要创建场景文件。预览用 `--menu`、`--page` 和 `--scenario` 指定页面及 scenario state，例如：
+
+```sh
+python3 scripts/author.py preview --project /absolute/path/to/Rafter --menu rafter:friends --page search --scenario core/previews/search.yml
+```
 
 ```yaml
 origin: friends
@@ -42,4 +48,4 @@ form:
 
 遇到 Kether／PAPI／提供器读取，先在 `preview-stubs.json` 查精确请求，再向 `stubs` 写入该 ID 对应的普通值。ID 包含参数、文本出现位置及行作用域；表达式变化后旧 ID 会失效。条件 stub 必须为布尔，提供器集合必须满足真实记录结构；显式 null 与未提供不同。
 
-不支持的读取不补空串、不猜条件，不运行脚本。渲染成功也不证明业务动作有效；该工具从不执行动作。
+不支持的读取不补空串、不猜条件，不运行脚本。CLI 不执行真实动作，也不承诺模拟原生客户端；渲染成功不证明业务动作有效。

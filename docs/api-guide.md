@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.hiusers.rafter:rafter-api:0.0.2")
+    compileOnly("com.hiusers.rafter:rafter-api:0.0.3")
 }
 ```
 
@@ -29,14 +29,33 @@ TabooLib 插件可在 ENABLE 注册提供器，菜单在 ACTIVE 加载。提前�
 
 | 方法 | 行为 |
 | --- | --- |
-| `open(player, menu, args)` | 返回 `CompletableFuture<OpenResult>`，包含 `opened`、`failure`、`sessionId` |
+| `open(player, menu, args)` | 返回 `CompletableFuture<OpenResult>`，包含 `opened`、`failure`、`sessionId`；失败读取 `OpenResult.failure` |
+| `open(player, menu, args, options)` | 首读前初始化状态并打开目标页，成功表示最终目标页已交给发送层 |
 | `refresh(player, expectedSessionId)` | 无会话或 ID 不匹配时返回 `SUPERSEDED`；忙碌时合并刷新 |
 | `close(player, expectedSessionId)` | 无会话时成功；存在其他会话时返回 `SUPERSEDED`，不会关闭它 |
 | `contract()` | 返回界面能力与已注册扩展的只读描述 |
 
 `refresh`、`close` 返回 `CompletableFuture<Void>`。会话 ID 取自原 `OpenResult.sessionId` 或 `UiContext.sessionId`；原会话失效后，排队刷新会异常完成，不转交新会话。
 
-刷新 Future 在对应帧交给发送层或明确失败后完成，不代表客户端已显示。失败通过 `UiOperationException.code` 判断。
+`UiOpenOptions` 需要 Rafter `0.0.3+`：
+
+- `initialState`：已声明状态的初始补丁，默认空。接收时深拷贝并冻结，全部校验通过后一起写入，在首次提供器读取前生效。
+- `initialPage`：菜单内已有的目标页，默认使用 `entry`。普通页可为 native 或 Canvas；目标为 modal 时，入口须为不含原生控件、无 frame 的纯 Canvas。
+- 直接打开 modal 会先发送入口 Canvas 并捕获背景，再打开目标表单，沿用同一会话 ID。两阶段共用渲染时限。
+- 参数、初始状态或目标页校验失败时保留旧会话。初始化被关闭、替换、重载或超时后，迟到结果失效。
+
+modal 之间用 `open-page` 同层替换，复用背景，不追加历史。表单仍需显式 `submit`；Esc、关闭或返回不会自动保存输入。
+
+打开与刷新 Future 在对应帧交给发送层或明确失败后完成，不代表客户端已显示。`open` 失败读取 `OpenResult.failure`。`refresh`、`close` 的失败通过 `UiOperationException.code` 判断。
+
+`contract()` 提供以下能力字段：
+
+- `service-api.open.initial-state`: `declared-state-atomic-before-first-read`
+- `service-api.open.initial-page`: `entry-or-existing-page`
+- `service-api.open.initial-modal`: `present-entry-canvas-then-modal`
+- `service-api.open.completion`: `final-target-sent`
+- `native-modal.replacement`: `same-layer-reuse-backdrop-no-history-push`
+- `contract-version`: `13`
 
 界面操作可跨线程发起，但后台不能读取 Player，也不要阻塞等待 Future。完成回调不保证位于主线程。
 
@@ -107,4 +126,4 @@ Java 示例见 [ApiConsumer](../examples/api-consumer/README.md)。
 ./gradlew taboolibBuildApi -PDeleteCode -x test
 ```
 
-产物：`project/api/build/libs/rafter-api-0.0.2-api.jar`。
+产物：`project/api/build/libs/rafter-api-0.0.3-api.jar`。部署插件请单独构建，不要使用 `DeleteCode` 处理后的插件 JAR。

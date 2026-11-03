@@ -6,6 +6,14 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.Plugin
 
+/** 打开时的初始状态与目标页；引擎接收时深拷贝并冻结，DTO 本身不复制集合。 */
+data class UiOpenOptions
+@JvmOverloads
+constructor(
+    val initialState: Map<String, Any?> = emptyMap(),
+    val initialPage: String? = null,
+)
+
 /** Rafter 提供只读普通值快照，嵌套最多 32 层；Player 仍限主线程访问。 自行构造此对象不复制集合，也不创建会话。 */
 data class UiContext(
     val player: Player,
@@ -48,7 +56,7 @@ fun interface ItemProvider {
     fun read(context: UiContext, id: String): CompletableFuture<ItemStack>
 }
 
-/** 成功仅表示服务端发送阶段完成；失败读取 [failure]，不代表客户端已显示。 */
+/** 成功仅表示最终目标页的服务端发送阶段完成；失败读取 [failure]，不代表客户端已显示。 */
 data class OpenResult
 @JvmOverloads
 constructor(
@@ -67,6 +75,16 @@ interface RafterService {
         player: Player,
         menu: String,
         args: Map<String, Any?> = emptyMap(),
+    ): CompletableFuture<OpenResult>
+
+    /**
+     * 首读前初始化状态并打开目标页；modal 目标先呈现 Canvas 入口。成功表示最终目标页已发送，沿用同一会话 ID。
+     */
+    fun open(
+        player: Player,
+        menu: String,
+        args: Map<String, Any?>,
+        options: UiOpenOptions,
     ): CompletableFuture<OpenResult>
 
     /** 仅关闭预期会话；无会话时幂等完成，其他会话返回 SUPERSEDED。 */

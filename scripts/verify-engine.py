@@ -4,6 +4,9 @@ from pathlib import Path
 import argparse, json, re, zipfile
 
 root = Path(__file__).resolve().parents[1]
+version_match = re.search(r'(?m)^version=([^\s#]+)\s*$', (root / 'gradle.properties').read_text())
+assert version_match, 'gradle.properties does not declare version'
+version = version_match.group(1)
 sources = {name: root / f'project/{name}/src/main/kotlin/com/hiusers/rafter'
            for name in ('api', 'core', 'pack', 'bukkit')}
 retired_prefix = r'(?:PlayerPreview|Equipment|Held|NativeEquipmentReader|Preview(?:Equipment|HeldItems|ItemProviders?|Payload|Outfit|Slot)|PackSources|AssetPng)'
@@ -22,6 +25,7 @@ for path in (p for source in sources.values() for p in source.rglob('*.kt')):
 
 # 人物绘制已退役，原生物品控件仍保留。
 api = (sources['api'] / 'api/RafterService.kt').read_text()
+assert re.search(r'\b(?:data\s+)?class\s+UiOpenOptions\b', api), 'UiOpenOptions DTO is missing'
 renderer = (sources['core'] / 'render/Renderers.kt').read_text()
 transport = (sources['bukkit'] / 'transport/DialogTransport.kt').read_text()
 assert not re.search(r'session\.(?:handle|ready|consume|invalidate|beginRender|finishAction|navigate|back|close|setState|patchState)\s*\(', renderer), 'Renderer must not mutate session or issue capabilities'
@@ -44,7 +48,7 @@ args = parser.parse_args()
 if args.jar:
     with zipfile.ZipFile(args.jar) as jar:
         names = set(jar.namelist())
-        for suffix in ('api/RafterService.class', 'api/ItemProvider.class', 'render/ItemBody.class',
+        for suffix in ('api/RafterService.class', 'api/UiOpenOptions.class', 'api/ItemProvider.class', 'render/ItemBody.class',
                        'render/NativeRenderer.class', 'render/CanvasRenderer.class', 'transport/DialogTransport.class',
                        'asset/AutoAssets.class', 'api/UiFailureCode.class', 'api/UiOperationException.class', 'api/UiActionResult.class',
                        'runtime/SessionPhase.class', 'runtime/RuntimePolicy.class',
@@ -71,7 +75,7 @@ if args.jar:
         assert set(bundle['files']) <= names, 'Missing resources listed by the default bundle'
         assert not any(name.startswith('com/hiusers/rafter/cli/') for name in names), 'CLI belongs to its independent distribution'
         descriptor = jar.read('plugin.yml').decode()
-        assert '0.0.2' in descriptor and 'packetevents' in descriptor, descriptor
+        assert version in descriptor and 'packetevents' in descriptor, descriptor
         dependencies = {}
         section = None
         for line in descriptor.splitlines():

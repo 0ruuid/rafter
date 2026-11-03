@@ -70,6 +70,45 @@ class AuthoringPipelineTest {
     }
 
     @Test
+    fun modalPreviewUsesValidatedInitialStateForSingleAndMultilineInputs() {
+        val candidate = project()
+        val scenario =
+            PreviewScenario(
+                state =
+                    mapOf(
+                        "target-name" to "Player",
+                        "request-message" to "First line\nSecond line",
+                    )
+            )
+        val context = PreviewContext(candidate, "rafter:friends", "add", scenario)
+        assertEquals("add", context.session.page)
+        assertNotNull(context.session.modalBackdrop)
+        assertTrue(context.view.modal)
+        assertEquals(
+            listOf("Player", "First line\nSecond line"),
+            context.view.inputs.map { it.initial },
+        )
+        val output = PreviewRenderer.write(root, candidate, "rafter:friends", "add", scenario)
+        assertNotNull(ImageIO.read(output.resolve("preview.png").toFile()))
+        assertFailsWith<IllegalArgumentException> {
+            PreviewContext(
+                candidate,
+                "rafter:friends",
+                "add",
+                PreviewScenario(state = mapOf("target-name" to "x".repeat(17))),
+            )
+        }
+        assertFailsWith<IllegalArgumentException> {
+            PreviewContext(
+                candidate,
+                "rafter:friends",
+                "add",
+                PreviewScenario(state = mapOf("undeclared" to "value")),
+            )
+        }
+    }
+
+    @Test
     fun publicationFailureAndSourceChangesRetainTheCompletePreviousExport() {
         val candidate = project()
         val manifest = AuthoringContract.manifest("test", emptyMap())

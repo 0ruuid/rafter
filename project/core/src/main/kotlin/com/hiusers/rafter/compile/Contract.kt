@@ -1406,9 +1406,10 @@ object Contract {
                 mapOf(
                     "placement" to "frozen-canvas-backdrop",
                     "source" to "original-image-asset",
-                    "opener" to "canvas-only-without-frame",
+                    "opener" to "canvas-only-without-frame-or-current-modal",
                     "opener-title" to "measured-canvas-text",
                     "entry" to "forbidden",
+                    "replacement" to "same-layer-reuse-backdrop-no-history-push",
                     "snapshot" to "required-at-runtime",
                     "native-body-position" to NativeBodyPosition.AFTER_CANVAS.id,
                     "columns" to "positive-count-bounded-by-actions-and-layout",

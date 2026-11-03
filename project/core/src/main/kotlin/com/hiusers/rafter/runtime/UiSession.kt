@@ -5,6 +5,7 @@ import com.hiusers.rafter.model.CompiledPage
 import com.hiusers.rafter.model.FormContent
 import com.hiusers.rafter.model.NodeContent
 import com.hiusers.rafter.model.NodeSpec
+import com.hiusers.rafter.model.PageMode
 import com.hiusers.rafter.model.StateContent
 import com.hiusers.rafter.model.Values
 import com.hiusers.rafter.model.accepts
@@ -131,16 +132,28 @@ class UiSession(
     fun navigate(target: String) {
         check(!closed)
         require(target in menu.pages)
+        val currentPage = current().spec
+        val replacingModal = currentPage.modal != null
         val backdrop =
             if (menu.pages.getValue(target).spec.modal != null) {
-                require(current().spec.modal == null && current().spec.components.isEmpty()) {
-                    "A modal requires a visible Canvas origin"
-                }
-                requireNotNull(lastCanvas?.takeIf { it.page == page }) {
-                    "A modal requires a successfully presented Canvas backdrop"
+                if (replacingModal) {
+                    requireNotNull(modalBackdrop) {
+                        "A modal replacement requires a captured Canvas backdrop"
+                    }
+                } else {
+                    require(
+                        currentPage.mode == PageMode.CANVAS &&
+                            currentPage.components.isEmpty() &&
+                            currentPage.frame == null
+                    ) {
+                        "A modal requires a visible Canvas origin"
+                    }
+                    requireNotNull(lastCanvas?.takeIf { it.page == page }) {
+                        "A modal requires a successfully presented Canvas backdrop"
+                    }
                 }
             } else null
-        history += Origin(page, popup.takeIf { backdrop != null })
+        if (!replacingModal) history += Origin(page, popup.takeIf { backdrop != null })
         modalBackdrop = backdrop
         popup = null
         page = target

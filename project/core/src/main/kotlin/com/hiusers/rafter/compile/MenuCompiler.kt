@@ -795,14 +795,13 @@ class MenuCompiler(
         fun validateModalOpener(page: PageSpec, node: NodeSpec) {
             if (
                 page.mode != PageMode.CANVAS ||
-                    page.components.isNotEmpty() ||
-                    page.modal != null ||
-                    page.frame != null
+                    page.frame != null ||
+                    (page.modal == null && page.components.isNotEmpty())
             )
                 failNode(
                     node,
                     "CAPABILITY",
-                    "A modal can only be opened from a Canvas-only page without a viewport frame",
+                    "A modal requires a pure Canvas page without a viewport frame, or a current modal layer",
                 )
             canvasText(page.title, SourcePath.field("$.pages", page.id) + ".title")
         }

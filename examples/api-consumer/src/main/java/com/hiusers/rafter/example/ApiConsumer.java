@@ -12,6 +12,7 @@ import com.hiusers.rafter.api.RafterService;
 import com.hiusers.rafter.api.UiActionResult;
 import com.hiusers.rafter.api.UiContext;
 import com.hiusers.rafter.api.UiFailureCode;
+import com.hiusers.rafter.api.UiOpenOptions;
 import com.hiusers.rafter.api.UiOperationException;
 
 import org.bukkit.Material;
@@ -145,6 +146,26 @@ public final class ApiConsumer implements AutoCloseable {
                                 logFailure(error);
                             } else if (!result.getOpened()) {
                                 // 失败读取枚举，不解析异常文本。
+                                owner.getLogger()
+                                        .warning("Rafter open rejected: " + result.getFailure());
+                            }
+                        });
+    }
+
+    /** 预填 title、notes 并直接打开 edit 表单；目标菜单须声明对应状态和页面。 */
+    public CompletableFuture<OpenResult> openWithInitialState(Player player, String menu) {
+        UiOpenOptions options =
+                new UiOpenOptions(
+                        Map.of(
+                                "title", "季度计划",
+                                "notes", "第一行\n第二行\n第三行"),
+                        "edit");
+        return service.open(player, menu, Collections.emptyMap(), options)
+                .whenComplete(
+                        (result, error) -> {
+                            if (error != null) {
+                                logFailure(error);
+                            } else if (!result.getOpened()) {
                                 owner.getLogger()
                                         .warning("Rafter open rejected: " + result.getFailure());
                             }

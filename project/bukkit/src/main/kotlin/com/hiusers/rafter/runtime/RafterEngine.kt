@@ -9,6 +9,7 @@ import com.hiusers.rafter.api.ProviderDescriptor
 import com.hiusers.rafter.api.RafterService
 import com.hiusers.rafter.api.UiContext
 import com.hiusers.rafter.api.UiFailureCode
+import com.hiusers.rafter.api.UiOpenOptions
 import com.hiusers.rafter.api.UiOperationException
 import com.hiusers.rafter.compile.AuthoringContract
 import com.hiusers.rafter.compile.Candidate
@@ -198,43 +199,95 @@ internal class RafterEngine(
         player: Player,
         menu: String,
         args: Map<String, Any?>,
-    ): CompletableFuture<OpenResult> =
-        mainFuture {
-                fun rejected(code: UiFailureCode) =
-                    CompletableFuture.completedFuture(OpenResult(false, code))
-                if (stopped) return@mainFuture rejected(UiFailureCode.ENGINE_STOPPED)
-                if (!player.isOnline) return@mainFuture rejected(UiFailureCode.PLAYER_UNAVAILABLE)
-                if (!transport.supported(player))
-                    return@mainFuture rejected(UiFailureCode.UNSUPPORTED_CLIENT)
-                val active =
-                    resources.candidate
-                        ?: return@mainFuture rejected(UiFailureCode.NO_VALID_SNAPSHOT)
-                val definition =
-                    active.snapshot.menus[menu]
-                        ?: return@mainFuture rejected(UiFailureCode.UNKNOWN_MENU)
-                if (definition.spec.permission?.let { !player.hasPermission(it) } == true) {
-                    return@mainFuture rejected(UiFailureCode.NO_PERMISSION)
+    ): CompletableFuture<OpenResult> = open(player, menu, args, UiOpenOptions())
+
+    override fun open(
+        player: Player,
+        menu: String,
+        args: Map<String, Any?>,
+        options: UiOpenOptions,
+    ): CompletableFuture<OpenResult> {
+        val frozenArgs: Map<String, Any?>
+        val initialState: Map<String, Any?>
+        try {
+            // 在派发主线程前复制，调用方后续修改不能进入初始化过程。
+            frozenArgs = Values.map(args)
+            initialState = Values.map(options.initialState)
+        } catch (failure: IllegalArgumentException) {
+            return CompletableFuture.completedFuture(
+                OpenResult(false, UiFailureCode.INVALID_ARGUMENT)
+            )
+        }
+        return mainFuture {
+            fun rejected(code: UiFailureCode) =
+                CompletableFuture.completedFuture(OpenResult(false, code))
+            if (stopped) return@mainFuture rejected(UiFailureCode.ENGINE_STOPPED)
+            if (!player.isOnline) return@mainFuture rejected(UiFailureCode.PLAYER_UNAVAILABLE)
+            if (!transport.supported(player))
+                return@mainFuture rejected(UiFailureCode.UNSUPPORTED_CLIENT)
+            val active =
+                resources.candidate
+                    ?: return@mainFuture rejected(UiFailureCode.NO_VALID_SNAPSHOT)
+            val definition =
+                active.snapshot.menus[menu]
+                    ?: return@mainFuture rejected(UiFailureCode.UNKNOWN_MENU)
+            if (definition.spec.permission?.let { !player.hasPermission(it) } == true) {
+                return@mainFuture rejected(UiFailureCode.NO_PERMISSION)
+            }
+            val target = options.initialPage ?: definition.spec.entry
+            val page =
+                definition.pages[target]
+                    ?: return@mainFuture rejected(UiFailureCode.INVALID_ARGUMENT)
+            val entry = definition.pages.getValue(definition.spec.entry).spec
+            if (
+                page.spec.modal != null &&
+                    (entry.mode != PageMode.CANVAS ||
+                        entry.components.isNotEmpty() ||
+                        entry.frame != null ||
+                        entry.modal != null)
+            ) return@mainFuture rejected(UiFailureCode.INVALID_ARGUMENT)
+            val session =
+                try {
+                    UiSession(player.uniqueId, definition, frozenArgs, active.timeoutMillis)
+                        .apply {
+                            patchState(initialState)
+                            if (page.spec.modal == null && target != this.page) navigate(target)
+                        }
+                } catch (failure: IllegalArgumentException) {
+                    return@mainFuture rejected(UiFailureCode.INVALID_ARGUMENT)
                 }
-                if (!resources.ensurePackReady(player))
-                    return@mainFuture rejected(UiFailureCode.RESOURCE_PACK_LOADING)
-                val session =
-                    try {
-                        UiSession(player.uniqueId, definition, args, active.timeoutMillis)
-                    } catch (failure: IllegalArgumentException) {
-                        return@mainFuture rejected(UiFailureCode.INVALID_ARGUMENT)
-                    }
-                val previous = detach(player.uniqueId)
-                sessions[player.uniqueId] = session
-                completeDetached(previous, UiFailureCode.SUPERSEDED)
-                // 完成 Future 可能立即触发业务延续。
-                if (sessions[player.uniqueId] !== session)
-                    return@mainFuture rejected(UiFailureCode.SUPERSEDED)
-                render(player, session).handle { _, failure ->
-                    if (failure == null) OpenResult(true, sessionId = session.id)
-                    else OpenResult(false, failureCode(failure))
+            if (!resources.ensurePackReady(player))
+                return@mainFuture rejected(UiFailureCode.RESOURCE_PACK_LOADING)
+            val previous = detach(player.uniqueId)
+            sessions[player.uniqueId] = session
+            completeDetached(previous, UiFailureCode.SUPERSEDED)
+            // 完成 Future 可能立即触发业务延续。
+            if (sessions[player.uniqueId] !== session)
+                return@mainFuture rejected(UiFailureCode.SUPERSEDED)
+            presentOpen(player, session, target, clock())
+        }.exceptionally { OpenResult(false, failureCode(it)) }
+    }
+
+    /** 入口先真实发送并捕获背景，目标 modal 仍属于同一会话和同一初始化时限。 */
+    private fun presentOpen(
+        player: Player,
+        session: UiSession,
+        target: String,
+        started: Long,
+    ): CompletableFuture<OpenResult> {
+        val generation = session.generation + 1
+        return render(player, session, started = started).thenCompose {
+            mainFuture {
+                live(session, generation)
+                if (session.page == target) {
+                    CompletableFuture.completedFuture(OpenResult(true, sessionId = session.id))
+                } else {
+                    session.navigate(target)
+                    presentOpen(player, session, target, started)
                 }
             }
-            .exceptionally { OpenResult(false, failureCode(it)) }
+        }
+    }
 
     override fun close(player: Player, expectedSessionId: UUID): CompletableFuture<Void> =
         main<Void> {
@@ -382,6 +435,7 @@ internal class RafterEngine(
         player: Player,
         session: UiSession,
         errors: Map<String, Any?> = emptyMap(),
+        started: Long = clock(),
     ): CompletableFuture<Void> {
         if (
             !player.isOnline ||
@@ -397,7 +451,7 @@ internal class RafterEngine(
         }
         val policy = resources.candidate!!.runtime
         val generation = session.beginRender()
-        val work = Work(session, generation, snapshotRevision, clock(), policy.renderTimeoutMillis)
+        val work = Work(session, generation, snapshotRevision, started, policy.renderTimeoutMillis)
         check(player.uniqueId !in frames) { "Concurrent render for one session" }
         frames[player.uniqueId] = work
         var context = context(player, session)
@@ -625,6 +679,9 @@ internal class RafterEngine(
                     shownVariants[player.uniqueId] = choices.toMap()
                     fields[player.uniqueId] = view.inputs.map { it.node.id }
                     transport.show(player, view, text, values, itemValues)
+                    // 发送回调可能同步替换会话，不能清理新帧或捕获旧画面。
+                    if (!current(session, generation) || frames[player.uniqueId] !== work)
+                        return@main
                     session.data.presented()
                     val page = session.current()
                     if (

@@ -715,7 +715,7 @@ class NativeModalCompilerTest {
             )) {
             Contract.check(fields, Contract.modal, "modal.yml", "$.pages.search.modal")
         }
-        assertEquals(11, AuthoringContract.VERSION)
+        assertEquals(13, AuthoringContract.VERSION)
     }
 
     @Test
@@ -1054,7 +1054,7 @@ class NativeModalCompilerTest {
     }
 
     @Test
-    fun entryAndOpenersRequireASnapshotCapableCanvasWithoutAFrameButPopupsCanOpenModals() {
+    fun entryAndOpenersRequireASnapshotCapableCanvasWithoutAFrameOrAnotherModal() {
         assertEquals("$.entry", rejected(compile(entry = "search")).path)
         rejected(
             compile(
@@ -1073,9 +1073,14 @@ class NativeModalCompilerTest {
                     )
             )
         )
-        rejected(
-            compile(page() + ("elements" to listOf(open)))
-        ) // 模态页不能作为冻结背景来源。
+        val replace =
+            submit +
+                ("actions" to
+                    listOf(
+                        mapOf("type" to "submit"),
+                        mapOf("type" to "open-page", "page" to "search"),
+                    ))
+        compiledSnapshot(compile(page(listOf(input, cancel, replace))))
         val popupOrigin =
             origin +
                 mapOf(

@@ -4,18 +4,28 @@
 import argparse
 import os
 from pathlib import Path
+import re
 import subprocess
 import tempfile
 import zipfile
 
 
 API_PREFIX = "com/hiusers/rafter/api/"
+ROOT = Path(__file__).resolve().parent.parent
+
+
+def read_version():
+    match = re.search(r"(?m)^version=([^\s#]+)\s*$", (ROOT / "gradle.properties").read_text())
+    if not match:
+        raise RuntimeError("gradle.properties does not declare version")
+    return match.group(1)
 
 
 def main():
+    version = read_version()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--java-home", required=True, type=Path, help="JDK home containing bin/javac")
-    parser.add_argument("--api-jar", required=True, type=Path, help="Existing rafter-api-0.0.2.jar")
+    parser.add_argument("--api-jar", required=True, type=Path, help=f"Existing rafter-api-{version}-api.jar")
     parser.add_argument("--plugin-jar", required=True, type=Path, help="Existing final Rafter.jar")
     parser.add_argument(
         "--classpath", required=True,
@@ -30,6 +40,11 @@ def main():
     for jar in artifacts:
         if not jar.is_file() or not zipfile.is_zipfile(jar):
             parser.error(f"not an existing JAR: {jar}")
+    api_options_class = API_PREFIX + "UiOpenOptions.class"
+    for jar in artifacts:
+        with zipfile.ZipFile(jar) as archive:
+            if api_options_class not in archive.namelist():
+                parser.error(f"{api_options_class} is missing from {jar}")
     if artifacts[0].samefile(artifacts[1]):
         parser.error("--api-jar and --plugin-jar must be different artifacts")
 
@@ -49,7 +64,7 @@ def main():
             parser.error(f"dependency classpath must not supply Rafter API classes: {path}")
         dependencies.append(str(path))
 
-    root = Path(__file__).resolve().parent.parent
+    root = ROOT
     sources = sorted((root / "examples/api-consumer/src/main/java").rglob("*.java"))
     if not sources:
         parser.error("Java consumer fixture is missing")
