@@ -2329,6 +2329,14 @@ class RuntimeTest {
                 .newInstance(mapOf("name" to "Prefilled"))
         assertEquals(mapOf("name" to "Prefilled"), stateOnly.initialState)
         assertNull(stateOnly.initialPage)
+        val pageOnly = UiOpenOptions::class.java.getConstructor(String::class.java).newInstance("form")
+        assertTrue(pageOnly.initialState.isEmpty())
+        assertEquals("form", pageOnly.initialPage)
+        assertTrue(
+            UiOpenOptions::class.java.constructors.all { constructor ->
+                constructor.parameterTypes.none { it.name.contains("DefaultConstructorMarker") }
+            }
+        )
     }
 
     @Test

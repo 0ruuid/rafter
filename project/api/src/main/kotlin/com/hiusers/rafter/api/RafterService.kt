@@ -7,12 +7,17 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.Plugin
 
 /** 打开时的初始状态与目标页；引擎接收时深拷贝并冻结，DTO 本身不复制集合。 */
-data class UiOpenOptions
-@JvmOverloads
-constructor(
-    val initialState: Map<String, Any?> = emptyMap(),
-    val initialPage: String? = null,
-)
+data class UiOpenOptions(
+    val initialState: Map<String, Any?>,
+    val initialPage: String?,
+) {
+    // 显式构造器不让重定位后的 DefaultConstructorMarker 穿过 API。
+    constructor() : this(emptyMap(), null)
+
+    constructor(initialState: Map<String, Any?>) : this(initialState, null)
+
+    constructor(initialPage: String?) : this(emptyMap(), initialPage)
+}
 
 /** Rafter 提供只读普通值快照，嵌套最多 32 层；Player 仍限主线程访问。 自行构造此对象不复制集合，也不创建会话。 */
 data class UiContext(

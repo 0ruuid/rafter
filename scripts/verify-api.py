@@ -33,8 +33,11 @@ def main():
     )
     args = parser.parse_args()
     javac = args.java_home.expanduser().resolve() / "bin" / ("javac.exe" if os.name == "nt" else "javac")
+    javap = javac.with_name("javap.exe" if os.name == "nt" else "javap")
     if not javac.is_file() or not os.access(javac, os.X_OK):
         parser.error(f"javac is not executable: {javac}")
+    if not javap.is_file() or not os.access(javap, os.X_OK):
+        parser.error(f"javap is not executable: {javap}")
 
     artifacts = [args.api_jar.expanduser().resolve(), args.plugin_jar.expanduser().resolve()]
     for jar in artifacts:
@@ -73,6 +76,22 @@ def main():
     injected_options = {"JDK_JAVAC_OPTIONS", "JDK_JAVA_OPTIONS", "JAVA_TOOL_OPTIONS", "_JAVA_OPTIONS"}
     env = {key: value for key, value in os.environ.items() if key not in injected_options}
     try:
+        constructors = []
+        for jar in artifacts:
+            inspected = subprocess.run(
+                [str(javap), "-public", "-s", "-classpath", str(jar),
+                 "com.hiusers.rafter.api.UiOpenOptions"],
+                check=True, capture_output=True, text=True, timeout=30, env=env,
+            ).stdout
+            if "DefaultConstructorMarker" in inspected:
+                raise ValueError(f"UiOpenOptions leaks a relocation-sensitive constructor: {jar}")
+            constructors.append(set(re.findall(
+                r"public com\.hiusers\.rafter\.api\.UiOpenOptions\([^\n]*\);\s*descriptor: ([^\s]+)",
+                inspected,
+            )))
+        if not constructors[0] or constructors[0] != constructors[1]:
+            raise ValueError("UiOpenOptions constructors differ between the API and deployment JAR")
+        print("PASS: API and deployment DTO constructors have identical JVM descriptors", flush=True)
         with tempfile.TemporaryDirectory(prefix="rafter-api-consumer-") as temporary:
             temporary = Path(temporary)
             sourcepath = temporary / "empty-sourcepath"
@@ -89,7 +108,7 @@ def main():
                 print(f"Compiling Java consumer against {label}: {jar}", flush=True)
                 subprocess.run(command, check=True, timeout=60, stdin=subprocess.DEVNULL, env=env)
                 print(f"PASS: Java consumer compiled against {label}", flush=True)
-    except (OSError, subprocess.SubprocessError, zipfile.BadZipFile) as failure:
+    except (OSError, ValueError, subprocess.SubprocessError, zipfile.BadZipFile) as failure:
         parser.exit(1, f"FAIL: {failure}\n")
     print("PASS: both artifacts expose the exercised Java API; no runtime/client verification performed")
 

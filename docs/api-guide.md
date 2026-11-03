@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.hiusers.rafter:rafter-api:0.0.3")
+    compileOnly("com.hiusers.rafter:rafter-api:0.0.4")
 }
 ```
 
@@ -37,7 +37,7 @@ TabooLib 插件可在 ENABLE 注册提供器，菜单在 ACTIVE 加载。提前�
 
 `refresh`、`close` 返回 `CompletableFuture<Void>`。会话 ID 取自原 `OpenResult.sessionId` 或 `UiContext.sessionId`；原会话失效后，排队刷新会异常完成，不转交新会话。
 
-`UiOpenOptions` 需要 Rafter `0.0.3+`：
+`UiOpenOptions` 需要 Rafter `0.0.4+`：
 
 - `initialState`：已声明状态的初始补丁，默认空。接收时深拷贝并冻结，全部校验通过后一起写入，在首次提供器读取前生效。
 - `initialPage`：菜单内已有的目标页，默认使用 `entry`。普通页可为 native 或 Canvas；目标为 modal 时，入口须为不含原生控件、无 frame 的纯 Canvas。
@@ -126,4 +126,4 @@ Java 示例见 [ApiConsumer](../examples/api-consumer/README.md)。
 ./gradlew taboolibBuildApi -PDeleteCode -x test
 ```
 
-产物：`project/api/build/libs/rafter-api-0.0.3-api.jar`。部署插件请单独构建，不要使用 `DeleteCode` 处理后的插件 JAR。
+产物：`project/api/build/libs/rafter-api-0.0.4-api.jar`。部署插件请单独构建，不要使用 `DeleteCode` 处理后的插件 JAR。
