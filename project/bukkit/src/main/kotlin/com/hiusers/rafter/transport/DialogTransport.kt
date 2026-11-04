@@ -9,8 +9,6 @@ import com.github.retrooper.packetevents.protocol.dialog.body.DialogBody
 import com.github.retrooper.packetevents.protocol.dialog.body.ItemDialogBody
 import com.github.retrooper.packetevents.protocol.dialog.body.PlainMessage
 import com.github.retrooper.packetevents.protocol.dialog.body.PlainMessageDialogBody
-import com.github.retrooper.packetevents.protocol.item.ItemStack as ProtocolItem
-import com.github.retrooper.packetevents.protocol.item.type.ItemTypes
 import com.github.retrooper.packetevents.protocol.dialog.button.ActionButton
 import com.github.retrooper.packetevents.protocol.dialog.button.CommonButtonData
 import com.github.retrooper.packetevents.protocol.dialog.input.BooleanInputControl
@@ -19,15 +17,18 @@ import com.github.retrooper.packetevents.protocol.dialog.input.InputControl
 import com.github.retrooper.packetevents.protocol.dialog.input.NumberRangeInputControl
 import com.github.retrooper.packetevents.protocol.dialog.input.SingleOptionInputControl
 import com.github.retrooper.packetevents.protocol.dialog.input.TextInputControl
+import com.github.retrooper.packetevents.protocol.item.ItemStack as ProtocolItem
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound
 import com.github.retrooper.packetevents.protocol.player.ClientVersion
 import com.github.retrooper.packetevents.resources.ResourceLocation
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerClearDialog
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerShowDialog
-import com.hiusers.rafter.model.BindingSpec
-import com.hiusers.rafter.asset.CanvasItems
 import com.hiusers.rafter.api.UiFailureCode
 import com.hiusers.rafter.api.UiOperationException
+import com.hiusers.rafter.asset.CanvasItems
+import com.hiusers.rafter.asset.ClientRenderProfiles
+import com.hiusers.rafter.model.BindingSpec
 import com.hiusers.rafter.model.NativeGeometry
 import com.hiusers.rafter.model.NodeContent
 import com.hiusers.rafter.render.DialogView
@@ -47,7 +48,10 @@ import org.bukkit.inventory.ItemStack
 /** 仅在此组装协议组件和 CUSTOM 点击元数据；保留渲染顺序与尺寸，玩家操作限主线程。 */
 open class DialogTransport {
     open fun supportsCanvasItems(player: Player) =
-        PacketEvents.getAPI().playerManager.getClientVersion(player) == ClientVersion.V_26_2
+        ClientRenderProfiles.forProtocol(
+            PacketEvents.getAPI().playerManager.getClientVersion(player).protocolVersion
+        ) != null
+
     open fun supported(player: Player) =
         !PacketEvents.getAPI()
             .playerManager
@@ -104,18 +108,26 @@ open class DialogTransport {
                 supportsFrame(PacketEvents.getAPI().playerManager.getClientVersion(player)),
             )
         val itemData =
-            view.bodies.mapIndexedNotNull { index, body ->
+            view.bodies
+                .mapIndexedNotNull { index, body ->
                     if (body is ItemBody) {
-                        (index + view.canvasItems.size) to DialogItemData.capture(items.getValue(body.node.id))
+                        (index + view.canvasItems.size) to
+                            DialogItemData.capture(items.getValue(body.node.id))
                     } else null
                 }
-                .toMap().toMutableMap()
+                .toMap()
+                .toMutableMap()
         view.canvasItems.forEachIndexed { index, item ->
-            itemData[index] = if (item.visible) DialogItemData.capture(items.getValue(item.node.id))
+            itemData[index] =
+                if (item.visible) DialogItemData.capture(items.getValue(item.node.id))
                 else DialogItemData.empty()
         }
-        val hovers = view.messages.flatMap { it.parts }.mapNotNull { it.hoverItem }.distinct()
-            .associateWith { DialogItemData.capture(items.getValue(it)) }
+        val hovers =
+            view.messages
+                .flatMap { it.parts }
+                .mapNotNull { it.hoverItem }
+                .distinct()
+                .associateWith { DialogItemData.capture(items.getValue(it)) }
         // SHOW_DIALOG 可直接替换，先清空会造成闪屏。
         val packet =
             if (itemData.isEmpty()) WrapperPlayServerShowDialog(dialog)
@@ -132,33 +144,41 @@ open class DialogTransport {
         frameSupported: Boolean = true,
     ): MultiActionDialog {
         require(!view.modal || frameSupported) {
-            "Native graphical modals require the verified 26.2/26.3 text shader"
+            "Native graphical modals require a supported client render profile"
         }
-        val carriers: List<DialogBody> = view.canvasItems.map { item ->
-            ItemDialogBody(
-                ProtocolItem.builder().type(ItemTypes.PAPER).build(),
-                PlainMessage(Component.empty(), CanvasItems.DESCRIPTION_WIDTH),
-                false, false, item.route.itemWidth, CanvasItems.CARRIER_HEIGHT,
-            )
-        }
-        val bodies: List<DialogBody> = carriers +
-            view.bodies.map { body ->
-                when (body) {
-                    is Message -> PlainMessageDialogBody(PlainMessage(wire(body.parts), body.width))
-                    is ItemBody ->
-                        ItemDialogBody(
-                            SpigotConversionUtil.fromBukkitItemStack(items.getValue(body.node.id)),
-                            PlainMessage(
-                                body.label.toAdventureObject(),
-                                body.node.width ?: NativeGeometry.ITEM_DESCRIPTION_WIDTH,
-                            ),
-                            true,
-                            (body.node.content as NodeContent.Item).showTooltip,
-                            NativeGeometry.ITEM_WIDTH,
-                            NativeGeometry.ITEM_HEIGHT,
-                        )
-                }
+        val carriers: List<DialogBody> =
+            view.canvasItems.map { item ->
+                ItemDialogBody(
+                    ProtocolItem.builder().type(ItemTypes.PAPER).build(),
+                    PlainMessage(Component.empty(), CanvasItems.DESCRIPTION_WIDTH),
+                    false,
+                    false,
+                    item.route.itemWidth,
+                    CanvasItems.CARRIER_HEIGHT,
+                )
             }
+        val bodies: List<DialogBody> =
+            carriers +
+                view.bodies.map { body ->
+                    when (body) {
+                        is Message ->
+                            PlainMessageDialogBody(PlainMessage(wire(body.parts), body.width))
+                        is ItemBody ->
+                            ItemDialogBody(
+                                SpigotConversionUtil.fromBukkitItemStack(
+                                    items.getValue(body.node.id)
+                                ),
+                                PlainMessage(
+                                    body.label.toAdventureObject(),
+                                    body.node.width ?: NativeGeometry.ITEM_DESCRIPTION_WIDTH,
+                                ),
+                                true,
+                                (body.node.content as NodeContent.Item).showTooltip,
+                                NativeGeometry.ITEM_WIDTH,
+                                NativeGeometry.ITEM_HEIGHT,
+                            )
+                    }
+                }
         val inputs =
             view.inputs.mapIndexed { index, input ->
                 val node = input.node
@@ -234,13 +254,7 @@ open class DialogTransport {
 
     /** 未知文字 Shader ABI 使用普通原生控件，不显示内部标记。 */
     internal fun supportsFrame(version: ClientVersion): Boolean =
-        when (version) {
-            ClientVersion.V_26_2 ->
-                com.hiusers.rafter.asset.DialogFrameShaders.supportsPackFormat(88, 0)
-            ClientVersion.V_26_3 ->
-                com.hiusers.rafter.asset.DialogFrameShaders.supportsPackFormat(97, 1)
-            else -> false
-        }
+        ClientRenderProfiles.forProtocol(version.protocolVersion) != null
 
     open fun clear(player: Player) {
         PacketEvents.getAPI().playerManager.sendPacket(player, WrapperPlayServerClearDialog())

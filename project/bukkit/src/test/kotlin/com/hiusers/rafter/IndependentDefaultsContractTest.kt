@@ -1,5 +1,7 @@
 package com.hiusers.rafter
 
+import com.hiusers.rafter.asset.AssetCompiler
+import com.hiusers.rafter.asset.ClientRenderProfiles
 import com.hiusers.rafter.asset.Json
 import com.hiusers.rafter.asset.manifest
 import com.hiusers.rafter.compile.*
@@ -30,7 +32,10 @@ class IndependentDefaultsContractTest {
                 .load()
         val candidate = assertNotNull(loaded.candidate, loaded.diagnostics.joinToString("\n"))
         assertEquals("rafter:friends", candidate.defaultMenu)
-        assertEquals(setOf("rafter:friends", "rafter:tasks", "rafter:player-profile", "rafter:items"), candidate.snapshot.menus.keys)
+        assertEquals(
+            setOf("rafter:friends", "rafter:tasks", "rafter:player-profile", "rafter:items"),
+            candidate.snapshot.menus.keys,
+        )
         assertTrue(candidate.assets.modalBackdrops.none { it.width == 432 && it.height == 144 })
         assertTrue(candidate.assets.modalBackdrops.none { it.width == 864 && it.height == 216 })
         val menu = candidate.snapshot.menus.getValue("rafter:friends")
@@ -49,6 +54,19 @@ class IndependentDefaultsContractTest {
         val canvas = Contract.manifest()["canvas"] as Map<*, *>
         assertEquals(1, canvas["image-y-step"])
         assertEquals(9, canvas["hit-area-y-step"])
+        System.getenv("RAFTER_SHADER_CHECK_OUTPUT")?.let { target ->
+            val destination = Path.of(target).toAbsolutePath().normalize()
+            require(destination.startsWith(Path.of("/Volumes/iiDisk/environment")))
+            val pack = AssetCompiler.build(root.resolve("core/ui"), candidate.assets, destination)
+            for (profile in ClientRenderProfiles.all) {
+                val folder = pack.resolve("${profile.directory}/assets/minecraft/shaders/core")
+                assertTrue(Files.isRegularFile(folder.resolve("position_tex_color.vsh")))
+                for (program in profile.textPrograms) {
+                    assertTrue(Files.isRegularFile(folder.resolve("$program.vsh")))
+                    assertTrue(Files.isRegularFile(folder.resolve("$program.fsh")))
+                }
+            }
+        }
         System.getProperty("rafter.editor.export")?.let { target ->
             val directory = Path.of(target)
             Files.createDirectories(directory)

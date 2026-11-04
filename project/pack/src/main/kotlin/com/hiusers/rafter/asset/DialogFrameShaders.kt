@@ -1,28 +1,18 @@
 package com.hiusers.rafter.asset
 
 import com.hiusers.rafter.model.CanvasGeometry
-import com.hiusers.rafter.model.Values
 import java.nio.file.Files
 import java.nio.file.Path
 import java.security.MessageDigest
-import java.util.Collections
 
 /** 仅适配标题背景与原生模态页，其他格式保留普通文本和标题回退。 */
 object DialogFrameShaders {
-    /** 使用精确资源包格式，不使用协议号或开放版本范围。 */
-    val supportedPackFormats: Set<Pair<Int, Int>> =
-        Collections.unmodifiableSet(linkedSetOf(88 to 0, 97 to 1))
+    val supportedPackFormats: Set<Pair<Int, Int>> = ClientRenderProfiles.packFormats
 
     fun supportsPackFormat(major: Int, minor: Int): Boolean =
-        (major to minor) in supportedPackFormats
+        ClientRenderProfiles.supportsPackFormat(major, minor)
 
-    val supportedProfiles: List<DialogFocusShaders.Profile> =
-        Values.list(
-            DialogFocusShaders.profiles.filter {
-                it.min == it.max && supportsPackFormat(it.min[0], it.min[1])
-            }
-        )
-    private val versions = mapOf("rafter_v260200" to "26_2", "rafter_v260300" to "26_3")
+    val supportedProfiles: List<ClientRenderProfile> = ClientRenderProfiles.all
 
     private fun resource(name: String) =
         DialogFrameShaders::class
@@ -32,11 +22,7 @@ object DialogFrameShaders {
             ?.use { it.readText() } ?: error("Missing bundled Dialog frame shader $name")
 
     private val templates by lazy {
-        (listOf("frame_vertex.glsl", "frame_fragment.glsl") +
-                versions.values.flatMap {
-                    listOf("$it/text.vsh", "$it/text.fsh")
-                })
-            .associateWith(::resource)
+        listOf("frame_vertex.glsl", "frame_fragment.glsl").associateWith(::resource)
     }
 
     private fun active(catalog: AssetCatalog) =
@@ -107,6 +93,16 @@ object DialogFrameShaders {
             Json.gson.toJson(supportedProfiles.map { it.manifest() }).toByteArray(Charsets.UTF_8)
         )
         hash.update(vertexInclude(layouts, backdrops).toByteArray(Charsets.UTF_8))
+        supportedProfiles.forEach { profile ->
+            profile.textPrograms.forEach { program ->
+                for (extension in listOf("vsh", "fsh")) {
+                    hash.update(
+                        ClientShaderSources.read(profile, "$program.$extension")
+                            .toByteArray(Charsets.UTF_8)
+                    )
+                }
+            }
+        }
         templates.toSortedMap().forEach { (name, source) ->
             hash.update(name.toByteArray(Charsets.UTF_8))
             hash.update(source.toByteArray(Charsets.UTF_8))
@@ -138,22 +134,14 @@ object DialogFrameShaders {
             "modal-assets" to catalog.modalFrames,
         )
 
-    internal fun packMetadata(catalog: AssetCatalog): Map<String, Any?> {
-        val metadata = DialogFocusShaders.packMetadata(catalog)
-        if (!active(catalog)) return metadata
-        val enabled =
-            DialogFocusShaders.profiles.filter {
-                DialogFocusShaders.active(catalog) || it in supportedProfiles ||
-                    (catalog.canvasItems.isNotEmpty() && it.directory == "rafter_v260200")
-            }
-        return metadata + ("overlays" to mapOf("entries" to enabled.map { it.overlay() }))
-    }
+    internal fun packMetadata(catalog: AssetCatalog): Map<String, Any?> =
+        DialogFocusShaders.packMetadata(catalog)
 
-    internal fun sources(profile: DialogFocusShaders.Profile): Map<String, String> {
+    internal fun sources(profile: ClientRenderProfile): Map<String, String> {
         require(profile in supportedProfiles) {
             "Unverified Dialog frame text ABI: ${profile.directory}"
         }
-        val version = versions.getValue(profile.directory)
+        val version = profile.baseline
         val include = if (profile.vulkanInterface) "#include" else "#moj_import"
         fun fields(direction: String) =
             listOf(
@@ -168,7 +156,7 @@ object DialogFrameShaders {
                         "$direction $type $name;"
                 }
                 .joinToString("\n")
-        val guard = "#if defined(IS_GUI)"
+        val guard = if (profile.unifiedText) "#if defined(IS_GUI)" else "#if 1"
         fun insert(source: String, needle: String, replacement: String): String {
             require(source.split(needle).size == 2) {
                 "Unexpected vanilla $version shader anchor: $needle"
@@ -180,33 +168,35 @@ object DialogFrameShaders {
                 "$include <rafter:dialog_frame_vertex.glsl>\n#endif\n\n"
         val fragmentDeclarations =
             "$guard\n${fields("in")}\n" + "$include <rafter:dialog_frame_fragment.glsl>\n#endif\n\n"
-        val vertex =
-            insert(
-                insert(
-                    templates.getValue("$version/text.vsh"),
-                    "void main() {",
-                    vertexDeclarations + "void main() {",
-                ),
-                "    texCoord0 = UV0;",
-                "    texCoord0 = UV0;\n$guard\n    rafter_frame_position();\n#endif",
-            )
-        val output =
-            if (profile.vulkanInterface)
-                """
-                #ifdef OIT_ALPHA_ONLY
-                    executeAlphaOnlyPhase(gl_FragCoord.z, color.a);
-                #else
-                    fragColor = calculateFinalColor(color);
-                #endif
-                """
-                    .trimIndent()
-            else "fragColor = color;"
-        val fragment =
-            insert(
-                templates.getValue("$version/text.fsh"),
-                "void main() {",
-                fragmentDeclarations +
-                    """
+        return profile.textPrograms
+            .flatMap { program ->
+                val vertex =
+                    insert(
+                        insert(
+                            ClientShaderSources.read(profile, "$program.vsh"),
+                            "void main() {",
+                            vertexDeclarations + "void main() {",
+                        ),
+                        "    texCoord0 = UV0;",
+                        "    texCoord0 = UV0;\n$guard\n    rafter_frame_position();\n#endif",
+                    )
+                val output =
+                    if (profile.vulkanInterface)
+                        """
+                        #ifdef OIT_ALPHA_ONLY
+                            executeAlphaOnlyPhase(gl_FragCoord.z, color.a);
+                        #else
+                            fragColor = calculateFinalColor(color);
+                        #endif
+                        """
+                            .trimIndent()
+                    else "fragColor = color;"
+                val fragment =
+                    insert(
+                        ClientShaderSources.read(profile, "$program.fsh"),
+                        "void main() {",
+                        fragmentDeclarations +
+                            """
 void main() {
 $guard
     if (rafterFrame == 1) {
@@ -217,9 +207,11 @@ $output
     }
 #endif
 """
-                        .trimIndent(),
-            )
-        return mapOf("text.vsh" to vertex, "text.fsh" to fragment)
+                                .trimIndent(),
+                    )
+                listOf("$program.vsh" to vertex, "$program.fsh" to fragment)
+            }
+            .toMap()
     }
 
     fun write(stage: Path, catalog: AssetCatalog) {

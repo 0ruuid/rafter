@@ -43,6 +43,16 @@ jobs:
           server-username-env-var: MAVEN_USERNAME
           server-password-env-var: MAVEN_PASSWORD
 
+      - name: Build and save deployment JAR for ABI verification
+        run: |
+          bash ./gradlew :plugin:build -x test --no-daemon
+          mkdir -p build/api-verification
+          if [[ ! -f plugin/build/libs/Rafter.jar ]]; then
+            echo "::error::Deployment JAR was not produced: plugin/build/libs/Rafter.jar"
+            exit 1
+          fi
+          cp -f plugin/build/libs/Rafter.jar build/api-verification/Rafter.jar
+
       - name: Build development API JAR
         run: bash ./gradlew taboolibBuildApi -PDeleteCode -x test --no-daemon
 
@@ -57,6 +67,38 @@ jobs:
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "jar=$JAR_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Verify API ABI against deployment JAR
+        run: |
+          bash ./gradlew :project:api:verifyApiAbi \
+            -PrafterVerificationPluginJar=build/api-verification/Rafter.jar \
+            --no-daemon
+
+      - name: Reject an already published API version
+        env:
+          API_VERSION: ${{ steps.api.outputs.version }}
+        run: |
+          BASE_URL="https://repo.hiusers.com/releases/com/hiusers/rafter/rafter-api/${API_VERSION}/rafter-api-${API_VERSION}"
+          for EXTENSION in pom jar; do
+            ARTIFACT_URL="${BASE_URL}.${EXTENSION}"
+            HTTP_STATUS=$(curl --silent --show-error --location \
+              --connect-timeout 15 --max-time 30 \
+              --output /dev/null --write-out '%{http_code}' "$ARTIFACT_URL") || {
+                echo "::error::Unable to check existing API artifact: $ARTIFACT_URL"
+                exit 1
+              }
+            case "$HTTP_STATUS" in
+              200)
+                echo "::error::Refusing to overwrite existing API artifact: $ARTIFACT_URL"
+                exit 1
+                ;;
+              404) ;;
+              *)
+                echo "::error::Unexpected HTTP status while checking API artifact: $HTTP_STATUS"
+                exit 1
+                ;;
+            esac
+          done
 
       - name: Publish API JAR and POM to Reposilite
         env:

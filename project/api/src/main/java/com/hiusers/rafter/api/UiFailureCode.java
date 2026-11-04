@@ -1,0 +1,19 @@
+package com.hiusers.rafter.api;
+
+/** 界面操作失败码，不携带平台对象或内部异常。 */
+public enum UiFailureCode {
+    ENGINE_STOPPED,
+    PLAYER_UNAVAILABLE,
+    UNSUPPORTED_CLIENT,
+    NO_VALID_SNAPSHOT,
+    UNKNOWN_MENU,
+    NO_PERMISSION,
+    RESOURCE_PACK_LOADING,
+    SUPERSEDED,
+    TIMED_OUT,
+    PROVIDER_UNAVAILABLE,
+    ACTION_DENIED,
+    INVALID_FORM,
+    INVALID_ARGUMENT,
+    INTERNAL_ERROR
+}

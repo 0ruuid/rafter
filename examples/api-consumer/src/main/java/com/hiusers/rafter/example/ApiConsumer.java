@@ -37,10 +37,7 @@ public final class ApiConsumer implements AutoCloseable {
 
     public ApiConsumer(Plugin owner) {
         this.owner = owner;
-        service = owner.getServer().getServicesManager().load(RafterService.class);
-        if (service == null) {
-            throw new IllegalStateException("Rafter service is unavailable");
-        }
+        service = RafterService.get();
 
         // 回调入口在主线程，可读取玩家状态。
         DataProvider playerName =
@@ -71,18 +68,15 @@ public final class ApiConsumer implements AutoCloseable {
                 };
 
         try {
-            // Java 使用完整构造器，不依赖 Kotlin 合成方法。
             registrations.add(
                     service.registerData(
                             owner,
                             "api-consumer:player-name",
-                            new ProviderDescriptor("Player name", Collections.emptyMap()),
                             playerName));
             registrations.add(
                     service.registerCondition(
                             owner,
                             "api-consumer:may-use",
-                            new ProviderDescriptor("Permission check", Collections.emptyMap()),
                             mayUse));
             registrations.add(
                     service.registerAction(
@@ -130,7 +124,6 @@ public final class ApiConsumer implements AutoCloseable {
                     service.registerItems(
                             owner,
                             "api-consumer:icons",
-                            new ProviderDescriptor("Paper icon", Collections.emptyMap()),
                             icons));
         } catch (RuntimeException failure) {
             close();
@@ -160,7 +153,7 @@ public final class ApiConsumer implements AutoCloseable {
                                 "title", "季度计划",
                                 "notes", "第一行\n第二行\n第三行"),
                         "edit");
-        return service.open(player, menu, Collections.emptyMap(), options)
+        return service.open(player, menu, options)
                 .whenComplete(
                         (result, error) -> {
                             if (error != null) {

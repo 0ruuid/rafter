@@ -90,7 +90,7 @@ class ContractDescriptorTest {
             assertFalse("schema-version" in assertIs<List<*>>(schema["required"]))
             assertEquals(false, schema["additionalProperties"])
         }
-        assertEquals(14, AuthoringContract.VERSION)
+        assertEquals(15, AuthoringContract.VERSION)
         val service = objectValue(manifest["service-api"])
         assertEquals("node-row-record-or-null", service["item-context"])
         assertEquals("client-flow-template-rows", service["native-lists"])

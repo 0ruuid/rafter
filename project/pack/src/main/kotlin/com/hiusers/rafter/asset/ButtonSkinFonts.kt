@@ -5,7 +5,7 @@ import java.nio.file.Path
 /** 原生标签复用缩放后的图片切片，仅调整垂直位置。 */
 internal object ButtonSkinFonts {
     const val VERSION = "native-button-label-bitmaps-v1"
-    // 26.2/26.3 的 20px 按钮将 9px 标签居中到 y+6。
+    // 原生 20px 按钮将 9px 标签居中到 y+6。
     const val LABEL_BASELINE_OFFSET = 6
 
     fun manifest(skins: Map<String, Int>): Map<String, Any?> =

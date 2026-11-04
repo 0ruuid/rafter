@@ -1,25 +1,9 @@
-import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.protocol.dialog.CommonDialogData;
-import com.github.retrooper.packetevents.protocol.dialog.Dialog;
-import com.github.retrooper.packetevents.protocol.dialog.DialogAction;
-import com.github.retrooper.packetevents.protocol.dialog.MultiActionDialog;
-import com.github.retrooper.packetevents.protocol.dialog.body.ItemDialogBody;
-import com.github.retrooper.packetevents.protocol.dialog.body.PlainMessage;
-import com.github.retrooper.packetevents.protocol.dialog.button.ActionButton;
-import com.github.retrooper.packetevents.protocol.dialog.button.CommonButtonData;
-import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
-import com.github.retrooper.packetevents.protocol.nbt.NBTList;
-import com.github.retrooper.packetevents.protocol.nbt.NBTString;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerClearDialog;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerShowDialog;
 import com.hiusers.rafter.api.ItemProvider;
 import com.hiusers.rafter.api.ProviderDescriptor;
 import com.hiusers.rafter.api.RafterService;
 import com.hiusers.rafter.api.UiFailureCode;
 import com.hiusers.rafter.api.UiActionResult;
 import com.hiusers.rafter.api.UiOperationException;
-import com.hiusers.rafter.transport.DialogItemData;
-import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -29,11 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -116,19 +98,7 @@ public final class ItemProbePlugin extends JavaPlugin {
                             Map.of("last-click", id, "hint", "clicked: " + id)));
                 }));
 
-        getCommand("rafteritemprobe").setExecutor((sender, command, label, args) -> {
-            if (!(sender instanceof Player player)) return false;
-            String action = args.length == 0 ? "overlay" : args[0];
-            if (action.equals("clicked")) {
-                getLogger().info("[ITEM_PROBE_CLICK] " + player.getName());
-                player.sendMessage("ITEM_PROBE_CLICK");
-            } else if (action.equals("close")) {
-                PacketEvents.getAPI().getPlayerManager().sendPacket(player, new WrapperPlayServerClearDialog());
-            } else if (action.equals("overlay")) {
-                showOverlay(player);
-            } else return false;
-            return true;
-        });
+
     }
 
     @Override
@@ -161,61 +131,5 @@ public final class ItemProbePlugin extends JavaPlugin {
             throw new IllegalStateException(
                     "Failed to set ItemMeta item model rafterprobe:custom", failure);
         }
-    }
-
-    /** 协议级实验：视觉物品和独立文字命中层，不修改客户端控件几何。 */
-    private void showOverlay(Player player) {
-        ItemStack stack = templates.get("custom").clone();
-        NBTCompound snapshot = DialogItemData.INSTANCE.capture(stack);
-        var body = new ItemDialogBody(
-                SpigotConversionUtil.fromBukkitItemStack(stack),
-                new PlainMessage(Component.empty(), 300), true, false, 32, 32);
-        var common = new CommonDialogData(
-                Component.text("Item interaction probe"), null, true, false, DialogAction.NONE,
-                List.of(body), List.of());
-        var close = new ActionButton(new CommonButtonData(Component.text("Close"), null, 150), null);
-        var dialog = new MultiActionDialog(common, List.of(close), null, 1);
-        var packet = new WrapperPlayServerShowDialog(dialog) {
-            @Override
-            public void write() {
-                writeMappedEntityOrDirect(getDialog(), (wrapper, value) -> {
-                    NBTCompound data = (NBTCompound) Dialog.encodeDirect(value, wrapper);
-                    NBTCompound encodedBody = data.getCompoundTagOrThrow("body");
-                    encodedBody.setTag("item", snapshot.copy());
-                    encodedBody.getCompoundTagOrThrow("description").setTag("contents", overlayText(snapshot));
-                    wrapper.writeNBTRaw(data);
-                });
-            }
-        };
-        PacketEvents.getAPI().getPlayerManager().sendPacket(player, packet);
-    }
-
-    private static NBTCompound overlayText(NBTCompound item) {
-        NBTCompound root = text("");
-        NBTList<NBTCompound> lines = NBTList.createCompoundList();
-        for (int row = 0; row < 8; row++) {
-            if (row > 0) lines.addTag(text("\n"));
-            NBTCompound padding = text("\ue001");
-            padding.setTag("font", new NBTString("rafterprobe:hit"));
-            lines.addTag(padding);
-            NBTCompound hit = text("\ue002");
-            hit.setTag("font", new NBTString("rafterprobe:hit"));
-            NBTCompound hover = item.copy();
-            hover.setTag("action", new NBTString("show_item"));
-            hit.setTag("hover_event", hover);
-            NBTCompound click = new NBTCompound();
-            click.setTag("action", new NBTString("run_command"));
-            click.setTag("command", new NBTString("/rafteritemprobe clicked"));
-            hit.setTag("click_event", click);
-            lines.addTag(hit);
-        }
-        root.setTag("extra", lines);
-        return root;
-    }
-
-    private static NBTCompound text(String value) {
-        NBTCompound text = new NBTCompound();
-        text.setTag("text", new NBTString(value));
-        return text;
     }
 }

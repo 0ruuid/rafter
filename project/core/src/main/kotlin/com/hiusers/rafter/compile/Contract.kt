@@ -1,7 +1,10 @@
 package com.hiusers.rafter.compile
 
+import com.hiusers.rafter.asset.CanvasItems
+import com.hiusers.rafter.asset.ClientRenderProfiles
 import com.hiusers.rafter.asset.FontRequest
 import com.hiusers.rafter.model.ButtonRole
+import com.hiusers.rafter.model.CanvasGeometry
 import com.hiusers.rafter.model.Diagnostic
 import com.hiusers.rafter.model.DocumentError
 import com.hiusers.rafter.model.ModalCellRole
@@ -633,7 +636,7 @@ object Contract {
                                 multipleOf = 18,
                                 default = 18,
                                 code = "LAYOUT",
-                            )
+                            ),
                     )) - setOf("text", "font", "font-size", "style", "width", "height")
             else -> canvas
         }
@@ -1428,6 +1431,7 @@ object Contract {
                 ),
             "native-modal" to
                 mapOf(
+                    "profiles" to ClientRenderProfiles.all.map { it.manifest() },
                     "placement" to "frozen-canvas-backdrop",
                     "source" to "original-image-asset",
                     "opener" to "canvas-only-without-frame-or-current-modal",
@@ -1578,22 +1582,27 @@ object Contract {
                     "authoring-types" to listOf("group", "list", "template"),
                     "items" to
                         mapOf(
-                            "resource-pack" to "26.2-required",
-                            "page" to
-                                "standalone-canvas-without-native-components-or-frame",
+                            "resource-pack" to "matching-client-profile-required",
+                            "profiles" to ClientRenderProfiles.all.map { it.manifest() },
+                            "page" to "standalone-canvas-without-native-components-or-frame",
                             "placement" to "static-x-and-9px-y",
                             "bounds" to "static-size-by-size-frame-including-count-reservation",
                             "data" to "native-item-component-snapshot",
                             "layout" to "reuses-canvas-layout-compiler",
-                            "carrier" to mapOf("height" to 10, "gap" to 10),
-                            "channel-limit" to 128,
+                            "carrier" to
+                                mapOf(
+                                    "height" to CanvasItems.CARRIER_HEIGHT,
+                                    "gap" to NativeGeometry.BODY_GAP,
+                                ),
+                            "channel-limit" to CanvasItems.MAX_CHANNELS,
                             "viewport" to "finite-complete-fit-no-scroll",
                             "minimum-gui-height" to
-                                "63 + itemCount*20 + canvasHeight+8 + 30 + 5",
+                                "${CanvasGeometry.PREFERRED_BODY_TOP} + itemCount*${CanvasItems.ROW_STEP} + canvasHeight+${CanvasGeometry.bodyHeight(0)} + ${CanvasGeometry.BODY_ACTION_TAIL} + ${CanvasGeometry.EMPTY_FOOTER_HEIGHT}",
                             "containers" to
                                 mapOf(
                                     "main-scene" to "supported",
-                                    "popup" to "item-not-hosted;covering-overlay-requires-hide-underlay",
+                                    "popup" to
+                                        "item-not-hosted;covering-overlay-requires-hide-underlay",
                                     "modal" to "not-supported",
                                 ),
                             "count-overlay" to "read-only-actual-stack-count",
@@ -1603,7 +1612,15 @@ object Contract {
                             "hover-appearance" to "tooltip-only",
                             "layering" to "native-model-layer-no-arbitrary-occlusion-or-clipping",
                             "static" to listOf("x", "y", "size", "layout", "capacity"),
-                            "dynamic" to listOf("item-provider-result", "visible", "enabled", "variant", "page", "selection"),
+                            "dynamic" to
+                                listOf(
+                                    "item-provider-result",
+                                    "visible",
+                                    "enabled",
+                                    "variant",
+                                    "page",
+                                    "selection",
+                                ),
                             "actions" to listOf("single-click"),
                         ),
                     "native-component-types" to modes.getValue("native").toList(),

@@ -3,7 +3,7 @@ package com.hiusers.rafter.compile
 import com.hiusers.rafter.model.*
 import kotlin.math.roundToInt
 
-/** 对应 26.2/26.3 原生流：正文间隔 10px，居中操作网格间隔 2px。 */
+/** 原生控件布局：正文间隔 10px，居中操作网格间隔 2px。 */
 object ModalLayoutCompiler {
     /** 标题坐标相对面板；原生流与传输行只在编译期解析一次。 */
     fun normalize(page: PageSpec): PageSpec {

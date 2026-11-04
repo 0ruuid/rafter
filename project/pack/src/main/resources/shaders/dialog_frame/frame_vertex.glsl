@@ -55,6 +55,7 @@ void rafter_frame_position() {
     rafterFrameOrigin = ivec2(0);
     rafterFrameSize = ivec2(1);
     rafterFrameUV = vec2(0.0);
+    if (abs(ProjMat[3][3] - 1.0) > 0.0001) return;
     if (rafter_modal_backdrop_position()) return;
     ivec2 atlas = textureSize(Sampler0, 0);
     ivec2 pixel = ivec2(floor(UV0 * vec2(atlas)));

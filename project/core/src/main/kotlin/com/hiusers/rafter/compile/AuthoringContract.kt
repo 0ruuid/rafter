@@ -4,7 +4,7 @@ import com.hiusers.rafter.model.*
 
 /** 仅导出离线数据，不执行脚本、提供器或玩家操作。 */
 object AuthoringContract {
-    const val VERSION = 14
+    const val VERSION = 15
 
     fun manifest(engineVersion: String, extensions: Map<String, Any?>): Map<String, Any?> =
         Values.contract(
@@ -25,8 +25,7 @@ object AuthoringContract {
                                 ),
                             "open" to
                                 mapOf(
-                                    "initial-state" to
-                                        "declared-state-atomic-before-first-read",
+                                    "initial-state" to "declared-state-atomic-before-first-read",
                                     "initial-page" to "entry-or-existing-page",
                                     "initial-modal" to "present-entry-canvas-then-modal",
                                     "completion" to "final-target-sent",

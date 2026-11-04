@@ -4,8 +4,3 @@ version: 0.0.1
 api-version: '1.21.6'
 depend:
   - Rafter
-  - packetevents
-commands:
-  rafteritemprobe:
-    description: Isolated item rendering probe
-    permission: rafter.admin

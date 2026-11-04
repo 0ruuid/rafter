@@ -10,17 +10,26 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.hiusers.rafter:rafter-api:0.0.4")
+    compileOnly("com.hiusers.rafter:rafter-api:0.0.5")
 }
 ```
 
 在 `plugin.yml` 中声明 `depend: [Rafter]`。API 仅用于编译，运行时由 Rafter 提供，不要打进业务插件。
 
-插件启用后，在主线程获取服务：
+需要 Rafter `0.0.5+`。插件启用后，在主线程获取服务：
 
 ```kotlin
-val service = Bukkit.getServicesManager().load(RafterService::class.java)
-    ?: error("Rafter 服务不可用")
+val ui = RafterService.get()
+ui.open(player, "example:menu")
+```
+
+带初始状态打开表单：
+
+```kotlin
+ui.open(player, "example:menu", UiOpenOptions(
+    initialState = mapOf("title" to "Example"),
+    initialPage = "edit",
+))
 ```
 
 TabooLib 插件可在 ENABLE 注册提供器，菜单在 ACTIVE 加载。提前打开可能得到 `NO_VALID_SNAPSHOT`。
@@ -29,15 +38,15 @@ TabooLib 插件可在 ENABLE 注册提供器，菜单在 ACTIVE 加载。提前�
 
 | 方法 | 行为 |
 | --- | --- |
-| `open(player, menu, args)` | 返回 `CompletableFuture<OpenResult>`，包含 `opened`、`failure`、`sessionId`；失败读取 `OpenResult.failure` |
-| `open(player, menu, args, options)` | 首读前初始化状态并打开目标页，成功表示最终目标页已交给发送层 |
+| `open(player, menu)`、`open(player, menu, args)` | 返回 `CompletableFuture<OpenResult>`，包含 `opened`、`failure`、`sessionId`；失败读取 `OpenResult.failure` |
+| `open(player, menu, options)`、`open(player, menu, args, options)` | 首读前初始化状态并打开目标页，成功表示最终目标页已交给发送层 |
 | `refresh(player, expectedSessionId)` | 无会话或 ID 不匹配时返回 `SUPERSEDED`；忙碌时合并刷新 |
 | `close(player, expectedSessionId)` | 无会话时成功；存在其他会话时返回 `SUPERSEDED`，不会关闭它 |
 | `contract()` | 返回界面能力与已注册扩展的只读描述 |
 
 `refresh`、`close` 返回 `CompletableFuture<Void>`。会话 ID 取自原 `OpenResult.sessionId` 或 `UiContext.sessionId`；原会话失效后，排队刷新会异常完成，不转交新会话。
 
-`UiOpenOptions` 需要 Rafter `0.0.4+`：
+`UiOpenOptions` 包含：
 
 - `initialState`：已声明状态的初始补丁，默认空。接收时深拷贝并冻结，全部校验通过后一起写入，在首次提供器读取前生效。
 - `initialPage`：菜单内已有的目标页，默认使用 `entry`。普通页可为 native 或 Canvas；目标为 modal 时，入口须为不含原生控件和物品节点、无 frame 的纯 Canvas。
@@ -55,7 +64,9 @@ modal 之间用 `open-page` 同层替换，复用背景，不追加历史。表�
 - `service-api.open.initial-modal`: `present-entry-canvas-then-modal`
 - `service-api.open.completion`: `final-target-sent`
 - `native-modal.replacement`: `same-layer-reuse-backdrop-no-history-push`
-- `contract-version`: `14`
+- `contract-version`: `15`
+
+`canvas.items.profiles` 和 `native-modal.profiles` 导出同一份协议、资源格式及 Shader 分组。`canvas-items-runtime-tested` 区分已有实机记录与仅完成源码适配的版本。
 
 界面操作可跨线程发起，但后台不能读取 Player，也不要阻塞等待 Future。完成回调不保证位于主线程。
 
@@ -68,7 +79,15 @@ modal 之间用 `open-page` 同层替换，复用背景，不追加历史。表�
 | `registerAction` | `execute(context, args)` | `CompletableFuture<UiActionResult>` |
 | `registerItems` | `read(context, id)` | `CompletableFuture<ItemStack>` |
 
-注册时传入 `owner`、`id`、`descriptor`、`provider`。在主线程注册，`owner` 须已启用，ID 使用命名空间。
+在主线程注册，`owner` 须已启用，ID 使用命名空间。没有参数契约时可省略 `descriptor`：
+
+```kotlin
+ui.registerData(plugin, "example:name", DataProvider { context, _ ->
+    CompletableFuture.completedFuture(context.player.name)
+})
+```
+
+需要声明参数时传入 `ProviderDescriptor`。省略时使用 ID 作为说明，参数列表为空，仍拒绝未声明参数。
 
 返回的 `AutoCloseable` 用于注销，所属插件停用时也会自动注销。句柄可跨线程关闭，返回时不保证清理已完成；同 ID 重新注册后，旧句柄不会删除新提供器。有效注销会使现有会话失效。
 
@@ -77,6 +96,13 @@ modal 之间用 `open-page` 同层替换，复用背景，不追加历史。表�
 ## 参数与上下文
 
 `ProviderDescriptor` 声明参数，`ParameterSpec` 支持类型、必填、null、默认值、枚举和范围：
+
+Kotlin 可直接使用命名和默认参数；Java 使用 `ParameterSpec.of(type)` 或 `ParameterSpec.optional(type)`，也可调用完整构造器。
+
+```kotlin
+ParameterSpec(ParameterType.STRING)
+ParameterSpec(ParameterType.INTEGER, required = false, minimum = 1, maximum = 10)
+```
 
 - 未声明参数会被拒绝。`required` 与 `nullable` 独立，默认值只补缺失的可选参数。
 - INTEGER 只接受无小数的有限数值，不转换字符串。范围包含端点；枚举按 JSON 值比较，`1` 与 `1.0` 相等。
@@ -130,4 +156,4 @@ Java 示例见 [ApiConsumer](../examples/api-consumer/README.md)。
 ./gradlew taboolibBuildApi -PDeleteCode -x test
 ```
 
-产物：`project/api/build/libs/rafter-api-0.0.4-api.jar`。部署插件请单独构建，不要使用 `DeleteCode` 处理后的插件 JAR。
+产物：`project/api/build/libs/rafter-api-0.0.5-api.jar`。部署插件请单独构建，不要使用 `DeleteCode` 处理后的插件 JAR。

@@ -38,7 +38,7 @@ object ModalEncoding {
     const val X_BASE = 32768
     const val ROW_STRIDE = 2048
     const val FONT_Y_SHIFT = 256
-    // 26.2/26.3 的标题净宽为零，警告控件宽 20，间距 10。
+    // 原生标题净宽为零，警告控件宽 20，间距 10。
     const val TITLE_GROUP_WIDTH = 30
     // Y 两次使用 Math.round，结果为 13，不能按 X 的整数截断处理。
     const val TITLE_Y = 13

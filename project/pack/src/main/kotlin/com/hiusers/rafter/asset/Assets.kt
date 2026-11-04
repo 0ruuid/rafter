@@ -42,6 +42,7 @@ object Json {
 fun AssetCatalog.manifest(): Map<String, Any?> =
     mapOf(
         "fingerprint" to fingerprint,
+        "client-profiles" to ClientRenderProfiles.all.map { it.manifest() },
         "canvas-items" to canvasItems.map { it.manifest() },
         "cell-height" to 9,
         "unknown-glyph-policy" to "reject-canvas-native-fallback",

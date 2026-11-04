@@ -252,13 +252,15 @@ class ModalResourcesTest {
         val entries =
             (Json.map(pack.resolve("pack.mcmeta"))["overlays"] as Map<*, *>)["entries"] as List<*>
         assertEquals(
-            setOf("rafter_v260200", "rafter_v260300"),
+            ClientRenderProfiles.all.map { it.directory }.toSet(),
             entries.map { (it as Map<*, *>)["directory"] }.toSet(),
         )
-        for (profile in DialogFocusShaders.profiles) for (name in listOf("text.vsh", "text.fsh")) {
+        for (profile in ClientRenderProfiles.all) for (name in
+            profile.textPrograms.flatMap { listOf("$it.vsh", "$it.fsh") }) {
             val file = pack.resolve("${profile.directory}/assets/minecraft/shaders/core/$name")
             assertEquals(profile in DialogFrameShaders.supportedProfiles, Files.exists(file))
-            if (Files.exists(file)) assertTrue(Files.readString(file).startsWith("#version 330\n"))
+            if (Files.exists(file))
+                assertTrue(Files.readString(file).startsWith("#version ${profile.glsl}\n"))
         }
         val include =
             Files.readString(pack.resolve("assets/rafter/shaders/include/dialog_frame_vertex.glsl"))

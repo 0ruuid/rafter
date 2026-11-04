@@ -2123,6 +2123,50 @@ class RuntimeTest {
     }
 
     @Test
+    fun convenienceOpenAndRegistrationReuseTheValidatedEngine() {
+        val states = mutableListOf<String>()
+        engine.registerData(
+            plugin,
+            "test:slow",
+            DataProvider { context, args ->
+                assertTrue(args.isEmpty())
+                states += assertIs<String>(context.state["name"])
+                CompletableFuture.completedFuture("Ready")
+            },
+        )
+        engine.install(candidate(slow()))
+        val first = engine.open(player, "test:menu").join()
+        assertTrue(first.opened)
+        engine.close(player, requireNotNull(first.sessionId)).join()
+        val second =
+            engine
+                .open(
+                    player,
+                    "test:menu",
+                    UiOpenOptions(initialState = mapOf("name" to "Example")),
+                )
+                .join()
+        assertTrue(second.opened)
+        assertEquals(listOf("old", "Example"), states)
+        assertEquals(2, wire.shown.size)
+    }
+
+    @Test
+    fun serviceLookupReturnsTheRegisteredServiceOrFailsClearly() {
+        val manager = Mockito.mock(org.bukkit.plugin.ServicesManager::class.java)
+        Mockito.mockStatic(Bukkit::class.java).use { mocked ->
+            mocked
+                .`when`<org.bukkit.plugin.ServicesManager> { Bukkit.getServicesManager() }
+                .thenReturn(manager)
+            Mockito.`when`(manager.load(RafterService::class.java)).thenReturn(engine)
+            assertSame(engine, RafterService.get())
+            Mockito.`when`(manager.load(RafterService::class.java)).thenReturn(null)
+            val missing = assertFailsWith<IllegalStateException> { RafterService.get() }
+            assertEquals("Rafter service is unavailable", missing.message)
+        }
+    }
+
+    @Test
     fun publicServiceRequiresSessionIdsAndAnExplicitActionResult() {
         for (name in listOf("refresh", "close")) {
             val methods = RafterService::class.java.methods.filter { it.name == name }
@@ -2315,21 +2359,36 @@ class RuntimeTest {
     }
 
     @Test
-    fun openOptionsExposeBothOpenSignaturesAndJavaConstructors() {
+    fun openOptionsExposeConvenienceAndJavaConstructors() {
         val signatures =
-            RafterService::class.java.methods.filter { it.name == "open" }
-                .map { it.parameterTypes.toList() }.toSet()
+            RafterService::class
+                .java
+                .methods
+                .filter { it.name == "open" }
+                .map { it.parameterTypes.toList() }
+                .toSet()
         val original = listOf(Player::class.java, String::class.java, Map::class.java)
-        assertEquals(setOf(original, original + UiOpenOptions::class.java), signatures)
+        assertEquals(
+            setOf(
+                original,
+                original + UiOpenOptions::class.java,
+                listOf(Player::class.java, String::class.java),
+                listOf(Player::class.java, String::class.java, UiOpenOptions::class.java),
+            ),
+            signatures,
+        )
         val defaults = UiOpenOptions::class.java.getConstructor().newInstance()
         assertTrue(defaults.initialState.isEmpty())
         assertNull(defaults.initialPage)
         val stateOnly =
-            UiOpenOptions::class.java.getConstructor(Map::class.java)
+            UiOpenOptions::class
+                .java
+                .getConstructor(Map::class.java)
                 .newInstance(mapOf("name" to "Prefilled"))
         assertEquals(mapOf("name" to "Prefilled"), stateOnly.initialState)
         assertNull(stateOnly.initialPage)
-        val pageOnly = UiOpenOptions::class.java.getConstructor(String::class.java).newInstance("form")
+        val pageOnly =
+            UiOpenOptions::class.java.getConstructor(String::class.java).newInstance("form")
         assertTrue(pageOnly.initialState.isEmpty())
         assertEquals("form", pageOnly.initialPage)
         assertTrue(
@@ -2362,12 +2421,14 @@ class RuntimeTest {
         )
         engine.install(modalCandidate())
         val opened =
-            engine.open(
-                player,
-                "test:form",
-                emptyMap(),
-                UiOpenOptions(mapOf("name" to "Draft", "message" to "Notes"), "form"),
-            ).join()
+            engine
+                .open(
+                    player,
+                    "test:form",
+                    emptyMap(),
+                    UiOpenOptions(mapOf("name" to "Draft", "message" to "Notes"), "form"),
+                )
+                .join()
         val review = wire.visible!!.buttons.single { it.node.id == "review" }.handle!!
         engine.click(player, review, mapOf("name" to "Draft", "message" to "Notes"))
         val confirm = wire.visible!!.buttons.single { it.node.id == "finish" }.handle!!
@@ -2450,17 +2511,15 @@ class RuntimeTest {
         val clears = wire.clears
         var deep: Any? = "leaf"
         repeat(34) { deep = listOf(deep) }
-        for (
-            invalid in
-                listOf(
-                    mapOf("undeclared" to true),
-                    mapOf("name" to 1),
-                    mapOf("name" to "x".repeat(17)),
-                    mapOf("message" to "x".repeat(201)),
-                    mapOf("payload" to deep),
-                    mapOf("payload" to mapOf("future" to CompletableFuture<Any?>())),
-                )
-        ) {
+        for (invalid in
+            listOf(
+                mapOf("undeclared" to true),
+                mapOf("name" to 1),
+                mapOf("name" to "x".repeat(17)),
+                mapOf("message" to "x".repeat(201)),
+                mapOf("payload" to deep),
+                mapOf("payload" to mapOf("future" to CompletableFuture<Any?>())),
+            )) {
             val result =
                 engine
                     .open(
@@ -2495,10 +2554,7 @@ class RuntimeTest {
         }
         assertEquals(
             UiFailureCode.INVALID_ARGUMENT,
-            engine
-                .open(player, "test:form", mapOf("bad" to Any()), UiOpenOptions())
-                .join()
-                .failure,
+            engine.open(player, "test:form", mapOf("bad" to Any()), UiOpenOptions()).join().failure,
         )
         assertEquals(shown, wire.shown.size)
         assertEquals(clears, wire.clears)
@@ -2517,21 +2573,16 @@ class RuntimeTest {
             )
         )
         val old = assertNotNull(engine.open(player, "test:other").join().sessionId)
-        for (
-            invalid in
-                listOf(
-                    mapOf("page" to -1),
-                    mapOf("page" to 0.5),
-                    mapOf("selected" to 1),
-                    mapOf("filtered" to "yes"),
-                )
-        ) {
+        for (invalid in
+            listOf(
+                mapOf("page" to -1),
+                mapOf("page" to 0.5),
+                mapOf("selected" to 1),
+                mapOf("filtered" to "yes"),
+            )) {
             assertEquals(
                 UiFailureCode.INVALID_ARGUMENT,
-                engine
-                    .open(player, "test:menu", emptyMap(), UiOpenOptions(invalid))
-                    .join()
-                    .failure,
+                engine.open(player, "test:menu", emptyMap(), UiOpenOptions(invalid)).join().failure,
             )
         }
         engine.refresh(player, old).join()
@@ -2726,15 +2777,12 @@ class RuntimeTest {
     @Test
     fun interruptedModalInitializationNeverReopensOrClearsItsReplacement() {
         val candidate =
-            modalCandidate("test:origin", "test:form").copy(
-                runtime =
-                    com.hiusers.rafter.runtime.RuntimePolicy(renderTimeoutMillis = 1_000)
-            )
+            modalCandidate("test:origin", "test:form")
+                .copy(
+                    runtime = com.hiusers.rafter.runtime.RuntimePolicy(renderTimeoutMillis = 1_000)
+                )
         for (stage in 0..1) {
-            for (
-                interruption in
-                    listOf("close", "replace", "reload", "timeout", "provider")
-            ) {
+            for (interruption in listOf("close", "replace", "reload", "timeout", "provider")) {
                 now = 0
                 val origin = CompletableFuture<Any?>()
                 val form = CompletableFuture<Any?>()
@@ -2818,10 +2866,10 @@ class RuntimeTest {
             DataProvider { _, _ -> form },
         )
         engine.install(
-            modalCandidate("test:origin", "test:form").copy(
-                runtime =
-                    com.hiusers.rafter.runtime.RuntimePolicy(renderTimeoutMillis = 1_000)
-            )
+            modalCandidate("test:origin", "test:form")
+                .copy(
+                    runtime = com.hiusers.rafter.runtime.RuntimePolicy(renderTimeoutMillis = 1_000)
+                )
         )
         val opening =
             engine.open(
@@ -2854,9 +2902,7 @@ class RuntimeTest {
         engine.install(
             base.copy(
                 snapshot =
-                    base.snapshot.copy(
-                        menus = base.snapshot.menus + replacement.snapshot.menus
-                    )
+                    base.snapshot.copy(menus = base.snapshot.menus + replacement.snapshot.menus)
             )
         )
         lateinit var newer: CompletableFuture<OpenResult>

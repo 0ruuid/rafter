@@ -9,50 +9,7 @@ import java.security.MessageDigest
 object DialogFocusShaders {
     const val MAX_GEOMETRIES = 128
 
-    data class Profile(
-        val directory: String,
-        val min: List<Int>,
-        val max: List<Int>,
-        val glsl: Int,
-        val lineWidth: Boolean = false,
-        val vulkanInterface: Boolean = false,
-    ) {
-        fun overlay() =
-            mapOf(
-                "directory" to directory,
-                "formats" to listOf(min[0], max[0]),
-                "min_format" to min,
-                "max_format" to max,
-            )
-
-        fun manifest() =
-            overlay() +
-                mapOf(
-                    "glsl" to glsl,
-                    "line-width-uniform" to lineWidth,
-                    "explicit-interface" to vulkanInterface,
-                )
-    }
-
-    // 使用命名空间目录，避免合包时覆盖同名版本层。
-    // 仅接受已知封闭格式范围，不把相邻版本视作 ABI 兼容。
-    val profiles =
-        Values.list(
-            listOf(
-                Profile("rafter_v1_21_6", listOf(63, 0), listOf(64, 0), 150, lineWidth = true),
-                Profile("rafter_v1_21_9", listOf(69, 0), listOf(69, 0), 330, lineWidth = true),
-                Profile("rafter_v1_21_11", listOf(75, 0), listOf(75, 0), 330),
-                Profile("rafter_v260100", listOf(84, 0), listOf(84, 0), 330),
-                Profile("rafter_v260200", listOf(88, 0), listOf(88, 0), 330),
-                Profile(
-                    "rafter_v260300",
-                    listOf(97, 1),
-                    listOf(97, 1),
-                    330,
-                    vulkanInterface = true,
-                ),
-            )
-        )
+    val profiles: List<ClientRenderProfile> = ClientRenderProfiles.all
 
     private fun template(name: String) =
         DialogFocusShaders::class
@@ -93,7 +50,8 @@ object DialogFocusShaders {
                     .toSortedMap()
                     .values
                     .filter {
-                        it.spec.mode == PageMode.CANVAS && it.spec.components.isEmpty() &&
+                        it.spec.mode == PageMode.CANVAS &&
+                            it.spec.components.isEmpty() &&
                             it.scene.none { placed -> placed.node.content is NodeContent.Item }
                     }
                     .map { page ->
@@ -175,8 +133,7 @@ object DialogFocusShaders {
                                         ),
                                     )
                                 }
-                                else ->
-                                    emptyList() // 不登记输入、复选、滑条或按钮，保留原生交互反馈。
+                                else -> emptyList() // 不登记输入、复选、滑条或按钮，保留原生交互反馈。
                             }
                         }
                 }
@@ -242,16 +199,17 @@ object DialogFocusShaders {
             linkedMapOf<String, Any?>(
                 "pack" to
                     mapOf(
-                        "pack_format" to 63,
-                        "supported_formats" to listOf(63, 97),
-                        "min_format" to listOf(63, 0),
-                        "max_format" to listOf(97, 1),
+                        "pack_format" to profiles.first().min[0],
+                        "supported_formats" to
+                            listOf(profiles.first().min[0], profiles.last().max[0]),
+                        "min_format" to profiles.first().min,
+                        "max_format" to profiles.last().max,
                         "description" to "Rafter Dialog menus",
                     )
             )
         val enabled = profiles.filter {
             active(catalog) ||
-                (catalog.canvasItems.isNotEmpty() && it.directory == "rafter_v260200") ||
+                catalog.canvasItems.isNotEmpty() ||
                 ((catalog.dialogFrames.isNotEmpty() ||
                     catalog.modalFrames.isNotEmpty() ||
                     catalog.modalBackdrops.isNotEmpty()) &&
