@@ -9,6 +9,7 @@ import com.hiusers.rafter.render.Frame
 import com.hiusers.rafter.runtime.UiSession
 import com.hiusers.rafter.text.CompositeText
 import com.hiusers.rafter.transport.DialogTransport
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.UUID
 import kotlin.test.*
@@ -27,6 +28,10 @@ class DialogFrameIntegrationTest {
     fun theImageTravelsInTheTitleWithoutAddingBodyRowsOrChangingNativeInputs() {
         Components.useAdventure = true
         installLegacyDefaults(root)
+        Files.move(root.resolve("menus"), root.resolve("core/menus"))
+        Files.move(root.resolve("ui/theme.yml"), root.resolve("core/ui/theme.yml"))
+        Files.move(root.resolve("ui/images"), root.resolve("core/ui/images"))
+        Files.delete(root.resolve("ui"))
         val loaded =
             MenuRepository(
                     root,
@@ -78,7 +83,13 @@ class DialogFrameIntegrationTest {
         val transport = DialogTransport()
         assertTrue(transport.supportsFrame(ClientVersion.V_26_2))
         assertTrue(transport.supportsFrame(ClientVersion.V_26_3))
-        assertFalse(transport.supportsFrame(ClientVersion.V_1_21_6))
+        assertTrue(transport.supportsFrame(ClientVersion.V_1_21_6))
+        assertTrue(transport.supportsFrame(ClientVersion.V_1_21_7))
+        assertTrue(transport.supportsFrame(ClientVersion.V_1_21_9))
+        assertTrue(transport.supportsFrame(ClientVersion.V_1_21_11))
+        assertTrue(transport.supportsFrame(ClientVersion.V_26_1))
+        assertFalse(transport.supportsFrame(ClientVersion.UNKNOWN))
+        assertFalse(transport.supportsFrame(ClientVersion.HIGHER_THAN_SUPPORTED_VERSIONS))
         val fallback =
             transport.create(framed, text, context.values, emptyMap(), frameSupported = false)
         assertEquals(ordinary.title.toAdventureObject(), fallback.common.title)

@@ -1,7 +1,10 @@
 package com.hiusers.rafter.compile
 
+import com.hiusers.rafter.asset.CanvasItems
+import com.hiusers.rafter.asset.ClientRenderProfiles
 import com.hiusers.rafter.asset.FontRequest
 import com.hiusers.rafter.model.ButtonRole
+import com.hiusers.rafter.model.CanvasGeometry
 import com.hiusers.rafter.model.Diagnostic
 import com.hiusers.rafter.model.DocumentError
 import com.hiusers.rafter.model.ModalCellRole
@@ -115,7 +118,8 @@ object Contract {
                     "list",
                     "template",
                 ),
-            "canvas" to setOf("text", "image", "meter", "hit-area", "group", "list", "template"),
+            "canvas" to
+                setOf("text", "image", "meter", "hit-area", "item", "group", "list", "template"),
         )
     val settings =
         linkedMapOf(
@@ -389,6 +393,8 @@ object Contract {
             "color",
             "asset",
             "item",
+            "show-count",
+            "show-tooltip",
             "actions",
             "enabled",
             "skin",
@@ -506,7 +512,11 @@ object Contract {
                             "fill" to color.copy(default = "#FFFFFF"),
                             "track" to color.copy(default = "#333333"),
                         ),
-                    "item" to fields("item" to Field("string", true)),
+                    "item" to
+                        fields(
+                            "item" to Field("string", true),
+                            "show-tooltip" to Field("boolean", default = true),
+                        ),
                     "button" to
                         fields(
                             "actions" to Field("actions", true),
@@ -586,11 +596,14 @@ object Contract {
             return if (mode == "canvas")
                 fields + mapOf("x" to common.getValue("x"), "y" to common.getValue("y"))
             else fields
-        if (mode == "native")
-            return fields -
-                (setOf("x", "y", "color", "label-offset") +
+        if (mode == "native") {
+            val ignored =
+                setOf("x", "y", "color", "label-offset") +
                     (if (type == "image") emptySet() else setOf("height")) +
-                    if (type == "button") setOf("asset") else emptySet())
+                    (if (type == "button") setOf("asset") else emptySet()) +
+                    (if (type == "item") setOf("show-count") else emptySet())
+            return fields - ignored
+        }
         val canvas =
             fields +
                 mapOf(
@@ -611,6 +624,20 @@ object Contract {
                             Field("string", values = listOf("error", "clip"), default = "error"),
                     )
             "hit-area" -> canvas - setOf("text", "style")
+            "item" ->
+                (canvas +
+                    mapOf(
+                        "show-count" to Field("boolean", default = true),
+                        "size" to
+                            Field(
+                                "integer",
+                                minimum = 18,
+                                maximum = 864,
+                                multipleOf = 18,
+                                default = 18,
+                                code = "LAYOUT",
+                            ),
+                    )) - setOf("text", "font", "font-size", "style", "width", "height")
             else -> canvas
         }
     }
@@ -1404,13 +1431,22 @@ object Contract {
                 ),
             "native-modal" to
                 mapOf(
+                    "profiles" to ClientRenderProfiles.all.map { it.manifest() },
                     "placement" to "frozen-canvas-backdrop",
                     "source" to "original-image-asset",
-                    "opener" to "canvas-only-without-frame-or-current-modal",
+                    "opener" to
+                        "pure-canvas-with-items-or-without-items-without-frame-or-current-modal",
                     "opener-title" to "measured-canvas-text",
                     "entry" to "forbidden",
                     "replacement" to "same-layer-reuse-backdrop-no-history-push",
-                    "snapshot" to "required-at-runtime",
+                    "snapshot" to
+                        mapOf(
+                            "required" to true,
+                            "items" to "independent-item-stack-snapshot",
+                            "provider-reread" to false,
+                        ),
+                    "background-interaction" to "paint-only-no-hover-or-click",
+                    "panel-clipping" to "frozen-model-routes-only",
                     "native-body-position" to NativeBodyPosition.AFTER_CANVAS.id,
                     "columns" to "positive-count-bounded-by-actions-and-layout",
                     "header-y-origin" to "panel-top",
@@ -1438,7 +1474,7 @@ object Contract {
                             "width" to "authored-or-page-width",
                             "body-height" to
                                 NativeGeometry.LINE_HEIGHT + NativeGeometry.TEXT_PADDING * 2,
-                            "gap-after" to 10,
+                            "gap-after" to NativeGeometry.BODY_GAP,
                             "text" to "single-line-measured",
                             "visibility" to "unconditional",
                             "variants" to "fixed-geometry",
@@ -1489,6 +1525,16 @@ object Contract {
                     "providers" to "page-dependencies-read-once-per-frame",
                     "script-item" to "readonly-record",
                 ),
+            "native-items" to
+                mapOf(
+                    "placement" to "native-body-flow",
+                    "canvas-coordinates" to false,
+                    "components" to "server-codec-snapshot",
+                    "count-min" to NativeGeometry.ITEM_MIN_COUNT,
+                    "count-max" to NativeGeometry.ITEM_MAX_COUNT,
+                    "tooltip" to "native-item-stack",
+                    "resource-pack" to "client-loaded-assets-required-for-custom-models",
+                ),
             "components" to nodes.mapValues { (_, fields) -> describe(fields) },
             "capabilities" to
                 modes.mapValues { (mode, allowed) ->
@@ -1529,19 +1575,91 @@ object Contract {
                 },
             "canvas" to
                 mapOf(
-                    "cell-height" to 9,
+                    "cell-height" to CanvasGeometry.ROW_HEIGHT,
                     "x-step" to 1,
-                    "y-step" to 9,
+                    "y-step" to CanvasGeometry.ROW_HEIGHT,
                     "text-y-step" to 1,
                     "image-y-step" to 1,
                     "meter-y-step" to 1,
-                    "hit-area-y-step" to 9,
-                    "interaction-height-step" to 9,
+                    "hit-area-y-step" to CanvasGeometry.ROW_HEIGHT,
+                    "interaction-height-step" to CanvasGeometry.ROW_HEIGHT,
                     "element-types" to
                         modes.getValue("canvas").filter {
                             it !in setOf("template", "group", "list")
                         },
                     "authoring-types" to listOf("group", "list", "template"),
+                    "items" to
+                        mapOf(
+                            "resource-pack" to "matching-client-profile-required",
+                            "profiles" to ClientRenderProfiles.all.map { it.manifest() },
+                            "page" to "canvas-title-paint-with-native-item-flow",
+                            "placement" to "static-x-and-row-aligned-y",
+                            "bounds" to "static-size-by-size-frame-including-count-reservation",
+                            "data" to "independent-item-stack-snapshot",
+                            "layout" to "CanvasFlow-title-paint-native-hit-bands",
+                            "carrier" to
+                                mapOf(
+                                    "height" to "1..256",
+                                    "gap" to NativeGeometry.BODY_GAP,
+                                    "filler" to "node-null-empty-model",
+                                    "allocation" to "interactive-outside-blank-bands-first",
+                                    "inset" to "compiler-adds-9px-leading-inset-on-shortfall",
+                                ),
+                            "channel-limit" to CanvasItems.MAX_CHANNELS,
+                            "channel-scope" to
+                                "overlapping-source-corners;reused-on-disjoint-native-y",
+                            "carrier-centering" to "even-native-body-width",
+                            "modal-scissor" to "contains-frozen-canvas-width-and-height",
+                            "viewport" to "finite-complete-fit-no-scroll",
+                            "layout-budget" to
+                                mapOf(
+                                    "source" to "item-layouts.json",
+                                    "routes" to "routes",
+                                    "flows" to "flows",
+                                    "modal-flows" to "modal-flows",
+                                    "minimum-gui-width" to "routes[*].minimum-gui-width",
+                                    "minimum-gui-height" to "routes[*].minimum-gui-height",
+                                ),
+                            "minimum-gui-width" to "item-layouts.json.routes[*].minimum-gui-width",
+                            "minimum-gui-height" to
+                                "item-layouts.json.routes[*].minimum-gui-height",
+                            "containers" to
+                                mapOf(
+                                    "main-scene" to "supported",
+                                    "popup" to
+                                        "item-not-hosted;covering-overlay-requires-hide-underlay",
+                                    "modal" to "native-modal-from-pure-canvas-flow",
+                                    "modal-items" to "not-supported-new-item-nodes",
+                                ),
+                            "count-overlay" to "read-only-actual-stack-count",
+                            "durability-bar" to false,
+                            "cooldown-overlay" to false,
+                            "tooltip" to "native-show-item-through-flow-hit-text",
+                            "hover-appearance" to "native-tooltip-only-no-modal-background-hover",
+                            "layering" to
+                                "no-arbitrary-item-z-or-mask-or-scroll;frozen-route-panel-clip-only",
+                            "static" to
+                                listOf(
+                                    "x",
+                                    "y",
+                                    "size",
+                                    "layout",
+                                    "capacity",
+                                    "flow",
+                                    "inset",
+                                    "carrier",
+                                ),
+                            "dynamic" to
+                                listOf(
+                                    "item-provider-result",
+                                    "visible",
+                                    "enabled",
+                                    "variant",
+                                    "page",
+                                    "selection",
+                                ),
+                            "actions" to listOf("single-click"),
+                        ),
                     "native-component-types" to modes.getValue("native").toList(),
                     "native-layout-owner" to "native-client",
                     "native-layout-order" to listOf("body", "inputs", "actions"),

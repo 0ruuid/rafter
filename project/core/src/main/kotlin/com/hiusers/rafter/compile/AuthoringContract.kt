@@ -4,7 +4,7 @@ import com.hiusers.rafter.model.*
 
 /** 仅导出离线数据，不执行脚本、提供器或玩家操作。 */
 object AuthoringContract {
-    const val VERSION = 13
+    const val VERSION = 16
 
     fun manifest(engineVersion: String, extensions: Map<String, Any?>): Map<String, Any?> =
         Values.contract(
@@ -25,8 +25,7 @@ object AuthoringContract {
                                 ),
                             "open" to
                                 mapOf(
-                                    "initial-state" to
-                                        "declared-state-atomic-before-first-read",
+                                    "initial-state" to "declared-state-atomic-before-first-read",
                                     "initial-page" to "entry-or-existing-page",
                                     "initial-modal" to "present-entry-canvas-then-modal",
                                     "completion" to "final-target-sent",
@@ -51,7 +50,14 @@ object AuthoringContract {
                     "authoring-capabilities" to
                         mapOf(
                             "canvas" to
-                                listOf("position", "size", "paint-order", "follow-hit-target"),
+                                listOf(
+                                    "position",
+                                    "size",
+                                    "paint-order",
+                                    "follow-hit-target",
+                                    "native-item-flow",
+                                    "native-modal-from-pure-canvas",
+                                ),
                             "native-body" to listOf("width", "same-region-order"),
                             "native-input" to listOf("width", "same-region-order"),
                             "native-button" to listOf("width", "same-region-order", "skin"),
@@ -87,7 +93,23 @@ object AuthoringContract {
                             "inline-kether" to "explicit-stubs-only",
                             "fonts" to "exported-advances-only",
                             "dialog-frame" to "client-shader-viewport-backdrop-not-simulated",
-                            "native-modal" to "frozen-canvas-snapshot-with-compiled-native-slots",
+                            "native-modal" to
+                                "frozen-canvas-item-stack-snapshot-with-compiled-native-slots-no-provider-reread",
+                            "canvas-items" to
+                                mapOf(
+                                    "flow" to "title-paint-native-carrier-flow",
+                                    "carrier-height" to "1..256",
+                                    "carrier-gap" to NativeGeometry.BODY_GAP,
+                                    "allocation" to "interactive-outside-blank-bands-first",
+                                    "inset" to "compiler-adds-9px-leading-inset-on-shortfall",
+                                    "background" to "paint-only-no-hover-or-click",
+                                    "modal" to "frozen-independent-item-stack-no-provider-reread",
+                                    "layout" to
+                                        "item-layouts.json.routes-flows-modal-flows-and-minimum-gui-budgets",
+                                    "panel-clipping" to "frozen-model-routes-only",
+                                    "new-modal-items" to "not-supported",
+                                    "arbitrary-z-mask-scroll" to "not-supported",
+                                ),
                             "form-feedback" to "replace-existing-text-without-reflow",
                             "native-button-skin" to
                                 "image-behind-independent-measured-label-native-hitbox",

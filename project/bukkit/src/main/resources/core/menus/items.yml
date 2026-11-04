@@ -1,0 +1,605 @@
+# Canvas 物品叶节点示例；只使用原版材料，不连接业务提供器。
+id: rafter:items
+entry: home
+permission: rafter.use
+state:
+  friends-page: 0
+  categories-page: 0
+  friends-selected: ''
+  categories-selected: ''
+data:
+  friends:
+    type: document
+    key: preview:friends
+  categories:
+    type: document
+    key: preview:task-types
+pages:
+  home:
+    mode: canvas
+    title: ""
+    width: 432
+    height: 144
+    elements:
+      - id: title
+        type: text
+        x: 36
+        y: 9
+        text: 物品展示
+      - id: hint
+        type: text
+        x: 36
+        y: 27
+        text: 选择下方物品
+      - id: navigation
+        type: group
+        elements:
+          - id: hero
+            type: item
+            item: minecraft:diamond
+            size: 36
+            x: 36
+            y: 45
+            actions:
+              - type: open-page
+                page: hero
+          - id: row
+            type: item
+            item: minecraft:emerald
+            size: 18
+            x: 126
+            y: 54
+            actions:
+              - type: open-page
+                page: row
+          - id: grid
+            type: item
+            item: minecraft:gold_ingot
+            size: 18
+            x: 198
+            y: 54
+            actions:
+              - type: open-page
+                page: grid
+          - id: slots
+            type: item
+            item: minecraft:iron_ingot
+            size: 18
+            x: 270
+            y: 54
+            actions:
+              - type: open-page
+                page: slots
+          - id: lists
+            type: item
+            item: minecraft:book
+            size: 18
+            x: 342
+            y: 54
+            actions:
+              - type: open-page
+                page: lists
+      - id: hero-label
+        type: text
+        x: 54
+        y: 90
+        width: 72
+        text: 大图展示
+        align: center
+      - id: row-label
+        type: text
+        x: 135
+        y: 90
+        width: 54
+        text: 单排
+        align: center
+      - id: grid-label
+        type: text
+        x: 207
+        y: 90
+        width: 54
+        text: 多排网格
+        align: center
+      - id: slots-label
+        type: text
+        x: 279
+        y: 90
+        width: 54
+        text: 不规则
+        align: center
+      - id: lists-label
+        type: text
+        x: 351
+        y: 90
+        width: 54
+        text: 双分页
+        align: center
+      - id: footer
+        type: text
+        x: 36
+        y: 117
+        text: 所有点击仅用于页面导航演示
+
+  hero:
+    mode: canvas
+    title: ""
+    width: 432
+    height: 144
+    elements:
+      - id: title
+        type: text
+        x: 36
+        y: 9
+        text: 较大物品
+      - id: item-stage
+        type: group
+        elements:
+          - id: diamond
+            type: item
+            item: minecraft:diamond
+            size: 54
+            x: 189
+            y: 36
+      - id: note
+        type: text
+        x: 216
+        y: 99
+        width: 252
+        text: size 54 · 数量区域额外预留
+        align: center
+      - id: back-label
+        type: text
+        x: 54
+        y: 117
+        width: 72
+        text: 返回
+        align: center
+      - id: back
+        type: hit-area
+        x: 18
+        y: 117
+        width: 72
+        height: 18
+        actions:
+          - type: back
+
+  row:
+    mode: canvas
+    title: ""
+    width: 432
+    height: 135
+    elements:
+      - id: title
+        type: text
+        x: 36
+        y: 9
+        text: 单排物品
+      - id: row-items
+        type: group
+        elements:
+          - id: diamond
+            type: item
+            item: minecraft:diamond
+            size: 18
+            x: 37
+            y: 54
+          - id: emerald
+            type: item
+            item: minecraft:emerald
+            size: 18
+            x: 64
+            y: 54
+          - id: gold
+            type: item
+            item: minecraft:gold_ingot
+            size: 18
+            x: 91
+            y: 54
+          - id: iron
+            type: item
+            item: minecraft:iron_ingot
+            size: 18
+            x: 118
+            y: 54
+          - id: coal
+            type: item
+            item: minecraft:coal
+            size: 18
+            x: 145
+            y: 54
+          - id: redstone
+            type: item
+            item: minecraft:redstone
+            size: 18
+            x: 172
+            y: 54
+      - id: note
+        type: text
+        x: 36
+        y: 81
+        text: 6 个 size 18 叶节点；x 不要求网格对齐
+      - id: back-label
+        type: text
+        x: 54
+        y: 108
+        width: 72
+        text: 返回
+        align: center
+      - id: back
+        type: hit-area
+        x: 18
+        y: 108
+        width: 72
+        height: 18
+        actions:
+          - type: back
+
+  grid:
+    mode: canvas
+    title: ""
+    width: 432
+    height: 180
+    elements:
+      - id: title
+        type: text
+        x: 36
+        y: 9
+        text: 多排网格
+      - id: grid-items
+        type: group
+        elements:
+          - id: diamond
+            type: item
+            item: minecraft:diamond
+            size: 36
+            x: 90
+            y: 45
+          - id: emerald
+            type: item
+            item: minecraft:emerald
+            size: 36
+            x: 135
+            y: 45
+          - id: gold
+            type: item
+            item: minecraft:gold_ingot
+            size: 36
+            x: 180
+            y: 45
+          - id: iron
+            type: item
+            item: minecraft:iron_ingot
+            size: 36
+            x: 90
+            y: 90
+          - id: lapis
+            type: item
+            item: minecraft:lapis_lazuli
+            size: 36
+            x: 135
+            y: 90
+          - id: redstone
+            type: item
+            item: minecraft:redstone
+            size: 36
+            x: 180
+            y: 90
+      - id: note
+        type: text
+        x: 153
+        y: 135
+        width: 126
+        text: 3 × 2 · size 36
+        align: center
+      - id: back-label
+        type: text
+        x: 54
+        y: 153
+        width: 72
+        text: 返回
+        align: center
+      - id: back
+        type: hit-area
+        x: 18
+        y: 153
+        width: 72
+        height: 18
+        actions:
+          - type: back
+
+  slots:
+    mode: canvas
+    title: ""
+    width: 432
+    height: 198
+    elements:
+      - id: title
+        type: text
+        x: 36
+        y: 9
+        text: 不规则摆放与空槽
+      - id: item-stage
+        type: group
+        elements:
+          - id: diamond
+            type: item
+            item: minecraft:diamond
+            size: 18
+            x: 36
+            y: 45
+          - id: emerald
+            type: item
+            item: minecraft:emerald
+            size: 18
+            x: 63
+            y: 45
+          - id: gold
+            type: item
+            item: minecraft:gold_ingot
+            size: 18
+            x: 117
+            y: 45
+          - id: iron
+            type: item
+            item: minecraft:iron_ingot
+            size: 18
+            x: 72
+            y: 72
+          - id: lapis
+            type: item
+            item: minecraft:lapis_lazuli
+            size: 18
+            x: 126
+            y: 72
+          - id: redstone
+            type: item
+            item: minecraft:redstone
+            size: 18
+            x: 36
+            y: 108
+          - id: quartz
+            type: item
+            item: minecraft:quartz
+            size: 18
+            x: 90
+            y: 108
+          - id: amethyst
+            type: item
+            item: minecraft:amethyst_shard
+            size: 18
+            x: 171
+            y: 108
+          - id: coal
+            type: item
+            item: minecraft:coal
+            size: 18
+            x: 252
+            y: 135
+      - id: note
+        type: text
+        x: 36
+        y: 162
+        text: 空槽由显式位置之间的间隔保留，不引入物品专用网格
+      - id: back-label
+        type: text
+        x: 54
+        y: 180
+        width: 72
+        text: 返回
+        align: center
+      - id: back
+        type: hit-area
+        x: 18
+        y: 180
+        width: 72
+        height: 18
+        actions:
+          - type: back
+
+  lists:
+    mode: canvas
+    title: ""
+    width: 864
+    height: 216
+    elements:
+      - id: title
+        type: text
+        x: 20
+        y: 9
+        text: 两个独立分页区域
+      - id: friends-prev-label
+        type: text
+        x: 287
+        y: 9
+        width: 54
+        text: 上一页
+        align: center
+      - id: friends-prev
+        type: hit-area
+        x: 260
+        y: 9
+        width: 54
+        height: 18
+        actions:
+          - type: page-list
+            list: friends-list
+            step: -1
+        enabled:
+          type: equals
+          binding:
+            type: list
+            list: friends-list
+            key: has-previous
+          value: true
+      - id: friends-next-label
+        type: text
+        x: 347
+        y: 9
+        width: 54
+        text: 下一页
+        align: center
+      - id: friends-next
+        type: hit-area
+        x: 320
+        y: 9
+        width: 54
+        height: 18
+        actions:
+          - type: page-list
+            list: friends-list
+            step: 1
+        enabled:
+          type: equals
+          binding:
+            type: list
+            list: friends-list
+            key: has-next
+          value: true
+      - id: categories-prev-label
+        type: text
+        x: 687
+        y: 9
+        width: 54
+        text: 上一页
+        align: center
+      - id: categories-prev
+        type: hit-area
+        x: 660
+        y: 9
+        width: 54
+        height: 18
+        actions:
+          - type: page-list
+            list: categories-list
+            step: -1
+        enabled:
+          type: equals
+          binding:
+            type: list
+            list: categories-list
+            key: has-previous
+          value: true
+      - id: categories-next-label
+        type: text
+        x: 747
+        y: 9
+        width: 54
+        text: 下一页
+        align: center
+      - id: categories-next
+        type: hit-area
+        x: 720
+        y: 9
+        width: 54
+        height: 18
+        actions:
+          - type: page-list
+            list: categories-list
+            step: 1
+        enabled:
+          type: equals
+          binding:
+            type: list
+            list: categories-list
+            key: has-next
+          value: true
+      - id: back-label
+        type: text
+        x: 816
+        y: 9
+        width: 72
+        text: 返回
+        align: center
+      - id: back
+        type: hit-area
+        x: 780
+        y: 9
+        width: 72
+        height: 18
+        actions:
+          - type: back
+      - id: friends-heading
+        type: text
+        x: 20
+        y: 36
+        text: 旅伴
+      - id: friends-page
+        type: text
+        x: 374
+        y: 36
+        width: 114
+        text:
+          format: parts
+          parts:
+            - "页 "
+            - format: literal
+              binding:
+                type: list
+                list: friends-list
+                key: page
+            - " / "
+            - format: literal
+              binding:
+                type: list
+                list: friends-list
+                key: pages
+        align: right
+      - id: categories-heading
+        type: text
+        x: 420
+        y: 36
+        text: 收藏
+      - id: categories-page
+        type: text
+        x: 774
+        y: 36
+        width: 114
+        text:
+          format: parts
+          parts:
+            - "页 "
+            - format: literal
+              binding:
+                type: list
+                list: categories-list
+                key: page
+            - " / "
+            - format: literal
+              binding:
+                type: list
+                list: categories-list
+                key: pages
+        align: right
+      - id: friends-list
+        type: list
+        x: 20
+        y: 63
+        source: friends
+        template: rafter:items/slot
+        page-state: friends-page
+        selection-state: friends-selected
+        slots:
+          - {x: 0, y: 0}
+          - {x: 54, y: 0}
+          - {x: 108, y: 0}
+          - {x: 0, y: 54}
+          - {x: 54, y: 54}
+          - {x: 108, y: 54}
+        params:
+          material: minecraft:emerald
+      - id: categories-list
+        type: list
+        x: 420
+        y: 63
+        source: categories
+        template: rafter:items/slot
+        page-state: categories-page
+        selection-state: categories-selected
+        slots:
+          - {x: 0, y: 0}
+          - {x: 72, y: 0}
+          - {x: 0, y: 72}
+          - {x: 90, y: 72}
+        params:
+          material: minecraft:clock
+          name-field: label

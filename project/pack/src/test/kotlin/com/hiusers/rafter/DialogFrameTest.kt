@@ -43,13 +43,13 @@ class DialogFrameTest {
         val overlay = Json.map(built.resolve("pack.mcmeta"))["overlays"] as Map<*, *>
         val entries = overlay["entries"] as List<*>
         assertEquals(
-            setOf("rafter_v260200", "rafter_v260300"),
+            ClientRenderProfiles.all.map { it.directory }.toSet(),
             entries.map { (it as Map<*, *>)["directory"] }.toSet(),
         )
-        for (profile in DialogFocusShaders.profiles) {
+        for (profile in ClientRenderProfiles.all) for (program in profile.textPrograms) {
             val shader =
-                built.resolve("${profile.directory}/assets/minecraft/shaders/core/text.vsh")
-            assertEquals(profile in DialogFrameShaders.supportedProfiles, Files.exists(shader))
+                built.resolve("${profile.directory}/assets/minecraft/shaders/core/$program.vsh")
+            assertTrue(Files.exists(shader))
         }
     }
 
@@ -215,9 +215,12 @@ class DialogFrameTest {
 
     @Test
     fun shaderInjectionRetainsVerifiedVanillaPathsAndExactProfileBoundaries() {
-        assertEquals(setOf(88 to 0, 97 to 1), DialogFrameShaders.supportedPackFormats)
+        assertEquals(
+            setOf(63 to 0, 64 to 0, 69 to 0, 75 to 0, 84 to 0, 88 to 0, 97 to 1),
+            DialogFrameShaders.supportedPackFormats,
+        )
         for ((major, minor) in
-            listOf(63 to 0, 69 to 0, 75 to 0, 84 to 0, 88 to 1, 97 to 0, 98 to 0)) {
+            listOf(62 to 0, 63 to 1, 69 to 1, 75 to 1, 84 to 1, 88 to 1, 97 to 0, 98 to 0)) {
             assertFalse(DialogFrameShaders.supportsPackFormat(major, minor))
         }
         val hashes =
@@ -232,21 +235,20 @@ class DialogFrameTest {
                     "08a3b585cf52e39b66e2689132b6a996d81446e9cc6ab1eab73bbcca38186d43",
             )
         for (profile in DialogFrameShaders.supportedProfiles) {
-            val version = if (profile.directory == "rafter_v260200") "26_2" else "26_3"
+            val version = profile.baseline
             for ((name, shader) in DialogFrameShaders.sources(profile)) {
                 val bytes =
-                    requireNotNull(
-                            javaClass.getResourceAsStream("/shaders/dialog_frame/$version/$name")
-                        )
+                    requireNotNull(javaClass.getResourceAsStream("/shaders/client/$version/$name"))
                         .use { it.readAllBytes() }
-                assertEquals(
-                    hashes.getValue("$version/$name"),
-                    MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") {
-                        "%02x".format(it)
-                    },
-                )
+                if (profile.unifiedText)
+                    assertEquals(
+                        hashes.getValue("$version/$name"),
+                        MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") {
+                            "%02x".format(it)
+                        },
+                    )
                 val vanilla = bytes.toString(Charsets.UTF_8)
-                assertTrue(shader.startsWith("#version 330\n"))
+                assertTrue(shader.startsWith("#version ${profile.glsl}\n"))
                 assertFalse(shader.contains('\uFEFF'))
                 assertFalse(
                     shader.contains("!defined(IS_GRAYSCALE)"),
@@ -259,7 +261,7 @@ class DialogFrameTest {
                         shader
                             .substringAfter("void main() {")
                             .replace(
-                                "\n#if defined(IS_GUI)\n    rafter_frame_position();\n#endif",
+                                "\n${if (profile.unifiedText) "#if defined(IS_GUI)" else "#if 1"}\n    rafter_frame_position();\n#endif",
                                 "",
                             )
                     else shader.substringAfter("        return;\n    }\n#endif")

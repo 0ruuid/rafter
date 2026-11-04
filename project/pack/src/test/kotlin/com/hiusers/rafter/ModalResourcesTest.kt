@@ -121,7 +121,7 @@ class ModalResourcesTest {
     }
 
     @Test
-    fun backdropAliasesReuseAllFontAndImageFilesWithOneShiftedProviderSetPerLayout() {
+    fun backdropAliasesShareOneShiftedProviderSetAcrossLayouts() {
         val root = fixture()
         val catalog =
             AssetCompiler.compile(
@@ -165,7 +165,7 @@ class ModalResourcesTest {
             }
             assertEquals(
                 expected,
-                font(pack, ModalEncoding.font(0, original)),
+                font(pack, ModalEncoding.font(original)),
                 "Only shift/ascent may change: $original",
             )
         }
@@ -185,7 +185,7 @@ class ModalResourcesTest {
             "No rasterization or copied per-layout/per-row TTF sources",
         )
         val ttf =
-            font(pack, ModalEncoding.font(0, catalog.theme.defaultFont))
+            font(pack, ModalEncoding.font(catalog.theme.defaultFont))
                 .getAsJsonArray("providers")[0]
                 .asJsonObject
         assertEquals(catalog.theme.oversample, ttf.get("oversample").asDouble)
@@ -201,7 +201,7 @@ class ModalResourcesTest {
             )) {
             for (bold in listOf(false, true)) assertEquals(
                 catalog.textWidth(text, bold, original),
-                catalog.textWidth(text, bold, ModalEncoding.font(0, original)),
+                catalog.textWidth(text, bold, ModalEncoding.font(original)),
             )
         }
         val fills = font(pack, "rafter:modal_fill").getAsJsonArray("providers")
@@ -252,13 +252,15 @@ class ModalResourcesTest {
         val entries =
             (Json.map(pack.resolve("pack.mcmeta"))["overlays"] as Map<*, *>)["entries"] as List<*>
         assertEquals(
-            setOf("rafter_v260200", "rafter_v260300"),
+            ClientRenderProfiles.all.map { it.directory }.toSet(),
             entries.map { (it as Map<*, *>)["directory"] }.toSet(),
         )
-        for (profile in DialogFocusShaders.profiles) for (name in listOf("text.vsh", "text.fsh")) {
+        for (profile in ClientRenderProfiles.all) for (name in
+            profile.textPrograms.flatMap { listOf("$it.vsh", "$it.fsh") }) {
             val file = pack.resolve("${profile.directory}/assets/minecraft/shaders/core/$name")
             assertEquals(profile in DialogFrameShaders.supportedProfiles, Files.exists(file))
-            if (Files.exists(file)) assertTrue(Files.readString(file).startsWith("#version 330\n"))
+            if (Files.exists(file))
+                assertTrue(Files.readString(file).startsWith("#version ${profile.glsl}\n"))
         }
         val include =
             Files.readString(pack.resolve("assets/rafter/shaders/include/dialog_frame_vertex.glsl"))
@@ -285,7 +287,7 @@ class ModalResourcesTest {
             assertTrue(guard in include, guard)
         }
         val shifted =
-            font(pack, ModalEncoding.font(1, catalog.theme.defaultFont))
+            font(pack, ModalEncoding.font(catalog.theme.defaultFont))
                 .getAsJsonArray("providers")[0]
                 .asJsonObject
         val originalShift =

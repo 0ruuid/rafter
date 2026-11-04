@@ -1,0 +1,138 @@
+id: rafterprobe:items
+entry: home
+pages:
+  home:
+    mode: native
+    title: ItemStack 基线
+    # 页面宽度描述正文区域，不表示物品模型缩放。
+    width: 432
+    columns: 2
+    components:
+      - id: header
+        type: text
+        text: '------------------------------'
+      - id: intro
+        type: text
+        text: 真实 ItemStack 原生正文基线
+      - id: diamond-label
+        type: text
+        text: 钻石 · 数量 32
+      - id: diamond
+        type: item
+        item: rafterprobe:items#diamond
+        text: ''
+      - id: block-label
+        type: text
+        text: 橡木木板 · 数量 7
+      - id: block
+        type: item
+        item: rafterprobe:items#block
+        text: ''
+      - id: tool-label
+        type: text
+        text: 钻石剑 · 附魔耐久
+      - id: tool
+        type: item
+        item: rafterprobe:items#tool
+        text: ''
+      - id: custom-label
+        type: text
+        text: 自定义模型纸 · 数量 3
+      - id: custom
+        type: item
+        item: rafterprobe:items#custom
+        text: ''
+      - id: single
+        type: button
+        text: 单物品页
+        actions:
+          - type: open-page
+            page: single
+      - id: mixed
+        type: button
+        text: 混合正文页
+        actions:
+          - type: open-page
+            page: mixed
+      - id: close
+        type: button
+        role: exit
+        text: 返回游戏
+        actions:
+          - type: close
+  single:
+    mode: native
+    title: 单物品基线
+    width: 360
+    components:
+      - id: description
+        type: text
+        text: 原生页面只验证真实物品流，不接受 Canvas 坐标。
+      - id: item-label
+        type: text
+        text: 自定义模型纸 · 原生单物品
+      - id: item
+        type: item
+        item: rafterprobe:items#custom
+        text: ''
+      - id: back
+        type: button
+        text: 返回基线
+        actions:
+          - type: open-page
+            page: home
+      - id: close
+        type: button
+        role: exit
+        text: 返回游戏
+        actions:
+          - type: close
+  mixed:
+    mode: canvas
+    title: ''
+    width: 560
+    height: 342
+    native-body-position: after-canvas
+    elements:
+      - id: background
+        type: image
+        x: 0
+        y: 0
+        asset: rafter:friends/backgrounds/window
+      - id: heading
+        type: text
+        x: 18
+        y: 18
+        text: 混合正文基线
+      - id: note
+        type: text
+        x: 18
+        y: 54
+        text: Canvas 图像、文字、点击区与原生物品正文并存。
+      - id: home
+        type: hit-area
+        x: 18
+        y: 288
+        width: 108
+        height: 27
+        tooltip: 返回基线
+        actions:
+          - type: open-page
+            page: home
+      - id: close
+        type: hit-area
+        x: 522
+        y: 9
+        width: 27
+        height: 27
+        tooltip: 返回游戏
+        actions:
+          - type: close
+    components:
+      - id: mixed-item-label
+        type: text
+        text: 原生物品正文（非 Canvas 定位）
+      - id: mixed-item
+        type: item
+        item: rafterprobe:items#custom
+        text: ''

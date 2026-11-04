@@ -4,15 +4,29 @@ import com.hiusers.rafter.model.*
 import java.util.Collections
 
 /** 背景仅保存画布尺寸，相同尺寸共用字体，不持有玩家或截图。 */
-data class ModalBackdropLayout(val width: Int, val height: Int) {
+data class ModalBackdropLayout(
+    val width: Int,
+    val height: Int,
+    val inset: Int = 0,
+    val layoutHeight: Int = CanvasGeometry.bodyHeight(height) + CanvasGeometry.BODY_ACTION_TAIL,
+    val containerWidth: Int = CanvasGeometry.bodyWidth(width),
+) {
     val bodyWidth
         get() = CanvasGeometry.bodyWidth(width)
 
     val bodyHeight
         get() = CanvasGeometry.bodyHeight(height)
 
-    val layoutHeight
-        get() = bodyHeight + CanvasGeometry.BODY_ACTION_TAIL
+    val contentInsetX
+        get() =
+            (containerWidth - bodyWidth) / 2 +
+                CanvasGeometry.TEXT_PADDING +
+                CanvasGeometry.EDGE_INSET
+
+    fun contentLeft(guiWidth: Int) =
+        (guiWidth - containerWidth - CanvasItems.BODY_MARGIN * 2) / 2 +
+            CanvasItems.BODY_MARGIN +
+            contentInsetX
 }
 
 /** 按真实原生控件流计算面板，不移动命中区。 */
@@ -38,7 +52,7 @@ object ModalEncoding {
     const val X_BASE = 32768
     const val ROW_STRIDE = 2048
     const val FONT_Y_SHIFT = 256
-    // 26.2/26.3 的标题净宽为零，警告控件宽 20，间距 10。
+    // 原生标题净宽为零，警告控件宽 20，间距 10。
     const val TITLE_GROUP_WIDTH = 30
     // Y 两次使用 Math.round，结果为 13，不能按 X 的整数截断处理。
     const val TITLE_Y = 13
@@ -58,8 +72,9 @@ object ModalEncoding {
         return base
     }
 
-    fun font(index: Int, original: String) =
-        "rafter:modal_backdrop/$index/" + original.substringAfter(':')
+    const val FONT_PREFIX = "rafter:modal_backdrop/shared/"
+
+    fun font(original: String) = FONT_PREFIX + original.substringAfter(':')
 
     fun key(menu: String, page: String) = "$menu/$page"
 }
@@ -98,12 +113,14 @@ object ModalAssets {
             if (layouts.isEmpty()) emptyList()
             else
                 snapshot.menus.values
+                    .filter { menu -> menu.pages.values.any { it.spec.modal != null } }
                     .flatMap { menu ->
                         menu.pages.values
                             .filter {
                                 it.spec.mode == PageMode.CANVAS &&
                                     it.spec.modal == null &&
-                                    it.spec.components.isEmpty()
+                                    it.spec.components.isEmpty() &&
+                                    it.spec.frame == null
                             }
                             .map { ModalBackdropLayout(it.spec.width, it.height) }
                     }

@@ -4,6 +4,7 @@ import com.hiusers.rafter.asset.AssetCatalog
 import com.hiusers.rafter.asset.AssetCompiler
 import com.hiusers.rafter.asset.AutoAssets
 import com.hiusers.rafter.asset.ButtonSkins
+import com.hiusers.rafter.asset.CanvasItemShaders
 import com.hiusers.rafter.asset.DialogFocusShaders
 import com.hiusers.rafter.asset.FontRequests
 import com.hiusers.rafter.asset.ImageSizing
@@ -313,7 +314,7 @@ class MenuRepository(
                 LoadResult(
                     Candidate(
                         snapshot,
-                        DialogFocusShaders.bind(assets, snapshot),
+                        CanvasItemShaders.bind(DialogFocusShaders.bind(assets, snapshot), snapshot),
                         default,
                         timeout * 1000,
                         pack,

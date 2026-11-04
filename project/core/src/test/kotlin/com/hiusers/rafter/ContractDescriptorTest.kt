@@ -90,7 +90,7 @@ class ContractDescriptorTest {
             assertFalse("schema-version" in assertIs<List<*>>(schema["required"]))
             assertEquals(false, schema["additionalProperties"])
         }
-        assertEquals(13, AuthoringContract.VERSION)
+        assertEquals(16, AuthoringContract.VERSION)
         val service = objectValue(manifest["service-api"])
         assertEquals("node-row-record-or-null", service["item-context"])
         assertEquals("client-flow-template-rows", service["native-lists"])
@@ -103,7 +103,16 @@ class ContractDescriptorTest {
         assertEquals("present-entry-canvas-then-modal", open["initial-modal"])
         assertEquals("final-target-sent", open["completion"])
         val nativeModal = objectValue(manifest["native-modal"])
-        assertEquals("canvas-only-without-frame-or-current-modal", nativeModal["opener"])
+        assertEquals(
+            "pure-canvas-with-items-or-without-items-without-frame-or-current-modal",
+            nativeModal["opener"],
+        )
+        assertEquals("paint-only-no-hover-or-click", nativeModal["background-interaction"])
+        assertEquals(false, objectValue(nativeModal["snapshot"])["provider-reread"])
+        assertEquals(
+            "independent-item-stack-snapshot",
+            objectValue(nativeModal["snapshot"])["items"],
+        )
         assertEquals("forbidden", nativeModal["entry"])
         assertEquals("same-layer-reuse-backdrop-no-history-push", nativeModal["replacement"])
         for (export in
@@ -278,7 +287,7 @@ class ContractDescriptorTest {
             )
         }
         assertFalse("input" in Contract.modes.getValue("canvas"))
-        assertFalse("item" in Contract.modes.getValue("canvas"))
+        assertTrue("item" in Contract.modes.getValue("canvas"))
         assertFalse("row" in Contract.modes.getValue("native"))
         assertFalse("toggle" in Contract.modes.getValue("native"))
     }

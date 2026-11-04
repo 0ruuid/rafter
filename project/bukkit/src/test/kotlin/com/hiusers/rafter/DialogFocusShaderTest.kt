@@ -101,9 +101,7 @@ class DialogFocusShaderTest {
                     it.text.toPlainText().count { c -> c == '\n' }
                 } + 1) * 9 + 8,
             )
-            assertTrue(
-                view.buttons.isEmpty()
-            ) // 关闭操作实际位于正文。
+            assertTrue(view.buttons.isEmpty()) // 关闭操作实际位于正文。
             assertTrue(view.items.isEmpty() && view.inputs.isEmpty())
             assertEquals(1, view.columns)
         }
@@ -145,14 +143,14 @@ class DialogFocusShaderTest {
         assertTrue(DialogFocusShaders.active(bound))
         assertEquals(1, bound.nativeFocusLayouts.size)
         assertEquals(listOf(621, 0, 0, 0), bound.nativeFocusLayouts.single().vector())
-        val pack = AssetCompiler.build(temp.resolve("core/ui"), bound, temp)
+        val pack = AssetCompiler.build(temp.resolve("core/ui"), bound, temp.resolve("generate"))
         val common =
             Files.readString(pack.resolve("assets/rafter/shaders/include/dialog_focus.glsl"))
         assertTrue("RAFTER_FOCUS_LAYOUT_COUNT = 0;" in common)
         assertTrue("RAFTER_NATIVE_FOCUS_LAYOUT_COUNT = 1;" in common)
         val disabled =
             DialogFocusShaders.bind(source.copy(hideNativeFocusOutline = false), snapshot)
-        AssetCompiler.build(temp.resolve("core/ui"), disabled, temp)
+        AssetCompiler.build(temp.resolve("core/ui"), disabled, temp.resolve("generate"))
         assertFalse(DialogFocusShaders.active(disabled))
         assertFalse(Json.map(pack.resolve("pack.mcmeta")).containsKey("overlays"))
         assertFalse(Files.exists(pack.resolve("assets/rafter/shaders")))
@@ -207,7 +205,7 @@ class DialogFocusShaderTest {
             bound.nativeFocusLayouts.map { it.vector() }.toSet(),
         )
         assertEquals(setOf("intro", "item"), bound.nativeFocusLayouts.map { it.component }.toSet())
-        val pack = AssetCompiler.build(temp.resolve("core/ui"), bound, temp)
+        val pack = AssetCompiler.build(temp.resolve("core/ui"), bound, temp.resolve("generate"))
         assertFalse(Files.exists(pack.resolve("assets/minecraft/textures/gui/sprites/widget")))
         assertFalse(
             Files.walk(pack).use { paths ->
@@ -238,7 +236,7 @@ class DialogFocusShaderTest {
                 )
             fingerprints += bound.fingerprint
             assertEquals(canvas || native, DialogFocusShaders.active(bound))
-            val pack = AssetCompiler.build(temp.resolve("core/ui"), bound, temp)
+            val pack = AssetCompiler.build(temp.resolve("core/ui"), bound, temp.resolve("generate"))
             assertEquals(
                 canvas || native,
                 Json.map(pack.resolve("pack.mcmeta")).containsKey("overlays"),
@@ -258,7 +256,7 @@ class DialogFocusShaderTest {
     @Test
     fun overlaysHaveClosedFormatsCorrectInterfacesAndNoRootOrTextShader() {
         val bound = DialogFocusShaders.bind(catalog(), snapshot(height = 1953))
-        val pack = AssetCompiler.build(temp.resolve("core/ui"), bound, temp)
+        val pack = AssetCompiler.build(temp.resolve("core/ui"), bound, temp.resolve("generate"))
         val metadata = Json.map(pack.resolve("pack.mcmeta"))
         @Suppress("UNCHECKED_CAST")
         val entries =
@@ -314,12 +312,12 @@ class DialogFocusShaderTest {
         val assets = catalog()
         val snapshot = snapshot()
         val enabled = DialogFocusShaders.bind(assets, snapshot)
-        val pack = AssetCompiler.build(temp.resolve("core/ui"), enabled, temp)
+        val pack = AssetCompiler.build(temp.resolve("core/ui"), enabled, temp.resolve("generate"))
         assertTrue(
             Files.exists(pack.resolve("rafter_v260200/assets/minecraft/shaders/core/gui.fsh"))
         )
         val disabled = DialogFocusShaders.bind(assets.copy(hideFocusOutline = false), snapshot)
-        AssetCompiler.build(temp.resolve("core/ui"), disabled, temp)
+        AssetCompiler.build(temp.resolve("core/ui"), disabled, temp.resolve("generate"))
         assertFalse(Files.exists(pack.resolve("rafter_v260200")))
         assertFalse(Files.exists(pack.resolve("assets/rafter/shaders")))
         assertEquals(enabled.allocation, AssetCompiler.readAllocation(temp))
@@ -361,7 +359,7 @@ class DialogFocusShaderTest {
                 )
                 .snapshot!!
         val bound = DialogFocusShaders.bind(assets, same)
-        val pack = AssetCompiler.build(temp.resolve("core/ui"), bound, temp)
+        val pack = AssetCompiler.build(temp.resolve("core/ui"), bound, temp.resolve("generate"))
         assertEquals(2, bound.focusLayouts.size)
         assertTrue(
             "RAFTER_FOCUS_LAYOUT_COUNT = 1;" in
@@ -369,7 +367,7 @@ class DialogFocusShaderTest {
         )
         val pages =
             (0..DialogFocusShaders.MAX_GEOMETRIES).associate { i ->
-                (if (i == 0) "main" else "p$i") to page((i + 1) * 9)
+                (if (i == 0) "main" else "p$i") to page((i + 2) * 9)
             }
         val many =
             MenuCompiler()
@@ -388,18 +386,20 @@ class DialogFocusShaderTest {
     @Test
     fun invalidShaderCandidateKeepsPreviousPublishedPack() {
         val enabled = DialogFocusShaders.bind(catalog(), snapshot())
-        val pack = AssetCompiler.build(temp.resolve("core/ui"), enabled, temp)
+        val pack = AssetCompiler.build(temp.resolve("core/ui"), enabled, temp.resolve("generate"))
         val before = Files.readString(pack.resolve("manifest.json"))
         val invalid =
             enabled.copy(focusLayouts = listOf(enabled.focusLayouts.single().copy(bodyHeight = 19)))
-        assertFails { AssetCompiler.build(temp.resolve("core/ui"), invalid, temp) }
+        assertFails {
+            AssetCompiler.build(temp.resolve("core/ui"), invalid, temp.resolve("generate"))
+        }
         assertEquals(before, Files.readString(pack.resolve("manifest.json")))
         assertTrue(
             Files.exists(pack.resolve("rafter_v260300/assets/minecraft/shaders/core/gui.vsh"))
         )
         Files.list(temp).use { paths ->
             assertEquals(
-                setOf("ui", "resource-pack"),
+                setOf("core", "generate"),
                 paths.map { it.fileName.toString() }.toList().toSet(),
             )
         }
@@ -408,7 +408,7 @@ class DialogFocusShaderTest {
     @Test
     fun invalidNativeShaderCandidateKeepsPreviousPublishedPack() {
         val enabled = DialogFocusShaders.bind(catalog(), snapshot(native = true))
-        val pack = AssetCompiler.build(temp.resolve("core/ui"), enabled, temp)
+        val pack = AssetCompiler.build(temp.resolve("core/ui"), enabled, temp.resolve("generate"))
         val manifest = Files.readString(pack.resolve("manifest.json"))
         val include =
             Files.readString(pack.resolve("assets/rafter/shaders/include/dialog_focus.glsl"))
@@ -416,7 +416,9 @@ class DialogFocusShaderTest {
             enabled.copy(
                 nativeFocusLayouts = listOf(enabled.nativeFocusLayouts.single().copy(width = 0))
             )
-        assertFails { AssetCompiler.build(temp.resolve("core/ui"), invalid, temp) }
+        assertFails {
+            AssetCompiler.build(temp.resolve("core/ui"), invalid, temp.resolve("generate"))
+        }
         assertEquals(manifest, Files.readString(pack.resolve("manifest.json")))
         assertEquals(
             include,
@@ -424,7 +426,7 @@ class DialogFocusShaderTest {
         )
         Files.list(temp).use { paths ->
             assertEquals(
-                setOf("ui", "resource-pack"),
+                setOf("core", "generate"),
                 paths.map { it.fileName.toString() }.toList().toSet(),
             )
         }
@@ -486,7 +488,7 @@ class DialogFocusShaderTest {
     @Test
     fun actualGeneratedPredicateHandlesEveryCornerPhaseScrollAndViewportCrop() {
         val bound = DialogFocusShaders.bind(catalog(), snapshot(height = 1953))
-        val pack = AssetCompiler.build(temp.resolve("core/ui"), bound, temp)
+        val pack = AssetCompiler.build(temp.resolve("core/ui"), bound, temp.resolve("generate"))
         verifySourcePredicate(pack)
     }
 

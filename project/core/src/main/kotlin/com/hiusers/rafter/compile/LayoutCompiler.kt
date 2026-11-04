@@ -23,6 +23,8 @@ object LayoutCompiler {
             if (node.x < 0 || node.y < 0) fail(node, "Canvas coordinates must be non-negative")
             if (node.content == NodeContent.HitArea && node.y % Y_STEP != 0)
                 fail(node, "Explicit hit areas must follow the exported $Y_STEP px transport step")
+            if (node.content is NodeContent.Item && node.y % Y_STEP != 0)
+                fail(node, "Canvas items must follow the exported $Y_STEP px transport step")
             val natural =
                 when (val content = node.content) {
                     is NodeContent.Image ->
@@ -53,6 +55,15 @@ object LayoutCompiler {
                     NodeContent.HitArea ->
                         (node.width ?: fail(node, "Click area requires width")) to
                             (node.height ?: fail(node, "Click area requires height"))
+                    is NodeContent.Item -> {
+                        if (node.width != null || node.height != null)
+                            fail(
+                                node,
+                                "Canvas items use size instead of width/height",
+                                "CAPABILITY",
+                            )
+                        content.size to content.size
+                    }
                     else -> fail(node, "${node.type} is not a canvas element", "CAPABILITY")
                 }
             val width = node.width ?: natural.first.coerceAtLeast(1)
@@ -85,13 +96,14 @@ object LayoutCompiler {
                             )
                     if (
                         placed.node.content !is NodeContent.Image &&
+                            placed.node.content !is NodeContent.Item &&
                             !(placed.node.content == NodeContent.Text &&
                                 placed.node.width != null &&
                                 placed.node.height != null)
                     )
                         fail(
                             node,
-                            "Follow an image or a text element with fixed width and height",
+                            "Follow an image, item, or a text element with fixed width and height",
                             "CAPABILITY",
                         )
                     val box = placed.bounds
@@ -130,7 +142,7 @@ object LayoutCompiler {
     }
 
     /** 自然文字范围必须容纳于声明框，字体抬升同样计入绘制和命中。 */
-    internal fun textBounds(
+    fun textBounds(
         page: PageSpec,
         node: NodeSpec,
         measured: Pair<Int, Int>?,

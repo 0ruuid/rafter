@@ -42,6 +42,10 @@ object Json {
 fun AssetCatalog.manifest(): Map<String, Any?> =
     mapOf(
         "fingerprint" to fingerprint,
+        "client-profiles" to ClientRenderProfiles.all.map { it.manifest() },
+        "canvas-items" to canvasItems.map { it.manifest() },
+        "canvas-flows" to canvasFlows,
+        "canvas-modal-flows" to canvasModalFlows,
         "cell-height" to 9,
         "unknown-glyph-policy" to "reject-canvas-native-fallback",
         "bounds-anchor" to
@@ -808,6 +812,7 @@ object AssetCompiler {
             ModalFonts.write(stage, catalog)
             DialogFocusShaders.write(stage, catalog)
             DialogFrameShaders.write(stage, catalog)
+            CanvasItemShaders.write(stage, catalog)
             Json.write(stage.resolve("pack.mcmeta"), DialogFrameShaders.packMetadata(catalog))
             Json.write(stage.resolve("manifest.json"), catalog.manifest())
             Json.write(stage.resolve("allocation.json"), catalog.allocation)

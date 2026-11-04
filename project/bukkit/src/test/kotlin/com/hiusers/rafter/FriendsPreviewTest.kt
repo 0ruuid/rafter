@@ -23,7 +23,7 @@ class FriendsPreviewTest {
             MenuRepository(
                     root,
                     { error("Static preview must not execute Kether") },
-                    { _, _, _ -> error("Static preview must not invoke business providers") },
+                    ::checkStaticItemReference,
                 )
                 .load()
         val candidate = assertNotNull(loaded.candidate, loaded.diagnostics.joinToString("\n"))

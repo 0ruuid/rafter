@@ -17,14 +17,21 @@ import com.github.retrooper.packetevents.protocol.dialog.input.InputControl
 import com.github.retrooper.packetevents.protocol.dialog.input.NumberRangeInputControl
 import com.github.retrooper.packetevents.protocol.dialog.input.SingleOptionInputControl
 import com.github.retrooper.packetevents.protocol.dialog.input.TextInputControl
+import com.github.retrooper.packetevents.protocol.item.ItemStack as ProtocolItem
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound
 import com.github.retrooper.packetevents.protocol.player.ClientVersion
 import com.github.retrooper.packetevents.resources.ResourceLocation
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerClearDialog
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerShowDialog
+import com.hiusers.rafter.api.UiFailureCode
+import com.hiusers.rafter.api.UiOperationException
+import com.hiusers.rafter.asset.CanvasItems
+import com.hiusers.rafter.asset.ClientRenderProfiles
 import com.hiusers.rafter.model.BindingSpec
 import com.hiusers.rafter.model.NativeGeometry
 import com.hiusers.rafter.model.NodeContent
+import com.hiusers.rafter.render.CanvasCarrierBody
 import com.hiusers.rafter.render.DialogView
 import com.hiusers.rafter.render.Fragment
 import com.hiusers.rafter.render.ItemBody
@@ -41,6 +48,11 @@ import org.bukkit.inventory.ItemStack
 
 /** 仅在此组装协议组件和 CUSTOM 点击元数据；保留渲染顺序与尺寸，玩家操作限主线程。 */
 open class DialogTransport {
+    open fun supportsCanvasItems(player: Player) =
+        ClientRenderProfiles.forProtocol(
+            PacketEvents.getAPI().playerManager.getClientVersion(player).protocolVersion
+        ) != null
+
     open fun supported(player: Player) =
         !PacketEvents.getAPI()
             .playerManager
@@ -51,7 +63,8 @@ open class DialogTransport {
         // 复用构建器，避免反复复制增长中的组件列表。
         val result = Component.text()
         parts.forEach { part ->
-            val converted = part.text.toAdventureObject()
+            var converted = part.text.toAdventureObject()
+            part.hoverItem?.let { converted = converted.insertion(CanvasItems.HOVER_PREFIX + it) }
             result.append(
                 if (part.handle == null) converted
                 else
@@ -85,6 +98,8 @@ open class DialogTransport {
         values: Map<BindingSpec, Any?>,
         items: Map<String, ItemStack>,
     ) {
+        if (view.canvasItems.isNotEmpty() && !supportsCanvasItems(player))
+            throw UiOperationException(UiFailureCode.UNSUPPORTED_CLIENT)
         val dialog =
             create(
                 view,
@@ -93,8 +108,33 @@ open class DialogTransport {
                 items,
                 supportsFrame(PacketEvents.getAPI().playerManager.getClientVersion(player)),
             )
+        val itemData =
+            view.bodies
+                .mapIndexedNotNull { index, body ->
+                    val value =
+                        when (body) {
+                            is ItemBody -> DialogItemData.capture(items.getValue(body.node.id))
+                            is CanvasCarrierBody ->
+                                body.item
+                                    ?.takeIf { it.visible }
+                                    ?.let { DialogItemData.capture(items.getValue(it.node.id)) }
+                                    ?: DialogItemData.empty()
+                            is Message -> null
+                        }
+                    value?.let { index to it }
+                }
+                .toMap()
+        val hovers =
+            view.messages
+                .flatMap { it.parts }
+                .mapNotNull { it.hoverItem }
+                .distinct()
+                .associateWith { DialogItemData.capture(items.getValue(it)) }
         // SHOW_DIALOG 可直接替换，先清空会造成闪屏。
-        PacketEvents.getAPI().playerManager.sendPacket(player, WrapperPlayServerShowDialog(dialog))
+        val packet =
+            if (itemData.isEmpty()) WrapperPlayServerShowDialog(dialog)
+            else ItemDataShowDialog(dialog, itemData, hovers)
+        PacketEvents.getAPI().playerManager.sendPacket(player, packet)
     }
 
     /** 发送与协议测试共用的纯数据包组装。 */
@@ -106,11 +146,20 @@ open class DialogTransport {
         frameSupported: Boolean = true,
     ): MultiActionDialog {
         require(!view.modal || frameSupported) {
-            "Native graphical modals require the verified 26.2/26.3 text shader"
+            "Native graphical modals require a supported client render profile"
         }
         val bodies: List<DialogBody> =
             view.bodies.map { body ->
                 when (body) {
+                    is CanvasCarrierBody ->
+                        ItemDialogBody(
+                            ProtocolItem.builder().type(ItemTypes.PAPER).build(),
+                            null,
+                            false,
+                            false,
+                            body.item?.route?.itemWidth ?: 1,
+                            body.carrier.height,
+                        )
                     is Message -> PlainMessageDialogBody(PlainMessage(wire(body.parts), body.width))
                     is ItemBody ->
                         ItemDialogBody(
@@ -120,7 +169,7 @@ open class DialogTransport {
                                 body.node.width ?: NativeGeometry.ITEM_DESCRIPTION_WIDTH,
                             ),
                             true,
-                            true,
+                            (body.node.content as NodeContent.Item).showTooltip,
                             NativeGeometry.ITEM_WIDTH,
                             NativeGeometry.ITEM_HEIGHT,
                         )
@@ -201,13 +250,7 @@ open class DialogTransport {
 
     /** 未知文字 Shader ABI 使用普通原生控件，不显示内部标记。 */
     internal fun supportsFrame(version: ClientVersion): Boolean =
-        when (version) {
-            ClientVersion.V_26_2 ->
-                com.hiusers.rafter.asset.DialogFrameShaders.supportsPackFormat(88, 0)
-            ClientVersion.V_26_3 ->
-                com.hiusers.rafter.asset.DialogFrameShaders.supportsPackFormat(97, 1)
-            else -> false
-        }
+        ClientRenderProfiles.forProtocol(version.protocolVersion) != null
 
     open fun clear(player: Player) {
         PacketEvents.getAPI().playerManager.sendPacket(player, WrapperPlayServerClearDialog())

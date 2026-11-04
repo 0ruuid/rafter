@@ -1,0 +1,18 @@
+id: rafter:items/slot
+params:
+  material: minecraft:emerald
+  name-field: name
+component:
+  id: icon
+  type: item
+  item:
+    param: material
+  size: 36
+  tooltip:
+    format: literal
+    binding:
+      type: item
+      key:
+        param: name-field
+  actions:
+    - type: select-item

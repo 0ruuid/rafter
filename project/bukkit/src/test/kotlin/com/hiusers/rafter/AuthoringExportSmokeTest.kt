@@ -15,11 +15,11 @@ class AuthoringExportSmokeTest {
         taboolib.module.chat.Components.useAdventure = true
         DefaultBundle.install(root)
         val loaded =
-            MenuRepository(root, { error("No scripts") }, { _, _, _ -> error("No providers") })
+            MenuRepository(root, { error("No scripts") }, ::checkStaticItemReference)
                 .load()
         val candidate = assertNotNull(loaded.candidate, loaded.diagnostics.toString())
         val authoring = AuthoringContract.manifest("0.0.2", emptyMap())
-        assertEquals(11, authoring["contract-version"])
+        assertEquals(AuthoringContract.VERSION, authoring["contract-version"])
         assertEquals(
             false,
             (authoring["authoring-capabilities"] as Map<*, *>)["native-free-position"],

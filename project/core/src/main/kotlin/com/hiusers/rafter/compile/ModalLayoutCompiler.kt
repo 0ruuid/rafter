@@ -3,7 +3,7 @@ package com.hiusers.rafter.compile
 import com.hiusers.rafter.model.*
 import kotlin.math.roundToInt
 
-/** 对应 26.2/26.3 原生流：正文间隔 10px，居中操作网格间隔 2px。 */
+/** 原生控件布局：正文间隔 10px，居中操作网格间隔 2px。 */
 object ModalLayoutCompiler {
     /** 标题坐标相对面板；原生流与传输行只在编译期解析一次。 */
     fun normalize(page: PageSpec): PageSpec {
@@ -42,7 +42,8 @@ object ModalLayoutCompiler {
         )
     }
 
-    fun layout(page: PageSpec): ModalLayoutPlan {
+    fun layout(page: PageSpec, minimumBodyWidth: Int = 0, leadingInset: Int = 0): ModalLayoutPlan {
+        require(minimumBodyWidth >= 0 && leadingInset >= 0)
         val modal = requireNotNull(page.modal)
         val authored = page.components.filter { it.content is NodeContent.Button }
         require(authored.isNotEmpty()) { "A modal needs at least one native action button" }
@@ -59,12 +60,16 @@ object ModalLayoutCompiler {
         val descriptions = page.components.filter { it.content == NodeContent.Text }
         val bodyWidth =
             maxOf(
+                minimumBodyWidth,
                 CanvasGeometry.bodyWidth(page.width),
                 buttonWidth,
                 forms.maxOfOrNull(::width) ?: 0,
                 descriptions.maxOfOrNull { it.width ?: page.width } ?: 0,
             )
-        var top = CanvasGeometry.bodyHeight(requireNotNull(page.height)) + NativeGeometry.BODY_GAP
+        var top =
+            CanvasGeometry.bodyHeight(requireNotNull(page.height)) +
+                NativeGeometry.BODY_GAP +
+                leadingInset
         val bodySlots = descriptions.map { node ->
             val slot =
                 NativeSlot(
@@ -189,7 +194,7 @@ object ModalLayoutCompiler {
                                 target,
                                 Rect(
                                     canvasLeft + left,
-                                    CanvasGeometry.TEXT_PADDING + node.y,
+                                    CanvasGeometry.TEXT_PADDING + leadingInset + node.y,
                                     width,
                                     requireNotNull(node.height),
                                 ),

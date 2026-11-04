@@ -1,0 +1,18 @@
+id: rafterprobe:compact
+entry: main
+pages:
+  main:
+    mode: native
+    title: Single ItemStack
+    width: 360
+    components:
+      - id: item
+        type: item
+        item: rafterprobe:items#custom
+        text: ''
+      - id: close
+        type: button
+        role: exit
+        text: Close
+        actions:
+          - type: close

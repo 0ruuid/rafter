@@ -85,6 +85,7 @@ internal class RafterEngine(
     private val fields = mutableMapOf<UUID, List<String>>()
     // 选择结果属于上次成功发送的视图，不写入共享菜单。
     private val shownVariants = mutableMapOf<UUID, Map<String, Int>>()
+    private val canvasItemSnapshots = mutableMapOf<UUID, CanvasItemSnapshot>()
     private var snapshotRevision = 0L
 
     @Volatile private var stopped = false
@@ -106,6 +107,13 @@ internal class RafterEngine(
     ) {
         fun expired(now: Long): Boolean = now - started >= timeoutMillis * 1_000_000
     }
+
+    private data class CanvasItemSnapshot(
+        val sessionId: UUID,
+        val page: String,
+        val generation: Long,
+        val items: Map<String, ItemStack>,
+    )
 
     fun defaultMenu(): String =
         resources.candidate?.defaultMenu
@@ -238,13 +246,26 @@ internal class RafterEngine(
             val page =
                 definition.pages[target]
                     ?: return@mainFuture rejected(UiFailureCode.INVALID_ARGUMENT)
-            val entry = definition.pages.getValue(definition.spec.entry).spec
+            val entry = definition.pages.getValue(definition.spec.entry)
+            if (
+                page.spec.mode == PageMode.CANVAS &&
+                    page.scene.any { it.node.content is NodeContent.Item } &&
+                    !transport.supportsCanvasItems(player)
+            )
+                return@mainFuture rejected(UiFailureCode.UNSUPPORTED_CLIENT)
             if (
                 page.spec.modal != null &&
-                    (entry.mode != PageMode.CANVAS ||
-                        entry.components.isNotEmpty() ||
-                        entry.frame != null ||
-                        entry.modal != null)
+                    entry.spec.mode == PageMode.CANVAS &&
+                    entry.scene.any { it.node.content is NodeContent.Item } &&
+                    !transport.supportsCanvasItems(player)
+            )
+                return@mainFuture rejected(UiFailureCode.UNSUPPORTED_CLIENT)
+            if (
+                page.spec.modal != null &&
+                    (entry.spec.mode != PageMode.CANVAS ||
+                        entry.spec.components.isNotEmpty() ||
+                        entry.spec.frame != null ||
+                        entry.spec.modal != null)
             ) return@mainFuture rejected(UiFailureCode.INVALID_ARGUMENT)
             val session =
                 try {
@@ -334,6 +355,7 @@ internal class RafterEngine(
         sessions.remove(id)?.close()
         fields.remove(id)
         shownVariants.remove(id)
+        canvasItemSnapshots.remove(id)
         return listOfNotNull(
             frames.remove(id)?.result,
             executions.remove(id)?.result,
@@ -597,9 +619,40 @@ internal class RafterEngine(
         }
         future = future.thenCompose {
             mainFuture {
+                guard()
+                val backdropItemIds =
+                    session.modalBackdrop?.items?.mapTo(linkedSetOf()) { it.node.id }.orEmpty()
+                if (session.current().spec.modal != null) {
+                    val backdrop =
+                        requireNotNull(session.modalBackdrop) {
+                            "Native modal has no captured Canvas backdrop"
+                        }
+                    val snapshot =
+                        canvasItemSnapshots[player.uniqueId]
+                            ?.takeIf {
+                                it.sessionId == session.id &&
+                                    it.page == backdrop.page &&
+                                    it.generation == backdrop.generation
+                            }
+                            ?: throw UiOperationException(
+                                UiFailureCode.INTERNAL_ERROR,
+                                "Missing sent Canvas item snapshot for ${backdrop.page}/${backdrop.generation}",
+                            )
+                    backdrop.items.filter { it.visible }.forEach { canvasItem ->
+                        val item =
+                            snapshot.items[canvasItem.node.id]
+                                ?: throw UiOperationException(
+                                    UiFailureCode.INTERNAL_ERROR,
+                                    "Missing sent Canvas item ${canvasItem.node.id} for ${backdrop.page}",
+                                )
+                        itemValues[canvasItem.node.id] = item.clone()
+                    }
+                }
                 val itemNodes =
                     resolved.values.filter {
-                        visible[it.id] == true && it.content is NodeContent.Item
+                        visible[it.id] == true &&
+                            it.content is NodeContent.Item &&
+                            it.id !in backdropItemIds
                     }
                 readBatch(
                     itemNodes,
@@ -668,7 +721,8 @@ internal class RafterEngine(
                                 "__popup-dismiss".takeIf { session.popup != null },
                             )
                     val handles = session.ready(generation, targets)
-                    val frame = Frame(values, visible, enabled, resolved.toMap())
+                    val frame = Frame(values, visible, enabled, resolved.toMap(),
+                        itemValues.mapValues { (_, stack) -> stack.amount })
                     val text = CompositeText(assets)
                     val view =
                         if (session.current().spec.mode == PageMode.NATIVE) {
@@ -690,7 +744,27 @@ internal class RafterEngine(
                             page.spec.frame == null &&
                             page.spec.modal == null
                     ) {
-                        session.rememberCanvas(FrozenCanvas.capture(session, view, text))
+                        val frozen = FrozenCanvas.capture(session, view, text)
+                        val copied =
+                            frozen.items.filter { it.visible }.associate { canvasItem ->
+                                val item =
+                                    itemValues[canvasItem.node.id]
+                                        ?: throw UiOperationException(
+                                            UiFailureCode.INTERNAL_ERROR,
+                                            "Missing Canvas item ${canvasItem.node.id} for ${frozen.page}",
+                                        )
+                                canvasItem.node.id to item.clone()
+                            }
+                        if (current(session, generation) && frames[player.uniqueId] === work) {
+                            session.rememberCanvas(frozen)
+                            canvasItemSnapshots[player.uniqueId] =
+                                CanvasItemSnapshot(
+                                    session.id,
+                                    frozen.page,
+                                    frozen.generation,
+                                    copied,
+                                )
+                        }
                     }
                     frames.remove(player.uniqueId)
                     work.result.complete(null)

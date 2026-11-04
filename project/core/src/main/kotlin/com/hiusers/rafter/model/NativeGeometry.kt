@@ -18,6 +18,9 @@ object NativeGeometry {
     const val PAINTED_SPACER_WIDTH = BUTTON_TEXT_MARGIN * 2
     const val ITEM_WIDTH = 32
     const val ITEM_HEIGHT = 32
+    // 原版物品正文 Codec 的数量范围，不改变真实物品的堆叠上限。
+    const val ITEM_MIN_COUNT = 1
+    const val ITEM_MAX_COUNT = 99
     const val ITEM_DESCRIPTION_GAP = 2
     const val ITEM_DESCRIPTION_WIDTH = 300
     const val TEXT_PADDING = 4

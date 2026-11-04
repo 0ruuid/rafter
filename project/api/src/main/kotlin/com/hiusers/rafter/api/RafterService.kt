@@ -2,6 +2,7 @@ package com.hiusers.rafter.api
 
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
+import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.Plugin
@@ -11,7 +12,7 @@ data class UiOpenOptions(
     val initialState: Map<String, Any?>,
     val initialPage: String?,
 ) {
-    // 显式构造器不让重定位后的 DefaultConstructorMarker 穿过 API。
+    // 保持跨插件的 JVM 构造签名稳定。
     constructor() : this(emptyMap(), null)
 
     constructor(initialState: Map<String, Any?>) : this(initialState, null)
@@ -29,8 +30,18 @@ data class UiContext(
     val state: Map<String, Any?>,
     val form: Map<String, Any?>,
     /** 当前列表行的只读数据，非列表上下文为 null；业务仍须复查权威数据。 */
-    val item: Map<String, Any?>? = null,
-)
+    val item: Map<String, Any?>?,
+) {
+    constructor(
+        player: Player,
+        sessionId: UUID,
+        menu: String,
+        page: String,
+        args: Map<String, Any?>,
+        state: Map<String, Any?>,
+        form: Map<String, Any?>,
+    ) : this(player, sessionId, menu, page, args, state, form, null)
+}
 
 /** 主线程发起读取，可异步完成；结果仅允许普通值，后台不得访问 Player。 */
 fun interface DataProvider {
@@ -48,9 +59,9 @@ fun interface ActionProvider {
 }
 
 /** 仅包含已声明状态的增量；接收时深拷贝并冻结，校验通过后原子写回。 */
-data class UiActionResult
-@JvmOverloads
-constructor(val statePatch: Map<String, Any?> = emptyMap()) {
+data class UiActionResult(val statePatch: Map<String, Any?>) {
+    constructor() : this(emptyMap())
+
     companion object {
         @JvmStatic fun empty(): UiActionResult = UiActionResult()
     }
@@ -62,29 +73,60 @@ fun interface ItemProvider {
 }
 
 /** 成功仅表示最终目标页的服务端发送阶段完成；失败读取 [failure]，不代表客户端已显示。 */
-data class OpenResult
-@JvmOverloads
-constructor(
+data class OpenResult(
     val opened: Boolean,
-    val failure: UiFailureCode? = null,
-    val sessionId: UUID? = null,
-)
+    val failure: UiFailureCode?,
+    val sessionId: UUID?,
+) {
+    constructor(opened: Boolean) : this(opened, null, null)
+
+    constructor(opened: Boolean, failure: UiFailureCode?) : this(opened, failure, null)
+
+    companion object {
+        operator fun invoke(
+            opened: Boolean,
+            failure: UiFailureCode? = null,
+            sessionId: UUID? = null,
+        ): OpenResult = of(opened, failure, sessionId)
+
+        @JvmStatic
+        @JvmOverloads
+        fun of(
+            opened: Boolean,
+            failure: UiFailureCode? = null,
+            sessionId: UUID? = null,
+        ): OpenResult = OpenResult(opened, failure, sessionId)
+    }
+}
 
 /**
  * 通过 ServicesManager 获取界面服务。 界面操作可跨线程发起，内部回到主线程；不得阻塞等待 Future 或假定延续线程。 注册限主线程，owner
  * 停用自动注销；句柄可跨线程关闭，但返回不代表清理已完成。 旧句柄不影响新注册；有效注销使现存会话失效。超时不保证取消或回滚外部业务。
  */
 interface RafterService {
+    companion object {
+        /** 插件启用后在主线程取得服务。 */
+        @JvmStatic
+        fun get(): RafterService =
+            checkNotNull(Bukkit.getServicesManager().load(RafterService::class.java)) {
+                "Rafter service is unavailable"
+            }
+    }
+
+    fun open(player: Player, menu: String): CompletableFuture<OpenResult> =
+        open(player, menu, emptyMap())
+
+    fun open(player: Player, menu: String, options: UiOpenOptions): CompletableFuture<OpenResult> =
+        open(player, menu, emptyMap(), options)
+
     /** 打开菜单，失败读取 [OpenResult.failure]；成功不确认客户端显示。 */
     fun open(
         player: Player,
         menu: String,
-        args: Map<String, Any?> = emptyMap(),
+        args: Map<String, Any?>,
     ): CompletableFuture<OpenResult>
 
-    /**
-     * 首读前初始化状态并打开目标页；modal 目标先呈现 Canvas 入口。成功表示最终目标页已发送，沿用同一会话 ID。
-     */
+    /** 首读前初始化状态并打开目标页；modal 目标先呈现 Canvas 入口。成功表示最终目标页已发送，沿用同一会话 ID。 */
     fun open(
         player: Player,
         menu: String,
@@ -101,9 +143,21 @@ interface RafterService {
     fun registerData(
         owner: Plugin,
         id: String,
+        provider: DataProvider,
+    ): AutoCloseable = registerData(owner, id, ProviderDescriptor(id), provider)
+
+    fun registerData(
+        owner: Plugin,
+        id: String,
         descriptor: ProviderDescriptor,
         provider: DataProvider,
     ): AutoCloseable
+
+    fun registerCondition(
+        owner: Plugin,
+        id: String,
+        provider: ConditionProvider,
+    ): AutoCloseable = registerCondition(owner, id, ProviderDescriptor(id), provider)
 
     fun registerCondition(
         owner: Plugin,
@@ -115,9 +169,21 @@ interface RafterService {
     fun registerAction(
         owner: Plugin,
         id: String,
+        provider: ActionProvider,
+    ): AutoCloseable = registerAction(owner, id, ProviderDescriptor(id), provider)
+
+    fun registerAction(
+        owner: Plugin,
+        id: String,
         descriptor: ProviderDescriptor,
         provider: ActionProvider,
     ): AutoCloseable
+
+    fun registerItems(
+        owner: Plugin,
+        id: String,
+        provider: ItemProvider,
+    ): AutoCloseable = registerItems(owner, id, ProviderDescriptor(id), provider)
 
     /** 物品提供器仅接收上下文和 ID，descriptor.parameters 必须为空。 */
     fun registerItems(

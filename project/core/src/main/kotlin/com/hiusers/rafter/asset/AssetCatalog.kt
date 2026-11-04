@@ -58,6 +58,10 @@ data class AssetCatalog(
     val modalBackdrops: List<ModalBackdropLayout> = emptyList(),
     val modalFrames: Map<String, DialogFrameGlyph> = emptyMap(),
     val textOffsets: Set<Int> = TextOffsets.OFFSETS.toSet(),
+    val canvasItems: List<CanvasItemRoute> = emptyList(),
+    val canvasFlows: Map<String, CanvasFlowPlan> = emptyMap(),
+    val canvasModalFlows: Map<String, CanvasModalFlow> = emptyMap(),
+    val canvasItemBaseFingerprint: String? = null,
 ) {
     fun dimensions() = images.mapValues { (_, glyph) -> glyph.width to glyph.height }
 
@@ -69,9 +73,9 @@ data class AssetCatalog(
 
     private fun metricFont(font: String): String =
         TextOffsets.baseFont(
-            modalBackdrops.indices
-                .firstOrNull { font.startsWith("rafter:modal_backdrop/$it/") }
-                ?.let { "rafter:" + font.substringAfter("rafter:modal_backdrop/$it/") } ?: font
+            if (font.startsWith(ModalEncoding.FONT_PREFIX))
+                "rafter:" + font.removePrefix(ModalEncoding.FONT_PREFIX)
+            else font
         )
 
     fun fontFace(font: String): FontFace? = fontFaces[metricFont(font)]

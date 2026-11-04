@@ -1,0 +1,15 @@
+name: ItemProbePlugin
+main: ItemProbePlugin
+version: 0.0.1
+api-version: '1.21.6'
+depend:
+  - Rafter
+  - packetevents
+
+commands:
+  itemprobe:
+    description: Open the isolated item modal fixture
+    permission: itemprobe.use
+permissions:
+  itemprobe.use:
+    default: op

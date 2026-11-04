@@ -37,6 +37,13 @@ fun yaml(name: String): Map<String, Any?> =
 
 private object Fixtures
 
+/** 只校验内置物品引用，不执行业务提供器。 */
+fun checkStaticItemReference(kind: String, key: String, args: Map<String, Any?>) {
+    check(kind == "item" && key.startsWith("minecraft:") && args.isEmpty()) {
+        "Unexpected external provider reference: $kind/$key"
+    }
+}
+
 // 历史界面仅供机制回归，不作为默认配置。
 private val legacyDefaults: Path
     get() =

@@ -1,0 +1,368 @@
+id: rafterprobe:item-viewport
+entry: grid
+state:
+  page: 0
+  selected: ''
+  last-click: ''
+  hint: ''
+  query: 'Ready'
+  message: "First line\nSecond line"
+  body-page: 0
+  empty: false
+  left-page: 0
+  right-page: 0
+  left-selected: ''
+  right-selected: ''
+data:
+  rows:
+    type: data
+    key: rafterprobe:rows
+  left:
+    type: data
+    key: rafterprobe:left
+  right:
+    type: data
+    key: rafterprobe:right
+pages:
+  grid:
+    mode: canvas
+    title: ''
+    width: 560
+    height: 342
+    elements:
+      - id: title
+        type: text
+        x: 18
+        y: 9
+        text: '560 x 342 / 18 slots'
+      - id: selection
+        type: text
+        x: 18
+        y: 27
+        width: 520
+        text:
+          format: parts
+          parts:
+            - 'Selection: '
+            - format: literal
+              binding:
+                type: state
+                key: selected
+      - id: models
+        type: list
+        x: 18
+        y: 99
+        source: rows
+        template: rafterprobe:slot
+        page-state: page
+        selection-state: selected
+        slots:
+          - {x: 0, y: 0}
+          - {x: 54, y: 0}
+          - {x: 108, y: 0}
+          - {x: 162, y: 0}
+          - {x: 216, y: 0}
+          - {x: 270, y: 0}
+          - {x: 324, y: 0}
+          - {x: 378, y: 0}
+          - {x: 432, y: 0}
+          - {x: 0, y: 54}
+          - {x: 54, y: 54}
+          - {x: 108, y: 54}
+          - {x: 162, y: 54}
+          - {x: 216, y: 54}
+          - {x: 270, y: 54}
+          - {x: 324, y: 54}
+          - {x: 378, y: 54}
+          - {x: 432, y: 54}
+      - id: result
+        type: text
+        x: 18
+        y: 279
+        width: 520
+        overflow: clip
+        text:
+          format: literal
+          binding:
+            type: state
+            key: hint
+      - id: bottom
+        type: text
+        x: 18
+        y: 306
+        text: 'Canvas bottom: 342'
+      - id: form-label
+        type: text
+        x: 18
+        y: 315
+        text: Form
+      - id: form
+        type: hit-area
+        x: 18
+        y: 315
+        width: 100
+        height: 18
+        actions:
+          - type: open-page
+            page: form
+      - id: next-label
+        type: text
+        x: 144
+        y: 315
+        text: Next
+      - id: next
+        type: hit-area
+        x: 144
+        y: 315
+        width: 100
+        height: 18
+        actions:
+          - type: page-list
+            list: models
+            step: 1
+      - id: previous-label
+        type: text
+        x: 270
+        y: 315
+        text: Previous
+      - id: previous
+        type: hit-area
+        x: 270
+        y: 315
+        width: 100
+        height: 18
+        actions:
+          - type: page-list
+            list: models
+            step: -1
+      - id: close-label
+        type: text
+        x: 414
+        y: 315
+        text: Close
+      - id: close
+        type: hit-area
+        x: 414
+        y: 315
+        width: 100
+        height: 18
+        actions:
+          - type: close
+  form:
+    mode: canvas
+    skin: rafter:friends/add
+    params:
+      panel: rafter:probe/modal
+    content:
+      title:
+        text: Item backdrop
+      description:
+        text: Name
+      input:
+        state: query
+        max-length: 32
+      message:
+        text: Message
+        state: message
+        max-length: 120
+      confirm:
+        text: Confirm
+        actions:
+          - type: submit
+          - type: open-page
+            page: confirm
+  confirm:
+    mode: canvas
+    skin: rafter:friends/search
+    content:
+      title:
+        text: Confirmation
+      description:
+        text: Name
+      input:
+        state: query
+        max-length: 32
+      confirm:
+        text: Return
+        actions:
+          - type: submit
+          - type: open-page
+            page: form
+  occlusion:
+    mode: canvas
+    title: ''
+    width: 560
+    height: 342
+    elements:
+      - id: title
+        type: text
+        x: 18
+        y: 9
+        text: 'Frozen model clipping'
+      - id: partial-frame
+        type: image
+        asset: rafter:probe/slot
+        width: 72
+        height: 72
+        fit: stretch
+        x: 100
+        y: 198
+      - id: partial
+        type: item
+        item: rafterprobe:items#diamond
+        size: 72
+        x: 100
+        y: 198
+      - id: covered-frame
+        type: image
+        asset: rafter:probe/slot
+        width: 72
+        height: 72
+        fit: stretch
+        x: 300
+        y: 198
+      - id: covered
+        type: item
+        item: rafterprobe:items#block
+        size: 72
+        x: 300
+        y: 198
+      - id: outside-frame
+        type: image
+        asset: rafter:probe/slot
+        width: 54
+        height: 54
+        fit: stretch
+        x: 480
+        y: 198
+      - id: outside
+        type: item
+        item: rafterprobe:items#custom
+        size: 54
+        x: 480
+        y: 198
+      - id: top
+        type: item
+        item: rafterprobe:items#tool
+        size: 54
+        x: 36
+        y: 54
+      - id: open-label
+        type: text
+        x: 18
+        y: 315
+        text: Form
+      - id: open
+        type: hit-area
+        x: 18
+        y: 315
+        width: 100
+        height: 18
+        actions:
+          - type: open-page
+            page: form
+
+  regions:
+    mode: canvas
+    title: ""
+    width: 560
+    height: 216
+    elements:
+      - id: title
+        type: text
+        x: 18
+        y: 9
+        text: "Independent sources"
+      - id: grid-label
+        type: text
+        x: 510
+        y: 9
+        text: Grid
+      - id: grid
+        type: hit-area
+        x: 510
+        y: 9
+        width: 36
+        height: 18
+        actions:
+          - type: open-page
+            page: grid
+      - id: left-page-next-label
+        type: text
+        x: 210
+        y: 9
+        text: Next
+      - id: left-page-next
+        type: hit-area
+        x: 210
+        y: 9
+        width: 60
+        height: 18
+        actions:
+          - type: page-list
+            list: left-items
+            step: 1
+      - id: right-page-next-label
+        type: text
+        x: 450
+        y: 9
+        text: Next
+      - id: right-page-next
+        type: hit-area
+        x: 450
+        y: 9
+        width: 60
+        height: 18
+        actions:
+          - type: page-list
+            list: right-items
+            step: 1
+      - id: left-items
+        type: list
+        x: 18
+        y: 45
+        source: left
+        template: rafterprobe:slot
+        page-state: left-page
+        selection-state: left-selected
+        slots:
+          - x: 0
+            y: 0
+          - x: 54
+            y: 0
+          - x: 108
+            y: 0
+          - x: 0
+            y: 54
+          - x: 54
+            y: 54
+          - x: 108
+            y: 54
+      - id: right-items
+        type: list
+        x: 360
+        y: 45
+        source: right
+        template: rafterprobe:slot
+        page-state: right-page
+        selection-state: right-selected
+        slots:
+          - x: 0
+            y: 0
+          - x: 72
+            y: 0
+          - x: 0
+            y: 72
+          - x: 90
+            y: 72
+      - id: result
+        type: text
+        x: 18
+        y: 189
+        width: 520
+        overflow: clip
+        text:
+          format: literal
+          binding:
+            type: state
+            key: hint

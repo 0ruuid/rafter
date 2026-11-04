@@ -1,0 +1,1908 @@
+{
+  "source_template": "https://raw.githubusercontent.com/misode/mcmeta/{version}-assets/assets/minecraft/shaders/core/{name}",
+  "directory_api_template": "https://api.github.com/repos/misode/mcmeta/contents/assets/minecraft/shaders/core?ref={version}-assets",
+  "versions": {
+    "1.21.6": {
+      "role": "representative",
+      "representative": "1.21.6",
+      "runtime-verified": false,
+      "directory": {
+        "representative_directory": "1_21_6",
+        "patch_directory": null
+      },
+      "files": {
+        "position_tex_color.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.6-assets/assets/minecraft/shaders/core/position_tex_color.vsh",
+          "sha256": "16bd8c0c03b5870012f85809ca9072600c63f81d24320d21bc17cd035844900e",
+          "directory": "1_21_6",
+          "stored": true
+        },
+        "rendertype_text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.6-assets/assets/minecraft/shaders/core/rendertype_text.fsh",
+          "sha256": "1f6640924a36a98edb0612d5677e681d65df4ea0326ab598e81f0b51a70497b0",
+          "directory": "1_21_6",
+          "stored": true
+        },
+        "rendertype_text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.6-assets/assets/minecraft/shaders/core/rendertype_text.vsh",
+          "sha256": "594f64c2014d202846af912797d657d2e0706951c338fec8f89f85d517d8739f",
+          "directory": "1_21_6",
+          "stored": true
+        },
+        "rendertype_text_intensity.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.6-assets/assets/minecraft/shaders/core/rendertype_text_intensity.fsh",
+          "sha256": "ecf68b632593e07725ae67962c93d73b275163133a51e6e740cb1659528df038",
+          "directory": "1_21_6",
+          "stored": true
+        },
+        "rendertype_text_intensity.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.6-assets/assets/minecraft/shaders/core/rendertype_text_intensity.vsh",
+          "sha256": "594f64c2014d202846af912797d657d2e0706951c338fec8f89f85d517d8739f",
+          "directory": "1_21_6",
+          "stored": true
+        },
+        "rendertype_text_intensity_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.6-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.fsh",
+          "sha256": "c86d2f697c8cd8a07778dbc7b7bd27da0d4aa36e932e4b4cd5dc85d5d7333c28",
+          "directory": "1_21_6",
+          "stored": true
+        },
+        "rendertype_text_intensity_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.6-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.vsh",
+          "sha256": "ea396e893589a06b0770613a4758c259c97c3560bddfc7553aa9835f06320429",
+          "directory": "1_21_6",
+          "stored": true
+        },
+        "rendertype_text_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.6-assets/assets/minecraft/shaders/core/rendertype_text_see_through.fsh",
+          "sha256": "11abd085ce0b8fc89821e4cee05994bfd799112d8b731e2c4c6681ed06f3ba70",
+          "directory": "1_21_6",
+          "stored": true
+        },
+        "rendertype_text_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.6-assets/assets/minecraft/shaders/core/rendertype_text_see_through.vsh",
+          "sha256": "ea396e893589a06b0770613a4758c259c97c3560bddfc7553aa9835f06320429",
+          "directory": "1_21_6",
+          "stored": true
+        }
+      },
+      "discovered_text_shaders": [
+        "position_tex_color.vsh",
+        "rendertype_text.fsh",
+        "rendertype_text.vsh",
+        "rendertype_text_background.fsh",
+        "rendertype_text_background.vsh",
+        "rendertype_text_background_see_through.fsh",
+        "rendertype_text_background_see_through.vsh",
+        "rendertype_text_intensity.fsh",
+        "rendertype_text_intensity.vsh",
+        "rendertype_text_intensity_see_through.fsh",
+        "rendertype_text_intensity_see_through.vsh",
+        "rendertype_text_see_through.fsh",
+        "rendertype_text_see_through.vsh"
+      ],
+      "requested_aliases": {
+        "text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.6-assets/assets/minecraft/shaders/core/text.vsh",
+          "status": 404
+        },
+        "text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.6-assets/assets/minecraft/shaders/core/text.fsh",
+          "status": 404
+        }
+      },
+      "include_directives": {
+        "position_tex_color.vsh": [],
+        "rendertype_text.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_background.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_background.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_background_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_background_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_intensity.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_intensity.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_intensity_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_intensity_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ]
+      },
+      "includes": {
+        "dynamictransforms.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.6-assets/assets/minecraft/shaders/include/dynamictransforms.glsl",
+          "sha256": "ae863dc12d1ae32e50e085bc909a7bca4b6d3da4cf0d086e1929021f485156d5",
+          "directory": "1_21_6/include",
+          "stored": true
+        },
+        "fog.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.6-assets/assets/minecraft/shaders/include/fog.glsl",
+          "sha256": "65b0c8c3a06d5387f5d00f122e8c4e5d52806211ee6acada07134d1938c995ff",
+          "directory": "1_21_6/include",
+          "stored": true
+        },
+        "projection.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.6-assets/assets/minecraft/shaders/include/projection.glsl",
+          "sha256": "77593edbec612e656dd2cc4dca96a626f3dd8f220889bb0c2cb0285a111164dc",
+          "directory": "1_21_6/include",
+          "stored": true
+        }
+      }
+    },
+    "1.21.7": {
+      "role": "patch",
+      "representative": "1.21.6",
+      "runtime-verified": false,
+      "directory": {
+        "representative_directory": "1_21_6",
+        "patch_directory": null
+      },
+      "files": {
+        "position_tex_color.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.7-assets/assets/minecraft/shaders/core/position_tex_color.vsh",
+          "sha256": "16bd8c0c03b5870012f85809ca9072600c63f81d24320d21bc17cd035844900e",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "rendertype_text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.7-assets/assets/minecraft/shaders/core/rendertype_text.fsh",
+          "sha256": "1f6640924a36a98edb0612d5677e681d65df4ea0326ab598e81f0b51a70497b0",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "rendertype_text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.7-assets/assets/minecraft/shaders/core/rendertype_text.vsh",
+          "sha256": "594f64c2014d202846af912797d657d2e0706951c338fec8f89f85d517d8739f",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "rendertype_text_intensity.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.7-assets/assets/minecraft/shaders/core/rendertype_text_intensity.fsh",
+          "sha256": "ecf68b632593e07725ae67962c93d73b275163133a51e6e740cb1659528df038",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "rendertype_text_intensity.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.7-assets/assets/minecraft/shaders/core/rendertype_text_intensity.vsh",
+          "sha256": "594f64c2014d202846af912797d657d2e0706951c338fec8f89f85d517d8739f",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "rendertype_text_intensity_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.7-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.fsh",
+          "sha256": "c86d2f697c8cd8a07778dbc7b7bd27da0d4aa36e932e4b4cd5dc85d5d7333c28",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "rendertype_text_intensity_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.7-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.vsh",
+          "sha256": "ea396e893589a06b0770613a4758c259c97c3560bddfc7553aa9835f06320429",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "rendertype_text_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.7-assets/assets/minecraft/shaders/core/rendertype_text_see_through.fsh",
+          "sha256": "11abd085ce0b8fc89821e4cee05994bfd799112d8b731e2c4c6681ed06f3ba70",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "rendertype_text_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.7-assets/assets/minecraft/shaders/core/rendertype_text_see_through.vsh",
+          "sha256": "ea396e893589a06b0770613a4758c259c97c3560bddfc7553aa9835f06320429",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        }
+      },
+      "discovered_text_shaders": [
+        "position_tex_color.vsh",
+        "rendertype_text.fsh",
+        "rendertype_text.vsh",
+        "rendertype_text_background.fsh",
+        "rendertype_text_background.vsh",
+        "rendertype_text_background_see_through.fsh",
+        "rendertype_text_background_see_through.vsh",
+        "rendertype_text_intensity.fsh",
+        "rendertype_text_intensity.vsh",
+        "rendertype_text_intensity_see_through.fsh",
+        "rendertype_text_intensity_see_through.vsh",
+        "rendertype_text_see_through.fsh",
+        "rendertype_text_see_through.vsh"
+      ],
+      "requested_aliases": {
+        "text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.7-assets/assets/minecraft/shaders/core/text.vsh",
+          "status": 404
+        },
+        "text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.7-assets/assets/minecraft/shaders/core/text.fsh",
+          "status": 404
+        }
+      },
+      "include_directives": {
+        "position_tex_color.vsh": [],
+        "rendertype_text.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_background.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_background.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_background_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_background_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_intensity.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_intensity.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_intensity_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_intensity_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ]
+      },
+      "includes": {
+        "dynamictransforms.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.7-assets/assets/minecraft/shaders/include/dynamictransforms.glsl",
+          "sha256": "ae863dc12d1ae32e50e085bc909a7bca4b6d3da4cf0d086e1929021f485156d5",
+          "directory": "1_21_6/include",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "fog.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.7-assets/assets/minecraft/shaders/include/fog.glsl",
+          "sha256": "65b0c8c3a06d5387f5d00f122e8c4e5d52806211ee6acada07134d1938c995ff",
+          "directory": "1_21_6/include",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "projection.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.7-assets/assets/minecraft/shaders/include/projection.glsl",
+          "sha256": "77593edbec612e656dd2cc4dca96a626f3dd8f220889bb0c2cb0285a111164dc",
+          "directory": "1_21_6/include",
+          "stored": false,
+          "matches": "1.21.6"
+        }
+      }
+    },
+    "1.21.8": {
+      "role": "patch",
+      "representative": "1.21.6",
+      "runtime-verified": false,
+      "directory": {
+        "representative_directory": "1_21_6",
+        "patch_directory": null
+      },
+      "files": {
+        "position_tex_color.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.8-assets/assets/minecraft/shaders/core/position_tex_color.vsh",
+          "sha256": "16bd8c0c03b5870012f85809ca9072600c63f81d24320d21bc17cd035844900e",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "rendertype_text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.8-assets/assets/minecraft/shaders/core/rendertype_text.fsh",
+          "sha256": "1f6640924a36a98edb0612d5677e681d65df4ea0326ab598e81f0b51a70497b0",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "rendertype_text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.8-assets/assets/minecraft/shaders/core/rendertype_text.vsh",
+          "sha256": "594f64c2014d202846af912797d657d2e0706951c338fec8f89f85d517d8739f",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "rendertype_text_intensity.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.8-assets/assets/minecraft/shaders/core/rendertype_text_intensity.fsh",
+          "sha256": "ecf68b632593e07725ae67962c93d73b275163133a51e6e740cb1659528df038",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "rendertype_text_intensity.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.8-assets/assets/minecraft/shaders/core/rendertype_text_intensity.vsh",
+          "sha256": "594f64c2014d202846af912797d657d2e0706951c338fec8f89f85d517d8739f",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "rendertype_text_intensity_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.8-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.fsh",
+          "sha256": "c86d2f697c8cd8a07778dbc7b7bd27da0d4aa36e932e4b4cd5dc85d5d7333c28",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "rendertype_text_intensity_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.8-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.vsh",
+          "sha256": "ea396e893589a06b0770613a4758c259c97c3560bddfc7553aa9835f06320429",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "rendertype_text_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.8-assets/assets/minecraft/shaders/core/rendertype_text_see_through.fsh",
+          "sha256": "11abd085ce0b8fc89821e4cee05994bfd799112d8b731e2c4c6681ed06f3ba70",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "rendertype_text_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.8-assets/assets/minecraft/shaders/core/rendertype_text_see_through.vsh",
+          "sha256": "ea396e893589a06b0770613a4758c259c97c3560bddfc7553aa9835f06320429",
+          "directory": "1_21_6",
+          "stored": false,
+          "matches": "1.21.6"
+        }
+      },
+      "discovered_text_shaders": [
+        "position_tex_color.vsh",
+        "rendertype_text.fsh",
+        "rendertype_text.vsh",
+        "rendertype_text_background.fsh",
+        "rendertype_text_background.vsh",
+        "rendertype_text_background_see_through.fsh",
+        "rendertype_text_background_see_through.vsh",
+        "rendertype_text_intensity.fsh",
+        "rendertype_text_intensity.vsh",
+        "rendertype_text_intensity_see_through.fsh",
+        "rendertype_text_intensity_see_through.vsh",
+        "rendertype_text_see_through.fsh",
+        "rendertype_text_see_through.vsh"
+      ],
+      "requested_aliases": {
+        "text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.8-assets/assets/minecraft/shaders/core/text.vsh",
+          "status": 404
+        },
+        "text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.8-assets/assets/minecraft/shaders/core/text.fsh",
+          "status": 404
+        }
+      },
+      "include_directives": {
+        "position_tex_color.vsh": [],
+        "rendertype_text.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_background.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_background.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_background_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_background_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_intensity.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_intensity.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_intensity_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_intensity_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ]
+      },
+      "includes": {
+        "dynamictransforms.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.8-assets/assets/minecraft/shaders/include/dynamictransforms.glsl",
+          "sha256": "ae863dc12d1ae32e50e085bc909a7bca4b6d3da4cf0d086e1929021f485156d5",
+          "directory": "1_21_6/include",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "fog.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.8-assets/assets/minecraft/shaders/include/fog.glsl",
+          "sha256": "65b0c8c3a06d5387f5d00f122e8c4e5d52806211ee6acada07134d1938c995ff",
+          "directory": "1_21_6/include",
+          "stored": false,
+          "matches": "1.21.6"
+        },
+        "projection.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.8-assets/assets/minecraft/shaders/include/projection.glsl",
+          "sha256": "77593edbec612e656dd2cc4dca96a626f3dd8f220889bb0c2cb0285a111164dc",
+          "directory": "1_21_6/include",
+          "stored": false,
+          "matches": "1.21.6"
+        }
+      }
+    },
+    "1.21.9": {
+      "role": "representative",
+      "representative": "1.21.9",
+      "runtime-verified": false,
+      "directory": {
+        "representative_directory": "1_21_9",
+        "patch_directory": null
+      },
+      "files": {
+        "position_tex_color.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.9-assets/assets/minecraft/shaders/core/position_tex_color.vsh",
+          "sha256": "d997d5ec684841c1bd62f1b7b3eef5d3561d876a658546f488ce998b54535f89",
+          "directory": "1_21_9",
+          "stored": true
+        },
+        "rendertype_text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.9-assets/assets/minecraft/shaders/core/rendertype_text.fsh",
+          "sha256": "70447ca24c7db565de7fe65768b68dc42df2393ec3ee9ebea8ef6e69e74b1ef6",
+          "directory": "1_21_9",
+          "stored": true
+        },
+        "rendertype_text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.9-assets/assets/minecraft/shaders/core/rendertype_text.vsh",
+          "sha256": "0d0fbb2b68614be09056a25cecfbf068ab05b947003c9efa3bb3ad813d544dbd",
+          "directory": "1_21_9",
+          "stored": true
+        },
+        "rendertype_text_intensity.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.9-assets/assets/minecraft/shaders/core/rendertype_text_intensity.fsh",
+          "sha256": "a82a6c6e6bb2d376d97a1ab2958d2a5c902128006ab4e20cb39571c90e48926f",
+          "directory": "1_21_9",
+          "stored": true
+        },
+        "rendertype_text_intensity.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.9-assets/assets/minecraft/shaders/core/rendertype_text_intensity.vsh",
+          "sha256": "0d0fbb2b68614be09056a25cecfbf068ab05b947003c9efa3bb3ad813d544dbd",
+          "directory": "1_21_9",
+          "stored": true
+        },
+        "rendertype_text_intensity_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.9-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.fsh",
+          "sha256": "716be55a4f8b44f34cd1e7c007613bb7fc1307cb390d3222083a2f5d25f7c21f",
+          "directory": "1_21_9",
+          "stored": true
+        },
+        "rendertype_text_intensity_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.9-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.vsh",
+          "sha256": "41ef5ea780b8136b6f4c8ed457235557a4b312f215bb67dadce746873181c55b",
+          "directory": "1_21_9",
+          "stored": true
+        },
+        "rendertype_text_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.9-assets/assets/minecraft/shaders/core/rendertype_text_see_through.fsh",
+          "sha256": "bdf15da843a63e52a5f899e23a50d5723b39f5f437c48790d2de9d903176c777",
+          "directory": "1_21_9",
+          "stored": true
+        },
+        "rendertype_text_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.9-assets/assets/minecraft/shaders/core/rendertype_text_see_through.vsh",
+          "sha256": "41ef5ea780b8136b6f4c8ed457235557a4b312f215bb67dadce746873181c55b",
+          "directory": "1_21_9",
+          "stored": true
+        }
+      },
+      "discovered_text_shaders": [
+        "position_tex_color.vsh",
+        "rendertype_text.fsh",
+        "rendertype_text.vsh",
+        "rendertype_text_background.fsh",
+        "rendertype_text_background.vsh",
+        "rendertype_text_background_see_through.fsh",
+        "rendertype_text_background_see_through.vsh",
+        "rendertype_text_intensity.fsh",
+        "rendertype_text_intensity.vsh",
+        "rendertype_text_intensity_see_through.fsh",
+        "rendertype_text_intensity_see_through.vsh",
+        "rendertype_text_see_through.fsh",
+        "rendertype_text_see_through.vsh"
+      ],
+      "requested_aliases": {
+        "text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.9-assets/assets/minecraft/shaders/core/text.vsh",
+          "status": 404
+        },
+        "text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.9-assets/assets/minecraft/shaders/core/text.fsh",
+          "status": 404
+        }
+      },
+      "include_directives": {
+        "position_tex_color.vsh": [],
+        "rendertype_text.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_background.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_background.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_background_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_background_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_intensity.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_intensity.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_intensity_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_intensity_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ]
+      },
+      "includes": {
+        "dynamictransforms.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.9-assets/assets/minecraft/shaders/include/dynamictransforms.glsl",
+          "sha256": "10c680feec488a44e8ac50608c053e5952112bb4e2c57defbf833b3d0b36a7a4",
+          "directory": "1_21_9/include",
+          "stored": true
+        },
+        "fog.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.9-assets/assets/minecraft/shaders/include/fog.glsl",
+          "sha256": "c1b47816bc9a3689ea815226c8ff2ba1b143ea40f094eb61cfede85c604ac8e6",
+          "directory": "1_21_9/include",
+          "stored": true
+        },
+        "projection.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.9-assets/assets/minecraft/shaders/include/projection.glsl",
+          "sha256": "1a192328e4d691f127667f6e363b5c37b774605fa146e5808d2710d3f2950c85",
+          "directory": "1_21_9/include",
+          "stored": true
+        }
+      }
+    },
+    "1.21.10": {
+      "role": "patch",
+      "representative": "1.21.9",
+      "runtime-verified": false,
+      "directory": {
+        "representative_directory": "1_21_9",
+        "patch_directory": null
+      },
+      "files": {
+        "position_tex_color.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.10-assets/assets/minecraft/shaders/core/position_tex_color.vsh",
+          "sha256": "d997d5ec684841c1bd62f1b7b3eef5d3561d876a658546f488ce998b54535f89",
+          "directory": "1_21_9",
+          "stored": false,
+          "matches": "1.21.9"
+        },
+        "rendertype_text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.10-assets/assets/minecraft/shaders/core/rendertype_text.fsh",
+          "sha256": "70447ca24c7db565de7fe65768b68dc42df2393ec3ee9ebea8ef6e69e74b1ef6",
+          "directory": "1_21_9",
+          "stored": false,
+          "matches": "1.21.9"
+        },
+        "rendertype_text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.10-assets/assets/minecraft/shaders/core/rendertype_text.vsh",
+          "sha256": "0d0fbb2b68614be09056a25cecfbf068ab05b947003c9efa3bb3ad813d544dbd",
+          "directory": "1_21_9",
+          "stored": false,
+          "matches": "1.21.9"
+        },
+        "rendertype_text_intensity.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.10-assets/assets/minecraft/shaders/core/rendertype_text_intensity.fsh",
+          "sha256": "a82a6c6e6bb2d376d97a1ab2958d2a5c902128006ab4e20cb39571c90e48926f",
+          "directory": "1_21_9",
+          "stored": false,
+          "matches": "1.21.9"
+        },
+        "rendertype_text_intensity.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.10-assets/assets/minecraft/shaders/core/rendertype_text_intensity.vsh",
+          "sha256": "0d0fbb2b68614be09056a25cecfbf068ab05b947003c9efa3bb3ad813d544dbd",
+          "directory": "1_21_9",
+          "stored": false,
+          "matches": "1.21.9"
+        },
+        "rendertype_text_intensity_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.10-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.fsh",
+          "sha256": "716be55a4f8b44f34cd1e7c007613bb7fc1307cb390d3222083a2f5d25f7c21f",
+          "directory": "1_21_9",
+          "stored": false,
+          "matches": "1.21.9"
+        },
+        "rendertype_text_intensity_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.10-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.vsh",
+          "sha256": "41ef5ea780b8136b6f4c8ed457235557a4b312f215bb67dadce746873181c55b",
+          "directory": "1_21_9",
+          "stored": false,
+          "matches": "1.21.9"
+        },
+        "rendertype_text_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.10-assets/assets/minecraft/shaders/core/rendertype_text_see_through.fsh",
+          "sha256": "bdf15da843a63e52a5f899e23a50d5723b39f5f437c48790d2de9d903176c777",
+          "directory": "1_21_9",
+          "stored": false,
+          "matches": "1.21.9"
+        },
+        "rendertype_text_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.10-assets/assets/minecraft/shaders/core/rendertype_text_see_through.vsh",
+          "sha256": "41ef5ea780b8136b6f4c8ed457235557a4b312f215bb67dadce746873181c55b",
+          "directory": "1_21_9",
+          "stored": false,
+          "matches": "1.21.9"
+        }
+      },
+      "discovered_text_shaders": [
+        "position_tex_color.vsh",
+        "rendertype_text.fsh",
+        "rendertype_text.vsh",
+        "rendertype_text_background.fsh",
+        "rendertype_text_background.vsh",
+        "rendertype_text_background_see_through.fsh",
+        "rendertype_text_background_see_through.vsh",
+        "rendertype_text_intensity.fsh",
+        "rendertype_text_intensity.vsh",
+        "rendertype_text_intensity_see_through.fsh",
+        "rendertype_text_intensity_see_through.vsh",
+        "rendertype_text_see_through.fsh",
+        "rendertype_text_see_through.vsh"
+      ],
+      "requested_aliases": {
+        "text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.10-assets/assets/minecraft/shaders/core/text.vsh",
+          "status": 404
+        },
+        "text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.10-assets/assets/minecraft/shaders/core/text.fsh",
+          "status": 404
+        }
+      },
+      "include_directives": {
+        "position_tex_color.vsh": [],
+        "rendertype_text.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_background.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_background.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_background_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_background_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_intensity.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_intensity.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_intensity_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_intensity_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ]
+      },
+      "includes": {
+        "dynamictransforms.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.10-assets/assets/minecraft/shaders/include/dynamictransforms.glsl",
+          "sha256": "10c680feec488a44e8ac50608c053e5952112bb4e2c57defbf833b3d0b36a7a4",
+          "directory": "1_21_9/include",
+          "stored": false,
+          "matches": "1.21.9"
+        },
+        "fog.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.10-assets/assets/minecraft/shaders/include/fog.glsl",
+          "sha256": "c1b47816bc9a3689ea815226c8ff2ba1b143ea40f094eb61cfede85c604ac8e6",
+          "directory": "1_21_9/include",
+          "stored": false,
+          "matches": "1.21.9"
+        },
+        "projection.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.10-assets/assets/minecraft/shaders/include/projection.glsl",
+          "sha256": "1a192328e4d691f127667f6e363b5c37b774605fa146e5808d2710d3f2950c85",
+          "directory": "1_21_9/include",
+          "stored": false,
+          "matches": "1.21.9"
+        }
+      }
+    },
+    "1.21.11": {
+      "role": "representative",
+      "representative": "1.21.11",
+      "runtime-verified": false,
+      "directory": {
+        "representative_directory": "1_21_11",
+        "patch_directory": null
+      },
+      "files": {
+        "position_tex_color.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.11-assets/assets/minecraft/shaders/core/position_tex_color.vsh",
+          "sha256": "6c2a346ad6aebfeeadd8a69af14c43b0136100d4d19a0cf0920422b5991967b7",
+          "directory": "1_21_11",
+          "stored": true
+        },
+        "rendertype_text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.11-assets/assets/minecraft/shaders/core/rendertype_text.fsh",
+          "sha256": "70447ca24c7db565de7fe65768b68dc42df2393ec3ee9ebea8ef6e69e74b1ef6",
+          "directory": "1_21_11",
+          "stored": true
+        },
+        "rendertype_text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.11-assets/assets/minecraft/shaders/core/rendertype_text.vsh",
+          "sha256": "0d0fbb2b68614be09056a25cecfbf068ab05b947003c9efa3bb3ad813d544dbd",
+          "directory": "1_21_11",
+          "stored": true
+        },
+        "rendertype_text_intensity.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.11-assets/assets/minecraft/shaders/core/rendertype_text_intensity.fsh",
+          "sha256": "a82a6c6e6bb2d376d97a1ab2958d2a5c902128006ab4e20cb39571c90e48926f",
+          "directory": "1_21_11",
+          "stored": true
+        },
+        "rendertype_text_intensity.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.11-assets/assets/minecraft/shaders/core/rendertype_text_intensity.vsh",
+          "sha256": "0d0fbb2b68614be09056a25cecfbf068ab05b947003c9efa3bb3ad813d544dbd",
+          "directory": "1_21_11",
+          "stored": true
+        },
+        "rendertype_text_intensity_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.11-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.fsh",
+          "sha256": "716be55a4f8b44f34cd1e7c007613bb7fc1307cb390d3222083a2f5d25f7c21f",
+          "directory": "1_21_11",
+          "stored": true
+        },
+        "rendertype_text_intensity_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.11-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.vsh",
+          "sha256": "41ef5ea780b8136b6f4c8ed457235557a4b312f215bb67dadce746873181c55b",
+          "directory": "1_21_11",
+          "stored": true
+        },
+        "rendertype_text_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.11-assets/assets/minecraft/shaders/core/rendertype_text_see_through.fsh",
+          "sha256": "bdf15da843a63e52a5f899e23a50d5723b39f5f437c48790d2de9d903176c777",
+          "directory": "1_21_11",
+          "stored": true
+        },
+        "rendertype_text_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.11-assets/assets/minecraft/shaders/core/rendertype_text_see_through.vsh",
+          "sha256": "41ef5ea780b8136b6f4c8ed457235557a4b312f215bb67dadce746873181c55b",
+          "directory": "1_21_11",
+          "stored": true
+        }
+      },
+      "discovered_text_shaders": [
+        "position_tex_color.vsh",
+        "rendertype_text.fsh",
+        "rendertype_text.vsh",
+        "rendertype_text_background.fsh",
+        "rendertype_text_background.vsh",
+        "rendertype_text_background_see_through.fsh",
+        "rendertype_text_background_see_through.vsh",
+        "rendertype_text_intensity.fsh",
+        "rendertype_text_intensity.vsh",
+        "rendertype_text_intensity_see_through.fsh",
+        "rendertype_text_intensity_see_through.vsh",
+        "rendertype_text_see_through.fsh",
+        "rendertype_text_see_through.vsh"
+      ],
+      "requested_aliases": {
+        "text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.11-assets/assets/minecraft/shaders/core/text.vsh",
+          "status": 404
+        },
+        "text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.11-assets/assets/minecraft/shaders/core/text.fsh",
+          "status": 404
+        }
+      },
+      "include_directives": {
+        "position_tex_color.vsh": [],
+        "rendertype_text.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_background.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_background.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_background_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_background_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_intensity.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_intensity.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_intensity_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_intensity_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ]
+      },
+      "includes": {
+        "dynamictransforms.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.11-assets/assets/minecraft/shaders/include/dynamictransforms.glsl",
+          "sha256": "bb48ff3521e88334a0ff7c27fc9fc33c200cb45bcc4955790f7a1a8ea9a9ed8d",
+          "directory": "1_21_11/include",
+          "stored": true
+        },
+        "fog.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.11-assets/assets/minecraft/shaders/include/fog.glsl",
+          "sha256": "c1b47816bc9a3689ea815226c8ff2ba1b143ea40f094eb61cfede85c604ac8e6",
+          "directory": "1_21_11/include",
+          "stored": true
+        },
+        "projection.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/1.21.11-assets/assets/minecraft/shaders/include/projection.glsl",
+          "sha256": "1a192328e4d691f127667f6e363b5c37b774605fa146e5808d2710d3f2950c85",
+          "directory": "1_21_11/include",
+          "stored": true
+        }
+      }
+    },
+    "26.1": {
+      "role": "representative",
+      "representative": "26.1",
+      "runtime-verified": false,
+      "directory": {
+        "representative_directory": "26_1",
+        "patch_directory": null
+      },
+      "files": {
+        "position_tex_color.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1-assets/assets/minecraft/shaders/core/position_tex_color.vsh",
+          "sha256": "6c2a346ad6aebfeeadd8a69af14c43b0136100d4d19a0cf0920422b5991967b7",
+          "directory": "26_1",
+          "stored": true
+        },
+        "rendertype_text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1-assets/assets/minecraft/shaders/core/rendertype_text.fsh",
+          "sha256": "70447ca24c7db565de7fe65768b68dc42df2393ec3ee9ebea8ef6e69e74b1ef6",
+          "directory": "26_1",
+          "stored": true
+        },
+        "rendertype_text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1-assets/assets/minecraft/shaders/core/rendertype_text.vsh",
+          "sha256": "668142b13a06c3c2f731b7083715c0d11f11e44083bea933c0937b70c2daf6ff",
+          "directory": "26_1",
+          "stored": true
+        },
+        "rendertype_text_intensity.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1-assets/assets/minecraft/shaders/core/rendertype_text_intensity.fsh",
+          "sha256": "a82a6c6e6bb2d376d97a1ab2958d2a5c902128006ab4e20cb39571c90e48926f",
+          "directory": "26_1",
+          "stored": true
+        },
+        "rendertype_text_intensity.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1-assets/assets/minecraft/shaders/core/rendertype_text_intensity.vsh",
+          "sha256": "668142b13a06c3c2f731b7083715c0d11f11e44083bea933c0937b70c2daf6ff",
+          "directory": "26_1",
+          "stored": true
+        },
+        "rendertype_text_intensity_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.fsh",
+          "sha256": "716be55a4f8b44f34cd1e7c007613bb7fc1307cb390d3222083a2f5d25f7c21f",
+          "directory": "26_1",
+          "stored": true
+        },
+        "rendertype_text_intensity_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.vsh",
+          "sha256": "41ef5ea780b8136b6f4c8ed457235557a4b312f215bb67dadce746873181c55b",
+          "directory": "26_1",
+          "stored": true
+        },
+        "rendertype_text_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1-assets/assets/minecraft/shaders/core/rendertype_text_see_through.fsh",
+          "sha256": "bdf15da843a63e52a5f899e23a50d5723b39f5f437c48790d2de9d903176c777",
+          "directory": "26_1",
+          "stored": true
+        },
+        "rendertype_text_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1-assets/assets/minecraft/shaders/core/rendertype_text_see_through.vsh",
+          "sha256": "41ef5ea780b8136b6f4c8ed457235557a4b312f215bb67dadce746873181c55b",
+          "directory": "26_1",
+          "stored": true
+        }
+      },
+      "discovered_text_shaders": [
+        "position_tex_color.vsh",
+        "rendertype_text.fsh",
+        "rendertype_text.vsh",
+        "rendertype_text_background.fsh",
+        "rendertype_text_background.vsh",
+        "rendertype_text_background_see_through.fsh",
+        "rendertype_text_background_see_through.vsh",
+        "rendertype_text_intensity.fsh",
+        "rendertype_text_intensity.vsh",
+        "rendertype_text_intensity_see_through.fsh",
+        "rendertype_text_intensity_see_through.vsh",
+        "rendertype_text_see_through.fsh",
+        "rendertype_text_see_through.vsh"
+      ],
+      "requested_aliases": {
+        "text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1-assets/assets/minecraft/shaders/core/text.vsh",
+          "status": 404
+        },
+        "text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1-assets/assets/minecraft/shaders/core/text.fsh",
+          "status": 404
+        }
+      },
+      "include_directives": {
+        "position_tex_color.vsh": [],
+        "rendertype_text.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl",
+          "sample_lightmap.glsl"
+        ],
+        "rendertype_text_background.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_background.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl",
+          "sample_lightmap.glsl"
+        ],
+        "rendertype_text_background_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_background_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_intensity.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_intensity.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl",
+          "sample_lightmap.glsl"
+        ],
+        "rendertype_text_intensity_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_intensity_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ]
+      },
+      "includes": {
+        "dynamictransforms.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1-assets/assets/minecraft/shaders/include/dynamictransforms.glsl",
+          "sha256": "bb48ff3521e88334a0ff7c27fc9fc33c200cb45bcc4955790f7a1a8ea9a9ed8d",
+          "directory": "26_1/include",
+          "stored": true
+        },
+        "fog.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1-assets/assets/minecraft/shaders/include/fog.glsl",
+          "sha256": "c1b47816bc9a3689ea815226c8ff2ba1b143ea40f094eb61cfede85c604ac8e6",
+          "directory": "26_1/include",
+          "stored": true
+        },
+        "projection.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1-assets/assets/minecraft/shaders/include/projection.glsl",
+          "sha256": "1a192328e4d691f127667f6e363b5c37b774605fa146e5808d2710d3f2950c85",
+          "directory": "26_1/include",
+          "stored": true
+        },
+        "sample_lightmap.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1-assets/assets/minecraft/shaders/include/sample_lightmap.glsl",
+          "sha256": "4ec239a8fbfe90a0b2519daebc3075dff32d0341e6c58c6f32037f87655159a6",
+          "directory": "26_1/include",
+          "stored": true
+        }
+      }
+    },
+    "26.1.1": {
+      "role": "patch",
+      "representative": "26.1",
+      "runtime-verified": false,
+      "directory": {
+        "representative_directory": "26_1",
+        "patch_directory": null
+      },
+      "files": {
+        "position_tex_color.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.1-assets/assets/minecraft/shaders/core/position_tex_color.vsh",
+          "sha256": "6c2a346ad6aebfeeadd8a69af14c43b0136100d4d19a0cf0920422b5991967b7",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "rendertype_text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.1-assets/assets/minecraft/shaders/core/rendertype_text.fsh",
+          "sha256": "70447ca24c7db565de7fe65768b68dc42df2393ec3ee9ebea8ef6e69e74b1ef6",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "rendertype_text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.1-assets/assets/minecraft/shaders/core/rendertype_text.vsh",
+          "sha256": "668142b13a06c3c2f731b7083715c0d11f11e44083bea933c0937b70c2daf6ff",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "rendertype_text_intensity.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.1-assets/assets/minecraft/shaders/core/rendertype_text_intensity.fsh",
+          "sha256": "a82a6c6e6bb2d376d97a1ab2958d2a5c902128006ab4e20cb39571c90e48926f",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "rendertype_text_intensity.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.1-assets/assets/minecraft/shaders/core/rendertype_text_intensity.vsh",
+          "sha256": "668142b13a06c3c2f731b7083715c0d11f11e44083bea933c0937b70c2daf6ff",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "rendertype_text_intensity_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.1-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.fsh",
+          "sha256": "716be55a4f8b44f34cd1e7c007613bb7fc1307cb390d3222083a2f5d25f7c21f",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "rendertype_text_intensity_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.1-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.vsh",
+          "sha256": "41ef5ea780b8136b6f4c8ed457235557a4b312f215bb67dadce746873181c55b",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "rendertype_text_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.1-assets/assets/minecraft/shaders/core/rendertype_text_see_through.fsh",
+          "sha256": "bdf15da843a63e52a5f899e23a50d5723b39f5f437c48790d2de9d903176c777",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "rendertype_text_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.1-assets/assets/minecraft/shaders/core/rendertype_text_see_through.vsh",
+          "sha256": "41ef5ea780b8136b6f4c8ed457235557a4b312f215bb67dadce746873181c55b",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        }
+      },
+      "discovered_text_shaders": [
+        "position_tex_color.vsh",
+        "rendertype_text.fsh",
+        "rendertype_text.vsh",
+        "rendertype_text_background.fsh",
+        "rendertype_text_background.vsh",
+        "rendertype_text_background_see_through.fsh",
+        "rendertype_text_background_see_through.vsh",
+        "rendertype_text_intensity.fsh",
+        "rendertype_text_intensity.vsh",
+        "rendertype_text_intensity_see_through.fsh",
+        "rendertype_text_intensity_see_through.vsh",
+        "rendertype_text_see_through.fsh",
+        "rendertype_text_see_through.vsh"
+      ],
+      "requested_aliases": {
+        "text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.1-assets/assets/minecraft/shaders/core/text.vsh",
+          "status": 404
+        },
+        "text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.1-assets/assets/minecraft/shaders/core/text.fsh",
+          "status": 404
+        }
+      },
+      "include_directives": {
+        "position_tex_color.vsh": [],
+        "rendertype_text.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl",
+          "sample_lightmap.glsl"
+        ],
+        "rendertype_text_background.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_background.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl",
+          "sample_lightmap.glsl"
+        ],
+        "rendertype_text_background_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_background_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_intensity.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_intensity.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl",
+          "sample_lightmap.glsl"
+        ],
+        "rendertype_text_intensity_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_intensity_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ]
+      },
+      "includes": {
+        "dynamictransforms.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.1-assets/assets/minecraft/shaders/include/dynamictransforms.glsl",
+          "sha256": "bb48ff3521e88334a0ff7c27fc9fc33c200cb45bcc4955790f7a1a8ea9a9ed8d",
+          "directory": "26_1/include",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "fog.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.1-assets/assets/minecraft/shaders/include/fog.glsl",
+          "sha256": "c1b47816bc9a3689ea815226c8ff2ba1b143ea40f094eb61cfede85c604ac8e6",
+          "directory": "26_1/include",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "projection.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.1-assets/assets/minecraft/shaders/include/projection.glsl",
+          "sha256": "1a192328e4d691f127667f6e363b5c37b774605fa146e5808d2710d3f2950c85",
+          "directory": "26_1/include",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "sample_lightmap.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.1-assets/assets/minecraft/shaders/include/sample_lightmap.glsl",
+          "sha256": "4ec239a8fbfe90a0b2519daebc3075dff32d0341e6c58c6f32037f87655159a6",
+          "directory": "26_1/include",
+          "stored": false,
+          "matches": "26.1"
+        }
+      }
+    },
+    "26.1.2": {
+      "role": "patch",
+      "representative": "26.1",
+      "runtime-verified": false,
+      "directory": {
+        "representative_directory": "26_1",
+        "patch_directory": null
+      },
+      "files": {
+        "position_tex_color.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.2-assets/assets/minecraft/shaders/core/position_tex_color.vsh",
+          "sha256": "6c2a346ad6aebfeeadd8a69af14c43b0136100d4d19a0cf0920422b5991967b7",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "rendertype_text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.2-assets/assets/minecraft/shaders/core/rendertype_text.fsh",
+          "sha256": "70447ca24c7db565de7fe65768b68dc42df2393ec3ee9ebea8ef6e69e74b1ef6",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "rendertype_text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.2-assets/assets/minecraft/shaders/core/rendertype_text.vsh",
+          "sha256": "668142b13a06c3c2f731b7083715c0d11f11e44083bea933c0937b70c2daf6ff",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "rendertype_text_intensity.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.2-assets/assets/minecraft/shaders/core/rendertype_text_intensity.fsh",
+          "sha256": "a82a6c6e6bb2d376d97a1ab2958d2a5c902128006ab4e20cb39571c90e48926f",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "rendertype_text_intensity.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.2-assets/assets/minecraft/shaders/core/rendertype_text_intensity.vsh",
+          "sha256": "668142b13a06c3c2f731b7083715c0d11f11e44083bea933c0937b70c2daf6ff",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "rendertype_text_intensity_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.2-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.fsh",
+          "sha256": "716be55a4f8b44f34cd1e7c007613bb7fc1307cb390d3222083a2f5d25f7c21f",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "rendertype_text_intensity_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.2-assets/assets/minecraft/shaders/core/rendertype_text_intensity_see_through.vsh",
+          "sha256": "41ef5ea780b8136b6f4c8ed457235557a4b312f215bb67dadce746873181c55b",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "rendertype_text_see_through.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.2-assets/assets/minecraft/shaders/core/rendertype_text_see_through.fsh",
+          "sha256": "bdf15da843a63e52a5f899e23a50d5723b39f5f437c48790d2de9d903176c777",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "rendertype_text_see_through.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.2-assets/assets/minecraft/shaders/core/rendertype_text_see_through.vsh",
+          "sha256": "41ef5ea780b8136b6f4c8ed457235557a4b312f215bb67dadce746873181c55b",
+          "directory": "26_1",
+          "stored": false,
+          "matches": "26.1"
+        }
+      },
+      "discovered_text_shaders": [
+        "position_tex_color.vsh",
+        "rendertype_text.fsh",
+        "rendertype_text.vsh",
+        "rendertype_text_background.fsh",
+        "rendertype_text_background.vsh",
+        "rendertype_text_background_see_through.fsh",
+        "rendertype_text_background_see_through.vsh",
+        "rendertype_text_intensity.fsh",
+        "rendertype_text_intensity.vsh",
+        "rendertype_text_intensity_see_through.fsh",
+        "rendertype_text_intensity_see_through.vsh",
+        "rendertype_text_see_through.fsh",
+        "rendertype_text_see_through.vsh"
+      ],
+      "requested_aliases": {
+        "text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.2-assets/assets/minecraft/shaders/core/text.vsh",
+          "status": 404
+        },
+        "text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.2-assets/assets/minecraft/shaders/core/text.fsh",
+          "status": 404
+        }
+      },
+      "include_directives": {
+        "position_tex_color.vsh": [],
+        "rendertype_text.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl",
+          "sample_lightmap.glsl"
+        ],
+        "rendertype_text_background.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_background.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl",
+          "sample_lightmap.glsl"
+        ],
+        "rendertype_text_background_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_background_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_intensity.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "rendertype_text_intensity.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl",
+          "sample_lightmap.glsl"
+        ],
+        "rendertype_text_intensity_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_intensity_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ],
+        "rendertype_text_see_through.fsh": [
+          "dynamictransforms.glsl"
+        ],
+        "rendertype_text_see_through.vsh": [
+          "dynamictransforms.glsl",
+          "projection.glsl"
+        ]
+      },
+      "includes": {
+        "dynamictransforms.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.2-assets/assets/minecraft/shaders/include/dynamictransforms.glsl",
+          "sha256": "bb48ff3521e88334a0ff7c27fc9fc33c200cb45bcc4955790f7a1a8ea9a9ed8d",
+          "directory": "26_1/include",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "fog.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.2-assets/assets/minecraft/shaders/include/fog.glsl",
+          "sha256": "c1b47816bc9a3689ea815226c8ff2ba1b143ea40f094eb61cfede85c604ac8e6",
+          "directory": "26_1/include",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "projection.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.2-assets/assets/minecraft/shaders/include/projection.glsl",
+          "sha256": "1a192328e4d691f127667f6e363b5c37b774605fa146e5808d2710d3f2950c85",
+          "directory": "26_1/include",
+          "stored": false,
+          "matches": "26.1"
+        },
+        "sample_lightmap.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.1.2-assets/assets/minecraft/shaders/include/sample_lightmap.glsl",
+          "sha256": "4ec239a8fbfe90a0b2519daebc3075dff32d0341e6c58c6f32037f87655159a6",
+          "directory": "26_1/include",
+          "stored": false,
+          "matches": "26.1"
+        }
+      }
+    },
+    "26.2": {
+      "role": "representative",
+      "representative": "26.2",
+      "runtime-verified": true,
+      "directory": {
+        "representative_directory": "26_2",
+        "patch_directory": null
+      },
+      "files": {
+        "position_tex_color.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.2-assets/assets/minecraft/shaders/core/position_tex_color.vsh",
+          "sha256": "6c2a346ad6aebfeeadd8a69af14c43b0136100d4d19a0cf0920422b5991967b7",
+          "directory": "26_2",
+          "stored": true
+        },
+        "text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.2-assets/assets/minecraft/shaders/core/text.fsh",
+          "sha256": "3ef2d2825459867537446ad0497e9b29356162c6fdcd138a0a258678f7c1e597",
+          "directory": "26_2",
+          "stored": true
+        },
+        "text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.2-assets/assets/minecraft/shaders/core/text.vsh",
+          "sha256": "4bae202567d0e3020ab948c24dcd8acffaa23460622dc01f8cbc929301e062e5",
+          "directory": "26_2",
+          "stored": true
+        }
+      },
+      "discovered_text_shaders": [
+        "position_tex_color.vsh",
+        "text.fsh",
+        "text.vsh",
+        "text_background.fsh",
+        "text_background.vsh"
+      ],
+      "requested_aliases": {},
+      "include_directives": {
+        "position_tex_color.vsh": [],
+        "text.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "text.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl",
+          "sample_lightmap.glsl"
+        ],
+        "text_background.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl"
+        ],
+        "text_background.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl",
+          "sample_lightmap.glsl"
+        ]
+      },
+      "includes": {
+        "dynamictransforms.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.2-assets/assets/minecraft/shaders/include/dynamictransforms.glsl",
+          "sha256": "bb48ff3521e88334a0ff7c27fc9fc33c200cb45bcc4955790f7a1a8ea9a9ed8d",
+          "directory": "26_2/include",
+          "stored": true
+        },
+        "fog.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.2-assets/assets/minecraft/shaders/include/fog.glsl",
+          "sha256": "c1b47816bc9a3689ea815226c8ff2ba1b143ea40f094eb61cfede85c604ac8e6",
+          "directory": "26_2/include",
+          "stored": true
+        },
+        "projection.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.2-assets/assets/minecraft/shaders/include/projection.glsl",
+          "sha256": "1a192328e4d691f127667f6e363b5c37b774605fa146e5808d2710d3f2950c85",
+          "directory": "26_2/include",
+          "stored": true
+        },
+        "sample_lightmap.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.2-assets/assets/minecraft/shaders/include/sample_lightmap.glsl",
+          "sha256": "4ec239a8fbfe90a0b2519daebc3075dff32d0341e6c58c6f32037f87655159a6",
+          "directory": "26_2/include",
+          "stored": true
+        }
+      }
+    },
+    "26.3": {
+      "role": "representative",
+      "representative": "26.3",
+      "runtime-verified": false,
+      "directory": {
+        "representative_directory": "26_3",
+        "patch_directory": null
+      },
+      "files": {
+        "position_tex_color.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.3-assets/assets/minecraft/shaders/core/position_tex_color.vsh",
+          "sha256": "98df7a3e71c56e710e3957015c22501524f9cf6a8ce92bbca5f46b901e25ff6d",
+          "directory": "26_3",
+          "stored": true
+        },
+        "text.fsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.3-assets/assets/minecraft/shaders/core/text.fsh",
+          "sha256": "08a3b585cf52e39b66e2689132b6a996d81446e9cc6ab1eab73bbcca38186d43",
+          "directory": "26_3",
+          "stored": true
+        },
+        "text.vsh": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.3-assets/assets/minecraft/shaders/core/text.vsh",
+          "sha256": "c5aab3569c07200a3d24c40f6ed2a5716b6694acd015b81e763398b7ff3ddc1f",
+          "directory": "26_3",
+          "stored": true
+        }
+      },
+      "discovered_text_shaders": [
+        "position_tex_color.vsh",
+        "text.fsh",
+        "text.vsh"
+      ],
+      "requested_aliases": {},
+      "include_directives": {
+        "position_tex_color.vsh": [],
+        "text.fsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "oit.glsl"
+        ],
+        "text.vsh": [
+          "dynamictransforms.glsl",
+          "fog.glsl",
+          "projection.glsl",
+          "sample_lightmap.glsl"
+        ]
+      },
+      "includes": {
+        "dynamictransforms.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.3-assets/assets/minecraft/shaders/include/dynamictransforms.glsl",
+          "sha256": "13db01aebd7ceeabf7769b1d60d0d5691f88072f302350ca2499f5d962237c7a",
+          "directory": "26_3/include",
+          "stored": true
+        },
+        "fog.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.3-assets/assets/minecraft/shaders/include/fog.glsl",
+          "sha256": "c96edf62b3dca66b2dc314516b0cd74f2e12fbe7514342e28a5440ad8dfc49be",
+          "directory": "26_3/include",
+          "stored": true
+        },
+        "oit.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.3-assets/assets/minecraft/shaders/include/oit.glsl",
+          "sha256": "d90c5f454fffff35e81673b9806531d468d9597557a2bf7d9e37ed5cd7c18989",
+          "directory": "26_3/include",
+          "stored": true
+        },
+        "oit_add_transmittance.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.3-assets/assets/minecraft/shaders/include/oit_add_transmittance.glsl",
+          "sha256": "79f5b662a4550428757bac08b9e725dae775d9efc73416b96940009c8ae2a8f4",
+          "directory": "26_3/include",
+          "stored": true
+        },
+        "oit_common.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.3-assets/assets/minecraft/shaders/include/oit_common.glsl",
+          "sha256": "bd5f404aea0c8b75f32471e763332fdfa81a30106dfd1318a3fec0a82e1c7720",
+          "directory": "26_3/include",
+          "stored": true
+        },
+        "oit_depth_bounds.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.3-assets/assets/minecraft/shaders/include/oit_depth_bounds.glsl",
+          "sha256": "892f076e405e784f44da5f1a59c4aedeffe45b6a1b56ef733ff515c3218c4a04",
+          "directory": "26_3/include",
+          "stored": true
+        },
+        "oit_depth_sample.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.3-assets/assets/minecraft/shaders/include/oit_depth_sample.glsl",
+          "sha256": "fcf65ad828e0a079652096ceea20da9367ef38c53d77e88da74a7f00718e8b90",
+          "directory": "26_3/include",
+          "stored": true
+        },
+        "oit_sample.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.3-assets/assets/minecraft/shaders/include/oit_sample.glsl",
+          "sha256": "92c2735235ac4c7122230baeac027b24784d0d2d4cc0b3740c2ca97855832b90",
+          "directory": "26_3/include",
+          "stored": true
+        },
+        "projection.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.3-assets/assets/minecraft/shaders/include/projection.glsl",
+          "sha256": "54ad58fcd6b3811992a9432628dba49900b2d9d33e075424224b0e7f0603818e",
+          "directory": "26_3/include",
+          "stored": true
+        },
+        "sample_lightmap.glsl": {
+          "source_url": "https://raw.githubusercontent.com/misode/mcmeta/26.3-assets/assets/minecraft/shaders/include/sample_lightmap.glsl",
+          "sha256": "a9304edbf7f4cae659177dc47b813a5b8a715c9cb3e4a16214273a871eb508e9",
+          "directory": "26_3/include",
+          "stored": true
+        }
+      }
+    }
+  },
+  "patch_comparisons": {
+    "1.21.7": {
+      "representative": "1.21.6",
+      "all_equal": true,
+      "differences": [],
+      "compared_files": [
+        "position_tex_color.vsh",
+        "rendertype_text.fsh",
+        "rendertype_text.vsh",
+        "rendertype_text_background.fsh",
+        "rendertype_text_background.vsh",
+        "rendertype_text_background_see_through.fsh",
+        "rendertype_text_background_see_through.vsh",
+        "rendertype_text_intensity.fsh",
+        "rendertype_text_intensity.vsh",
+        "rendertype_text_intensity_see_through.fsh",
+        "rendertype_text_intensity_see_through.vsh",
+        "rendertype_text_see_through.fsh",
+        "rendertype_text_see_through.vsh"
+      ]
+    },
+    "1.21.8": {
+      "representative": "1.21.6",
+      "all_equal": true,
+      "differences": [],
+      "compared_files": [
+        "position_tex_color.vsh",
+        "rendertype_text.fsh",
+        "rendertype_text.vsh",
+        "rendertype_text_background.fsh",
+        "rendertype_text_background.vsh",
+        "rendertype_text_background_see_through.fsh",
+        "rendertype_text_background_see_through.vsh",
+        "rendertype_text_intensity.fsh",
+        "rendertype_text_intensity.vsh",
+        "rendertype_text_intensity_see_through.fsh",
+        "rendertype_text_intensity_see_through.vsh",
+        "rendertype_text_see_through.fsh",
+        "rendertype_text_see_through.vsh"
+      ]
+    },
+    "1.21.10": {
+      "representative": "1.21.9",
+      "all_equal": true,
+      "differences": [],
+      "compared_files": [
+        "position_tex_color.vsh",
+        "rendertype_text.fsh",
+        "rendertype_text.vsh",
+        "rendertype_text_background.fsh",
+        "rendertype_text_background.vsh",
+        "rendertype_text_background_see_through.fsh",
+        "rendertype_text_background_see_through.vsh",
+        "rendertype_text_intensity.fsh",
+        "rendertype_text_intensity.vsh",
+        "rendertype_text_intensity_see_through.fsh",
+        "rendertype_text_intensity_see_through.vsh",
+        "rendertype_text_see_through.fsh",
+        "rendertype_text_see_through.vsh"
+      ]
+    },
+    "26.1.1": {
+      "representative": "26.1",
+      "all_equal": true,
+      "differences": [],
+      "compared_files": [
+        "position_tex_color.vsh",
+        "rendertype_text.fsh",
+        "rendertype_text.vsh",
+        "rendertype_text_background.fsh",
+        "rendertype_text_background.vsh",
+        "rendertype_text_background_see_through.fsh",
+        "rendertype_text_background_see_through.vsh",
+        "rendertype_text_intensity.fsh",
+        "rendertype_text_intensity.vsh",
+        "rendertype_text_intensity_see_through.fsh",
+        "rendertype_text_intensity_see_through.vsh",
+        "rendertype_text_see_through.fsh",
+        "rendertype_text_see_through.vsh"
+      ]
+    },
+    "26.1.2": {
+      "representative": "26.1",
+      "all_equal": true,
+      "differences": [],
+      "compared_files": [
+        "position_tex_color.vsh",
+        "rendertype_text.fsh",
+        "rendertype_text.vsh",
+        "rendertype_text_background.fsh",
+        "rendertype_text_background.vsh",
+        "rendertype_text_background_see_through.fsh",
+        "rendertype_text_background_see_through.vsh",
+        "rendertype_text_intensity.fsh",
+        "rendertype_text_intensity.vsh",
+        "rendertype_text_intensity_see_through.fsh",
+        "rendertype_text_intensity_see_through.vsh",
+        "rendertype_text_see_through.fsh",
+        "rendertype_text_see_through.vsh"
+      ]
+    }
+  },
+  "collection": {
+    "collected_utc": "2026-11-04T04:00:25.751844+00:00",
+    "first_byte_check": "#version",
+    "note": "Representative directories contain every real API-discovered text shader plus position_tex_color.vsh. Identical patch files are hash-only and point to the representative directory; differing patch files are stored under their patch directory.",
+    "include_directive_patterns": [
+      "#moj_import <minecraft:{name}>",
+      "#include <minecraft:{name}>"
+    ],
+    "include_note": "Includes were resolved recursively per source version from shaders/include; identical patch includes are hash-only and point to the representative include directory."
+  },
+  "include_source_template": "https://raw.githubusercontent.com/misode/mcmeta/{version}-assets/assets/minecraft/shaders/include/{name}",
+  "include_comparisons": {
+    "1.21.7": {
+      "representative": "1.21.6",
+      "all_equal": true,
+      "compared_files": [
+        "dynamictransforms.glsl",
+        "fog.glsl",
+        "projection.glsl"
+      ],
+      "differences": []
+    },
+    "1.21.8": {
+      "representative": "1.21.6",
+      "all_equal": true,
+      "compared_files": [
+        "dynamictransforms.glsl",
+        "fog.glsl",
+        "projection.glsl"
+      ],
+      "differences": []
+    },
+    "1.21.10": {
+      "representative": "1.21.9",
+      "all_equal": true,
+      "compared_files": [
+        "dynamictransforms.glsl",
+        "fog.glsl",
+        "projection.glsl"
+      ],
+      "differences": []
+    },
+    "26.1.1": {
+      "representative": "26.1",
+      "all_equal": true,
+      "compared_files": [
+        "dynamictransforms.glsl",
+        "fog.glsl",
+        "projection.glsl",
+        "sample_lightmap.glsl"
+      ],
+      "differences": []
+    },
+    "26.1.2": {
+      "representative": "26.1",
+      "all_equal": true,
+      "compared_files": [
+        "dynamictransforms.glsl",
+        "fog.glsl",
+        "projection.glsl",
+        "sample_lightmap.glsl"
+      ],
+      "differences": []
+    }
+  }
+}

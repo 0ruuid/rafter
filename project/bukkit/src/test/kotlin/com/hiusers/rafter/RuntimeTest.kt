@@ -165,8 +165,11 @@ class RuntimeTest {
         var clears = 0
         var afterShow: ((DialogView) -> Unit)? = null
         var nativeItems: Map<String, org.bukkit.inventory.ItemStack> = emptyMap()
+        var canvasItemsSupported = true
 
         override fun supported(player: Player) = true
+
+        override fun supportsCanvasItems(player: Player) = canvasItemsSupported
 
         override fun show(
             player: Player,
@@ -2123,6 +2126,50 @@ class RuntimeTest {
     }
 
     @Test
+    fun convenienceOpenAndRegistrationReuseTheValidatedEngine() {
+        val states = mutableListOf<String>()
+        engine.registerData(
+            plugin,
+            "test:slow",
+            DataProvider { context, args ->
+                assertTrue(args.isEmpty())
+                states += assertIs<String>(context.state["name"])
+                CompletableFuture.completedFuture("Ready")
+            },
+        )
+        engine.install(candidate(slow()))
+        val first = engine.open(player, "test:menu").join()
+        assertTrue(first.opened)
+        engine.close(player, requireNotNull(first.sessionId)).join()
+        val second =
+            engine
+                .open(
+                    player,
+                    "test:menu",
+                    UiOpenOptions(initialState = mapOf("name" to "Example")),
+                )
+                .join()
+        assertTrue(second.opened)
+        assertEquals(listOf("old", "Example"), states)
+        assertEquals(2, wire.shown.size)
+    }
+
+    @Test
+    fun serviceLookupReturnsTheRegisteredServiceOrFailsClearly() {
+        val manager = Mockito.mock(org.bukkit.plugin.ServicesManager::class.java)
+        Mockito.mockStatic(Bukkit::class.java).use { mocked ->
+            mocked
+                .`when`<org.bukkit.plugin.ServicesManager> { Bukkit.getServicesManager() }
+                .thenReturn(manager)
+            Mockito.`when`(manager.load(RafterService::class.java)).thenReturn(engine)
+            assertSame(engine, RafterService.get())
+            Mockito.`when`(manager.load(RafterService::class.java)).thenReturn(null)
+            val missing = assertFailsWith<IllegalStateException> { RafterService.get() }
+            assertEquals("Rafter service is unavailable", missing.message)
+        }
+    }
+
+    @Test
     fun publicServiceRequiresSessionIdsAndAnExplicitActionResult() {
         for (name in listOf("refresh", "close")) {
             val methods = RafterService::class.java.methods.filter { it.name == name }
@@ -2167,6 +2214,8 @@ class RuntimeTest {
         originProvider: String? = null,
         formProvider: String? = null,
         canvasEntry: Boolean = true,
+        canvasItemEntry: Boolean = false,
+        canvasTarget: Boolean = false,
     ): Candidate {
         val ui = temp.resolve("core/ui")
         val panel = ui.resolve("images/form-panel.png")
@@ -2218,8 +2267,8 @@ class RuntimeTest {
                 mapOf(
                     "mode" to "canvas",
                     "title" to "",
-                    "width" to 240,
-                    "height" to 90,
+                    "width" to if (canvasItemEntry) 560 else 240,
+                    "height" to if (canvasItemEntry) 342 else 90,
                     "elements" to
                         listOf(
                             text("background", "Workspace", originProvider),
@@ -2231,7 +2280,19 @@ class RuntimeTest {
                                 "y" to 36,
                                 "actions" to listOf(page("form")),
                             ),
-                        ),
+                        ) +
+                            if (canvasItemEntry)
+                                listOf(
+                                    mapOf(
+                                        "id" to "background-item",
+                                        "type" to "item",
+                                        "item" to "test:items#background",
+                                        "x" to 0,
+                                        "y" to 54,
+                                        "size" to 18,
+                                    )
+                                )
+                            else emptyList(),
                 )
             else
                 mapOf(
@@ -2294,11 +2355,23 @@ class RuntimeTest {
                         "payload" to emptyMap<String, Any?>(),
                     ),
                 "pages" to
-                    mapOf(
+                    (mapOf(
                         "home" to origin,
                         "form" to form,
                         "confirm" to confirm,
-                    ),
+                    ) +
+                        if (canvasTarget)
+                            mapOf(
+                                "canvas-target" to
+                                    mapOf(
+                                        "mode" to "canvas",
+                                        "title" to "Target",
+                                        "width" to 240,
+                                        "height" to 90,
+                                        "elements" to listOf(text("target", "Target")),
+                                    )
+                            )
+                        else emptyMap()),
             )
         val result =
             MenuCompiler(base.dimensions(), imageSources = base.sourceDimensions())
@@ -2311,25 +2384,41 @@ class RuntimeTest {
                 previous = base.allocation,
                 modal = ModalAssets.collect(snapshot, base.sourceDimensions()),
             )
+        if (canvasItemEntry) assets = CanvasItemShaders.bind(assets, snapshot)
         return Candidate(snapshot, assets, "test:form", 600_000)
     }
 
     @Test
-    fun openOptionsExposeBothOpenSignaturesAndJavaConstructors() {
+    fun openOptionsExposeConvenienceAndJavaConstructors() {
         val signatures =
-            RafterService::class.java.methods.filter { it.name == "open" }
-                .map { it.parameterTypes.toList() }.toSet()
+            RafterService::class
+                .java
+                .methods
+                .filter { it.name == "open" }
+                .map { it.parameterTypes.toList() }
+                .toSet()
         val original = listOf(Player::class.java, String::class.java, Map::class.java)
-        assertEquals(setOf(original, original + UiOpenOptions::class.java), signatures)
+        assertEquals(
+            setOf(
+                original,
+                original + UiOpenOptions::class.java,
+                listOf(Player::class.java, String::class.java),
+                listOf(Player::class.java, String::class.java, UiOpenOptions::class.java),
+            ),
+            signatures,
+        )
         val defaults = UiOpenOptions::class.java.getConstructor().newInstance()
         assertTrue(defaults.initialState.isEmpty())
         assertNull(defaults.initialPage)
         val stateOnly =
-            UiOpenOptions::class.java.getConstructor(Map::class.java)
+            UiOpenOptions::class
+                .java
+                .getConstructor(Map::class.java)
                 .newInstance(mapOf("name" to "Prefilled"))
         assertEquals(mapOf("name" to "Prefilled"), stateOnly.initialState)
         assertNull(stateOnly.initialPage)
-        val pageOnly = UiOpenOptions::class.java.getConstructor(String::class.java).newInstance("form")
+        val pageOnly =
+            UiOpenOptions::class.java.getConstructor(String::class.java).newInstance("form")
         assertTrue(pageOnly.initialState.isEmpty())
         assertEquals("form", pageOnly.initialPage)
         assertTrue(
@@ -2362,12 +2451,14 @@ class RuntimeTest {
         )
         engine.install(modalCandidate())
         val opened =
-            engine.open(
-                player,
-                "test:form",
-                emptyMap(),
-                UiOpenOptions(mapOf("name" to "Draft", "message" to "Notes"), "form"),
-            ).join()
+            engine
+                .open(
+                    player,
+                    "test:form",
+                    emptyMap(),
+                    UiOpenOptions(mapOf("name" to "Draft", "message" to "Notes"), "form"),
+                )
+                .join()
         val review = wire.visible!!.buttons.single { it.node.id == "review" }.handle!!
         engine.click(player, review, mapOf("name" to "Draft", "message" to "Notes"))
         val confirm = wire.visible!!.buttons.single { it.node.id == "finish" }.handle!!
@@ -2450,17 +2541,15 @@ class RuntimeTest {
         val clears = wire.clears
         var deep: Any? = "leaf"
         repeat(34) { deep = listOf(deep) }
-        for (
-            invalid in
-                listOf(
-                    mapOf("undeclared" to true),
-                    mapOf("name" to 1),
-                    mapOf("name" to "x".repeat(17)),
-                    mapOf("message" to "x".repeat(201)),
-                    mapOf("payload" to deep),
-                    mapOf("payload" to mapOf("future" to CompletableFuture<Any?>())),
-                )
-        ) {
+        for (invalid in
+            listOf(
+                mapOf("undeclared" to true),
+                mapOf("name" to 1),
+                mapOf("name" to "x".repeat(17)),
+                mapOf("message" to "x".repeat(201)),
+                mapOf("payload" to deep),
+                mapOf("payload" to mapOf("future" to CompletableFuture<Any?>())),
+            )) {
             val result =
                 engine
                     .open(
@@ -2495,10 +2584,7 @@ class RuntimeTest {
         }
         assertEquals(
             UiFailureCode.INVALID_ARGUMENT,
-            engine
-                .open(player, "test:form", mapOf("bad" to Any()), UiOpenOptions())
-                .join()
-                .failure,
+            engine.open(player, "test:form", mapOf("bad" to Any()), UiOpenOptions()).join().failure,
         )
         assertEquals(shown, wire.shown.size)
         assertEquals(clears, wire.clears)
@@ -2517,21 +2603,16 @@ class RuntimeTest {
             )
         )
         val old = assertNotNull(engine.open(player, "test:other").join().sessionId)
-        for (
-            invalid in
-                listOf(
-                    mapOf("page" to -1),
-                    mapOf("page" to 0.5),
-                    mapOf("selected" to 1),
-                    mapOf("filtered" to "yes"),
-                )
-        ) {
+        for (invalid in
+            listOf(
+                mapOf("page" to -1),
+                mapOf("page" to 0.5),
+                mapOf("selected" to 1),
+                mapOf("filtered" to "yes"),
+            )) {
             assertEquals(
                 UiFailureCode.INVALID_ARGUMENT,
-                engine
-                    .open(player, "test:menu", emptyMap(), UiOpenOptions(invalid))
-                    .join()
-                    .failure,
+                engine.open(player, "test:menu", emptyMap(), UiOpenOptions(invalid)).join().failure,
             )
         }
         engine.refresh(player, old).join()
@@ -2646,6 +2727,180 @@ class RuntimeTest {
     }
 
     @Test
+    fun canvasItemBackdropIsFrozenAcrossModalRefreshAndReplacementAndRecapturesOnBack() {
+        var originReads = 0
+        var itemReads = 0
+        val supplied = org.bukkit.inventory.ItemStack(org.bukkit.Material.STONE)
+        engine.registerData(
+            plugin,
+            "test:origin",
+            ProviderDescriptor("origin"),
+            DataProvider { _, _ ->
+                originReads++
+                CompletableFuture.completedFuture("Workspace")
+            },
+        )
+        engine.registerItems(
+            plugin,
+            "test:items",
+            ProviderDescriptor("items"),
+            ItemProvider { _, _ ->
+                itemReads++
+                CompletableFuture.completedFuture(supplied)
+            },
+        )
+        engine.registerAction(
+            plugin,
+            "test:save",
+            ProviderDescriptor("save"),
+            ActionProvider { _, _ -> CompletableFuture.completedFuture(UiActionResult()) },
+        )
+        engine.install(
+            modalCandidate(
+                originProvider = "test:origin",
+                canvasItemEntry = true,
+            )
+        )
+        val opened =
+            engine
+                .open(
+                    player,
+                    "test:form",
+                    emptyMap(),
+                    UiOpenOptions(mapOf("name" to "Prefilled"), "form"),
+                )
+                .join()
+        val sessionId = assertNotNull(opened.sessionId)
+        assertTrue(opened.opened)
+        assertEquals(1, originReads)
+        assertEquals(1, itemReads)
+        assertTrue(wire.visible!!.modal)
+        assertTrue(wire.visible!!.canvasItems.any { it.node.id == "background-item" && it.visible })
+        assertTrue(
+            wire.visible!!.canvasItems.all {
+                it.route.sourceBodyWidth >= it.route.layout.containerWidth &&
+                    it.route.sourceLayoutHeight >= it.route.layout.layoutHeight
+            },
+            "Native modal scissor must contain the complete frozen Canvas",
+        )
+        assertEquals(
+            org.bukkit.Material.STONE,
+            wire.nativeItems.getValue("background-item").type,
+        )
+
+        wire.nativeItems.getValue("background-item").type = org.bukkit.Material.DIAMOND
+        supplied.type = org.bukkit.Material.GOLD_INGOT
+        engine.refresh(player, sessionId).join()
+        assertEquals(1, originReads, "A modal refresh must not reread the Canvas provider")
+        assertEquals(1, itemReads, "A modal refresh must not reread the Canvas item provider")
+        assertEquals(org.bukkit.Material.STONE, wire.nativeItems.getValue("background-item").type)
+
+        engine.click(
+            player,
+            wire.visible!!.buttons.single { it.node.id == "review" }.handle!!,
+            mapOf("name" to "Prefilled", "message" to "A saved draft"),
+        )
+        assertTrue(wire.visible!!.modal)
+        assertEquals(1, itemReads, "A modal replacement must reuse the same item snapshot")
+        assertEquals(org.bukkit.Material.STONE, wire.nativeItems.getValue("background-item").type)
+        clickButton("edit")
+        assertEquals(1, itemReads, "A modal-to-modal edit must reuse the same item snapshot")
+        assertEquals(org.bukkit.Material.STONE, wire.nativeItems.getValue("background-item").type)
+        clickButton("cancel")
+        assertFalse(wire.visible!!.modal)
+        assertEquals(2, originReads)
+        assertEquals(2, itemReads, "Returning to Canvas must perform a fresh item read")
+        assertEquals(
+            org.bukkit.Material.GOLD_INGOT,
+            wire.nativeItems.getValue("background-item").type,
+        )
+    }
+
+    @Test
+    fun entryCanvasItemsNeedSupportOnlyWhenAnInitialModalRendersTheEntry() {
+        engine.registerItems(
+            plugin,
+            "test:items",
+            ProviderDescriptor("items"),
+            ItemProvider { _, _ ->
+                CompletableFuture.completedFuture(
+                    org.bukkit.inventory.ItemStack(org.bukkit.Material.STONE)
+                )
+            },
+        )
+        wire.canvasItemsSupported = false
+        engine.install(modalCandidate(canvasItemEntry = true, canvasTarget = true))
+
+        assertTrue(
+            engine
+                .open(player, "test:form", emptyMap(), UiOpenOptions(initialPage = "canvas-target"))
+                .join()
+                .opened
+        )
+        val shown = wire.shown.size
+        assertEquals(
+            UiFailureCode.UNSUPPORTED_CLIENT,
+            engine
+                .open(
+                    player,
+                    "test:form",
+                    emptyMap(),
+                    UiOpenOptions(initialPage = "form"),
+                )
+                .join()
+                .failure,
+        )
+        assertEquals(shown, wire.shown.size)
+    }
+
+    @Test
+    fun lateCanvasItemProviderCannotPopulateAReplacementOrClosedSession() {
+        val requests =
+            mutableListOf<Pair<UiContext, CompletableFuture<org.bukkit.inventory.ItemStack>>>()
+        engine.registerItems(
+            plugin,
+            "test:items",
+            ProviderDescriptor("items"),
+            ItemProvider { context, _ ->
+                CompletableFuture<org.bukkit.inventory.ItemStack>().also {
+                    requests += context to it
+                }
+            },
+        )
+        val base = modalCandidate(canvasItemEntry = true)
+        val replacement = candidate(other()).snapshot.menus.getValue("test:other")
+        engine.install(
+            base.copy(
+                snapshot =
+                    base.snapshot.copy(menus = base.snapshot.menus + ("test:other" to replacement))
+            )
+        )
+
+        val opening = engine.open(player, "test:form")
+        assertEquals(1, requests.size)
+        assertTrue(engine.open(player, "test:other").join().opened)
+        val shownAfterReplacement = wire.shown.size
+        requests[0].second.complete(org.bukkit.inventory.ItemStack(org.bukkit.Material.STONE))
+        drainMain()
+        assertEquals(UiFailureCode.SUPERSEDED, opening.join().failure)
+        assertEquals(shownAfterReplacement, wire.shown.size)
+        assertEquals("replacement", wire.plain())
+        assertTrue(wire.nativeItems.isEmpty())
+
+        val closing = engine.open(player, "test:form")
+        assertEquals(2, requests.size)
+        val sessionId = requests.last().first.sessionId
+        engine.close(player, sessionId).join()
+        val shownAfterClose = wire.shown.size
+        requests[1].second.complete(org.bukkit.inventory.ItemStack(org.bukkit.Material.GOLD_INGOT))
+        drainMain()
+        assertEquals(UiFailureCode.SUPERSEDED, closing.join().failure)
+        assertEquals(shownAfterClose, wire.shown.size)
+        assertNull(wire.visible)
+        assertTrue(wire.nativeItems.isEmpty())
+    }
+
+    @Test
     fun modalReplacementSubmitsExplicitlyReusesBackdropAndDoesNotStackHistoryOrFrames() {
         var originReads = 0
         val saved = mutableListOf<UiContext>()
@@ -2726,15 +2981,12 @@ class RuntimeTest {
     @Test
     fun interruptedModalInitializationNeverReopensOrClearsItsReplacement() {
         val candidate =
-            modalCandidate("test:origin", "test:form").copy(
-                runtime =
-                    com.hiusers.rafter.runtime.RuntimePolicy(renderTimeoutMillis = 1_000)
-            )
+            modalCandidate("test:origin", "test:form")
+                .copy(
+                    runtime = com.hiusers.rafter.runtime.RuntimePolicy(renderTimeoutMillis = 1_000)
+                )
         for (stage in 0..1) {
-            for (
-                interruption in
-                    listOf("close", "replace", "reload", "timeout", "provider")
-            ) {
+            for (interruption in listOf("close", "replace", "reload", "timeout", "provider")) {
                 now = 0
                 val origin = CompletableFuture<Any?>()
                 val form = CompletableFuture<Any?>()
@@ -2818,10 +3070,10 @@ class RuntimeTest {
             DataProvider { _, _ -> form },
         )
         engine.install(
-            modalCandidate("test:origin", "test:form").copy(
-                runtime =
-                    com.hiusers.rafter.runtime.RuntimePolicy(renderTimeoutMillis = 1_000)
-            )
+            modalCandidate("test:origin", "test:form")
+                .copy(
+                    runtime = com.hiusers.rafter.runtime.RuntimePolicy(renderTimeoutMillis = 1_000)
+                )
         )
         val opening =
             engine.open(
@@ -2854,9 +3106,7 @@ class RuntimeTest {
         engine.install(
             base.copy(
                 snapshot =
-                    base.snapshot.copy(
-                        menus = base.snapshot.menus + replacement.snapshot.menus
-                    )
+                    base.snapshot.copy(menus = base.snapshot.menus + replacement.snapshot.menus)
             )
         )
         lateinit var newer: CompletableFuture<OpenResult>
