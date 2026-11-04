@@ -4,15 +4,29 @@ import com.hiusers.rafter.model.*
 import java.util.Collections
 
 /** 背景仅保存画布尺寸，相同尺寸共用字体，不持有玩家或截图。 */
-data class ModalBackdropLayout(val width: Int, val height: Int) {
+data class ModalBackdropLayout(
+    val width: Int,
+    val height: Int,
+    val inset: Int = 0,
+    val layoutHeight: Int = CanvasGeometry.bodyHeight(height) + CanvasGeometry.BODY_ACTION_TAIL,
+    val containerWidth: Int = CanvasGeometry.bodyWidth(width),
+) {
     val bodyWidth
         get() = CanvasGeometry.bodyWidth(width)
 
     val bodyHeight
         get() = CanvasGeometry.bodyHeight(height)
 
-    val layoutHeight
-        get() = bodyHeight + CanvasGeometry.BODY_ACTION_TAIL
+    val contentInsetX
+        get() =
+            (containerWidth - bodyWidth) / 2 +
+                CanvasGeometry.TEXT_PADDING +
+                CanvasGeometry.EDGE_INSET
+
+    fun contentLeft(guiWidth: Int) =
+        (guiWidth - containerWidth - CanvasItems.BODY_MARGIN * 2) / 2 +
+            CanvasItems.BODY_MARGIN +
+            contentInsetX
 }
 
 /** 按真实原生控件流计算面板，不移动命中区。 */
@@ -58,8 +72,9 @@ object ModalEncoding {
         return base
     }
 
-    fun font(index: Int, original: String) =
-        "rafter:modal_backdrop/$index/" + original.substringAfter(':')
+    const val FONT_PREFIX = "rafter:modal_backdrop/shared/"
+
+    fun font(original: String) = FONT_PREFIX + original.substringAfter(':')
 
     fun key(menu: String, page: String) = "$menu/$page"
 }
@@ -105,8 +120,7 @@ object ModalAssets {
                                 it.spec.mode == PageMode.CANVAS &&
                                     it.spec.modal == null &&
                                     it.spec.components.isEmpty() &&
-                                    it.spec.frame == null &&
-                                    it.scene.none { node -> node.node.content is NodeContent.Item }
+                                    it.spec.frame == null
                             }
                             .map { ModalBackdropLayout(it.spec.width, it.height) }
                     }

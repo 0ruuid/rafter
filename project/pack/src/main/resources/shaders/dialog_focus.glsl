@@ -66,6 +66,18 @@ bool rafterDialogFocus(vec4 color) {
     for (int i = 0; i < RAFTER_NATIVE_FOCUS_LAYOUT_COUNT; ++i) {
         vec4 metrics = RAFTER_NATIVE_FOCUS_LAYOUTS[i];
         float width = metrics.x;
+        // One-pixel native item carriers have only horizontal outline strips.
+        if (metrics.w > 1.5) {
+            if (viewport.y <= RAFTER_HEADER_HEIGHT + 5.0 ||
+                rafterGuiPosition.y < RAFTER_HEADER_HEIGHT - 0.6 ||
+                rafterGuiPosition.y > viewport.y - 5.0 + 0.6) continue;
+            float span = round(dimensions.x);
+            float left = floor((viewport.x - span) * 0.5);
+            if (horizontalStrip && span >= 1.0 && span <= width &&
+                abs(mod(span, 2.0) - 1.0) < 0.1 &&
+                abs(lower.x - left) <= 1.15) return true;
+            continue;
+        }
         if (viewport.y <= RAFTER_HEADER_HEIGHT + 5.0
             || rafterGuiPosition.y < RAFTER_HEADER_HEIGHT - 0.6
             || rafterGuiPosition.y > viewport.y - 5.0 + 0.6) continue;

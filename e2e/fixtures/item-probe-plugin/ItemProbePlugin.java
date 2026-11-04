@@ -1,8 +1,14 @@
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientCustomClickAction;
 import com.hiusers.rafter.api.ItemProvider;
 import com.hiusers.rafter.api.ProviderDescriptor;
 import com.hiusers.rafter.api.RafterService;
 import com.hiusers.rafter.api.UiFailureCode;
 import com.hiusers.rafter.api.UiActionResult;
+import com.hiusers.rafter.api.UiOpenOptions;
 import com.hiusers.rafter.api.UiOperationException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -28,6 +34,27 @@ public final class ItemProbePlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // 独立协议原型的测试回执；不处理 Rafter 会话或真实业务。
+        PacketListenerAbstract flowListener = new PacketListenerAbstract() {
+            @Override
+            public void onPacketReceive(PacketReceiveEvent event) {
+                if (event.getPacketType() != PacketType.Play.Client.CUSTOM_CLICK_ACTION) return;
+                String id = new WrapperPlayClientCustomClickAction(event).getId().toString();
+                if (!id.matches("rafterprobe:flow/(?:[0-9]|1[0-7])")) return;
+                event.setCancelled(true);
+                int index = Integer.parseInt(id.substring(id.lastIndexOf('/') + 1));
+                java.util.UUID playerId = event.getUser().getUUID();
+                getServer().getScheduler().runTask(ItemProbePlugin.this, () -> {
+                    org.bukkit.entity.Player player = getServer().getPlayer(playerId);
+                    if (player != null && player.isOnline()) {
+                        player.sendMessage("FLOW_ITEM_CLICK row-" + index);
+                        getLogger().info("FLOW_ITEM_CLICK row-" + index);
+                    }
+                });
+            }
+        };
+        PacketEvents.getAPI().getEventManager().registerListener(flowListener);
+        registrations.add(() -> PacketEvents.getAPI().getEventManager().unregisterListener(flowListener));
         RafterService service = getServer().getServicesManager().load(RafterService.class);
         if (service == null) {
             throw new IllegalStateException("RafterService is unavailable");
@@ -85,7 +112,8 @@ public final class ItemProbePlugin extends JavaPlugin {
             }
             registrations.add(service.registerData(this, "rafterprobe:" + source,
                     new ProviderDescriptor("Isolated item rows", Collections.emptyMap()),
-                    (context, args) -> CompletableFuture.completedFuture(rows)));
+                    (context, args) -> CompletableFuture.completedFuture(
+                            Boolean.TRUE.equals(context.getState().get("empty")) ? List.of() : rows)));
         }
         registrations.add(service.registerAction(this, "rafterprobe:click",
                 new ProviderDescriptor("Isolated row click", Collections.emptyMap()),
@@ -98,7 +126,18 @@ public final class ItemProbePlugin extends JavaPlugin {
                             Map.of("last-click", id, "hint", "clicked: " + id)));
                 }));
 
-
+        if (getCommand("itemprobe") == null) throw new IllegalStateException("Missing itemprobe command");
+        getCommand("itemprobe").setExecutor((sender, command, label, args) -> {
+            if (!(sender instanceof org.bukkit.entity.Player player)) return false;
+            String mode = args.length == 0 ? "form" : args[0];
+            String page = mode.equals("empty") ? "grid" :
+                    (mode.equals("occlusion") || mode.equals("regions") ? mode : "form");
+            service.open(player, "rafterprobe:item-viewport", Collections.emptyMap(),
+                    new UiOpenOptions(Map.of("query", "Initial name", "message", "First line\nSecond line",
+                            "empty", mode.equals("empty")), page))
+                    .thenAccept(result -> player.sendMessage("ITEM_PROBE_OPEN " + result.getOpened()));
+            return true;
+        });
     }
 
     @Override

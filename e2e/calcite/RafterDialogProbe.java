@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.security.MessageDigest;
 
 import calcite.probe.Ref;
 import calcite.probe.api.Calcite;
@@ -55,8 +56,10 @@ public final class RafterDialogProbe implements CalciteExtension {
 
     private Object resource(final Map<String, Object> args) throws Exception {
         String path = String.valueOf(args.get("path"));
-        if (!path.equals("minecraft:shaders/core/position_tex_color.vsh")) {
-            throw new CalciteException("bad_request", "Only the item shader may be inspected");
+        if (!path.equals("minecraft:shaders/core/position_tex_color.vsh") &&
+                !path.equals("rafter:font/images.json") &&
+                !path.equals("rafter:font/modal_backdrop/shared/images.json")) {
+            throw new CalciteException("bad_request", "Only item shaders and Canvas image fonts may be inspected");
         }
         Object id = ref.cls("net.minecraft.resources.Identifier")
                 .getMethod("parse", String.class).invoke(null, path);
@@ -69,7 +72,7 @@ public final class RafterDialogProbe implements CalciteExtension {
             byte[] block = new byte[4096];
             int length;
             while ((length = stream.read(block)) >= 0) {
-                if (bytes.size() + length > 262144) throw new CalciteException("too_large", path);
+                if (bytes.size() + length > 2097152) throw new CalciteException("too_large", path);
                 bytes.write(block, 0, length);
             }
         }
@@ -79,6 +82,10 @@ public final class RafterDialogProbe implements CalciteExtension {
         result.put("bytes", bytes.size());
         result.put("compiledRoutes", text.contains("vec2 source0") || text.contains("vec2 source1"));
         result.put("cornerPhaseIndependent", !text.contains("gl_VertexID"));
+        byte[] digest = MessageDigest.getInstance("SHA-256").digest(bytes.toByteArray());
+        StringBuilder hash = new StringBuilder();
+        for (byte value : digest) hash.append(String.format("%02x", value & 255));
+        result.put("sha256", hash.toString());
         return result;
     }
 
@@ -145,6 +152,14 @@ public final class RafterDialogProbe implements CalciteExtension {
             item.put("width", read(widget, "getWidth"));
             item.put("height", read(widget, "getHeight"));
             item.put("message", message(widget));
+            if (widget.getClass().getName().endsWith("EditBox") && ref.has(widget, "getValue", 0)) {
+                item.put("value", ref.call(widget, "getValue"));
+            }
+            if (ref.has(widget, "maxScrollAmount", 0)) {
+                item.put("maxScrollAmount", ref.call(widget, "maxScrollAmount"));
+                item.put("scrollAmount", ref.call(widget, "scrollAmount"));
+                item.put("contentHeight", ref.call(widget, "contentHeight"));
+            }
             if (ref.has(widget, "isHovered", 0)) {
                 item.put("hovered", ref.call(widget, "isHovered"));
             }
@@ -282,8 +297,10 @@ public final class RafterDialogProbe implements CalciteExtension {
     private Object setValue(final Map<String, Object> args) throws Exception {
         Object widget = locate(String.valueOf(args.get("path")));
         Class<?> editBox = ref.cls("net.minecraft.client.gui.components.EditBox");
-        if (editBox == null || !editBox.isInstance(widget)) {
-            throw new CalciteException("bad_request", "Only a native EditBox may receive setValue");
+        Class<?> multiline = ref.cls("net.minecraft.client.gui.components.MultiLineEditBox");
+        if ((editBox == null || !editBox.isInstance(widget)) &&
+                (multiline == null || !multiline.isInstance(widget))) {
+            throw new CalciteException("bad_request", "Only a native input may receive setValue");
         }
         ref.call(widget, "setValue", String.valueOf(args.get("value")));
         return ref.call(widget, "getValue");

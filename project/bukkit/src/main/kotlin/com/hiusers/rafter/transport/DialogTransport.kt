@@ -31,6 +31,7 @@ import com.hiusers.rafter.asset.ClientRenderProfiles
 import com.hiusers.rafter.model.BindingSpec
 import com.hiusers.rafter.model.NativeGeometry
 import com.hiusers.rafter.model.NodeContent
+import com.hiusers.rafter.render.CanvasCarrierBody
 import com.hiusers.rafter.render.DialogView
 import com.hiusers.rafter.render.Fragment
 import com.hiusers.rafter.render.ItemBody
@@ -110,18 +111,19 @@ open class DialogTransport {
         val itemData =
             view.bodies
                 .mapIndexedNotNull { index, body ->
-                    if (body is ItemBody) {
-                        (index + view.canvasItems.size) to
-                            DialogItemData.capture(items.getValue(body.node.id))
-                    } else null
+                    val value =
+                        when (body) {
+                            is ItemBody -> DialogItemData.capture(items.getValue(body.node.id))
+                            is CanvasCarrierBody ->
+                                body.item
+                                    ?.takeIf { it.visible }
+                                    ?.let { DialogItemData.capture(items.getValue(it.node.id)) }
+                                    ?: DialogItemData.empty()
+                            is Message -> null
+                        }
+                    value?.let { index to it }
                 }
                 .toMap()
-                .toMutableMap()
-        view.canvasItems.forEachIndexed { index, item ->
-            itemData[index] =
-                if (item.visible) DialogItemData.capture(items.getValue(item.node.id))
-                else DialogItemData.empty()
-        }
         val hovers =
             view.messages
                 .flatMap { it.parts }
@@ -146,39 +148,33 @@ open class DialogTransport {
         require(!view.modal || frameSupported) {
             "Native graphical modals require a supported client render profile"
         }
-        val carriers: List<DialogBody> =
-            view.canvasItems.map { item ->
-                ItemDialogBody(
-                    ProtocolItem.builder().type(ItemTypes.PAPER).build(),
-                    PlainMessage(Component.empty(), CanvasItems.DESCRIPTION_WIDTH),
-                    false,
-                    false,
-                    item.route.itemWidth,
-                    CanvasItems.CARRIER_HEIGHT,
-                )
-            }
         val bodies: List<DialogBody> =
-            carriers +
-                view.bodies.map { body ->
-                    when (body) {
-                        is Message ->
-                            PlainMessageDialogBody(PlainMessage(wire(body.parts), body.width))
-                        is ItemBody ->
-                            ItemDialogBody(
-                                SpigotConversionUtil.fromBukkitItemStack(
-                                    items.getValue(body.node.id)
-                                ),
-                                PlainMessage(
-                                    body.label.toAdventureObject(),
-                                    body.node.width ?: NativeGeometry.ITEM_DESCRIPTION_WIDTH,
-                                ),
-                                true,
-                                (body.node.content as NodeContent.Item).showTooltip,
-                                NativeGeometry.ITEM_WIDTH,
-                                NativeGeometry.ITEM_HEIGHT,
-                            )
-                    }
+            view.bodies.map { body ->
+                when (body) {
+                    is CanvasCarrierBody ->
+                        ItemDialogBody(
+                            ProtocolItem.builder().type(ItemTypes.PAPER).build(),
+                            null,
+                            false,
+                            false,
+                            body.item?.route?.itemWidth ?: 1,
+                            body.carrier.height,
+                        )
+                    is Message -> PlainMessageDialogBody(PlainMessage(wire(body.parts), body.width))
+                    is ItemBody ->
+                        ItemDialogBody(
+                            SpigotConversionUtil.fromBukkitItemStack(items.getValue(body.node.id)),
+                            PlainMessage(
+                                body.label.toAdventureObject(),
+                                body.node.width ?: NativeGeometry.ITEM_DESCRIPTION_WIDTH,
+                            ),
+                            true,
+                            (body.node.content as NodeContent.Item).showTooltip,
+                            NativeGeometry.ITEM_WIDTH,
+                            NativeGeometry.ITEM_HEIGHT,
+                        )
                 }
+            }
         val inputs =
             view.inputs.mapIndexed { index, input ->
                 val node = input.node

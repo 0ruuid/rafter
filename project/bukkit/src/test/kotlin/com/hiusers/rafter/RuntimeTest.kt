@@ -165,8 +165,11 @@ class RuntimeTest {
         var clears = 0
         var afterShow: ((DialogView) -> Unit)? = null
         var nativeItems: Map<String, org.bukkit.inventory.ItemStack> = emptyMap()
+        var canvasItemsSupported = true
 
         override fun supported(player: Player) = true
+
+        override fun supportsCanvasItems(player: Player) = canvasItemsSupported
 
         override fun show(
             player: Player,
@@ -2211,6 +2214,8 @@ class RuntimeTest {
         originProvider: String? = null,
         formProvider: String? = null,
         canvasEntry: Boolean = true,
+        canvasItemEntry: Boolean = false,
+        canvasTarget: Boolean = false,
     ): Candidate {
         val ui = temp.resolve("core/ui")
         val panel = ui.resolve("images/form-panel.png")
@@ -2262,8 +2267,8 @@ class RuntimeTest {
                 mapOf(
                     "mode" to "canvas",
                     "title" to "",
-                    "width" to 240,
-                    "height" to 90,
+                    "width" to if (canvasItemEntry) 560 else 240,
+                    "height" to if (canvasItemEntry) 342 else 90,
                     "elements" to
                         listOf(
                             text("background", "Workspace", originProvider),
@@ -2275,7 +2280,19 @@ class RuntimeTest {
                                 "y" to 36,
                                 "actions" to listOf(page("form")),
                             ),
-                        ),
+                        ) +
+                            if (canvasItemEntry)
+                                listOf(
+                                    mapOf(
+                                        "id" to "background-item",
+                                        "type" to "item",
+                                        "item" to "test:items#background",
+                                        "x" to 0,
+                                        "y" to 54,
+                                        "size" to 18,
+                                    )
+                                )
+                            else emptyList(),
                 )
             else
                 mapOf(
@@ -2338,11 +2355,23 @@ class RuntimeTest {
                         "payload" to emptyMap<String, Any?>(),
                     ),
                 "pages" to
-                    mapOf(
+                    (mapOf(
                         "home" to origin,
                         "form" to form,
                         "confirm" to confirm,
-                    ),
+                    ) +
+                        if (canvasTarget)
+                            mapOf(
+                                "canvas-target" to
+                                    mapOf(
+                                        "mode" to "canvas",
+                                        "title" to "Target",
+                                        "width" to 240,
+                                        "height" to 90,
+                                        "elements" to listOf(text("target", "Target")),
+                                    )
+                            )
+                        else emptyMap()),
             )
         val result =
             MenuCompiler(base.dimensions(), imageSources = base.sourceDimensions())
@@ -2355,6 +2384,7 @@ class RuntimeTest {
                 previous = base.allocation,
                 modal = ModalAssets.collect(snapshot, base.sourceDimensions()),
             )
+        if (canvasItemEntry) assets = CanvasItemShaders.bind(assets, snapshot)
         return Candidate(snapshot, assets, "test:form", 600_000)
     }
 
@@ -2694,6 +2724,180 @@ class RuntimeTest {
         assertFalse((wire.visible!!.inputs[0].node.content as NodeContent.TextInput).multiline)
         assertTrue((wire.visible!!.inputs[1].node.content as NodeContent.TextInput).multiline)
         assertTrue(wire.visible!!.title.toRawMessage().contains("Workspace"))
+    }
+
+    @Test
+    fun canvasItemBackdropIsFrozenAcrossModalRefreshAndReplacementAndRecapturesOnBack() {
+        var originReads = 0
+        var itemReads = 0
+        val supplied = org.bukkit.inventory.ItemStack(org.bukkit.Material.STONE)
+        engine.registerData(
+            plugin,
+            "test:origin",
+            ProviderDescriptor("origin"),
+            DataProvider { _, _ ->
+                originReads++
+                CompletableFuture.completedFuture("Workspace")
+            },
+        )
+        engine.registerItems(
+            plugin,
+            "test:items",
+            ProviderDescriptor("items"),
+            ItemProvider { _, _ ->
+                itemReads++
+                CompletableFuture.completedFuture(supplied)
+            },
+        )
+        engine.registerAction(
+            plugin,
+            "test:save",
+            ProviderDescriptor("save"),
+            ActionProvider { _, _ -> CompletableFuture.completedFuture(UiActionResult()) },
+        )
+        engine.install(
+            modalCandidate(
+                originProvider = "test:origin",
+                canvasItemEntry = true,
+            )
+        )
+        val opened =
+            engine
+                .open(
+                    player,
+                    "test:form",
+                    emptyMap(),
+                    UiOpenOptions(mapOf("name" to "Prefilled"), "form"),
+                )
+                .join()
+        val sessionId = assertNotNull(opened.sessionId)
+        assertTrue(opened.opened)
+        assertEquals(1, originReads)
+        assertEquals(1, itemReads)
+        assertTrue(wire.visible!!.modal)
+        assertTrue(wire.visible!!.canvasItems.any { it.node.id == "background-item" && it.visible })
+        assertTrue(
+            wire.visible!!.canvasItems.all {
+                it.route.sourceBodyWidth >= it.route.layout.containerWidth &&
+                    it.route.sourceLayoutHeight >= it.route.layout.layoutHeight
+            },
+            "Native modal scissor must contain the complete frozen Canvas",
+        )
+        assertEquals(
+            org.bukkit.Material.STONE,
+            wire.nativeItems.getValue("background-item").type,
+        )
+
+        wire.nativeItems.getValue("background-item").type = org.bukkit.Material.DIAMOND
+        supplied.type = org.bukkit.Material.GOLD_INGOT
+        engine.refresh(player, sessionId).join()
+        assertEquals(1, originReads, "A modal refresh must not reread the Canvas provider")
+        assertEquals(1, itemReads, "A modal refresh must not reread the Canvas item provider")
+        assertEquals(org.bukkit.Material.STONE, wire.nativeItems.getValue("background-item").type)
+
+        engine.click(
+            player,
+            wire.visible!!.buttons.single { it.node.id == "review" }.handle!!,
+            mapOf("name" to "Prefilled", "message" to "A saved draft"),
+        )
+        assertTrue(wire.visible!!.modal)
+        assertEquals(1, itemReads, "A modal replacement must reuse the same item snapshot")
+        assertEquals(org.bukkit.Material.STONE, wire.nativeItems.getValue("background-item").type)
+        clickButton("edit")
+        assertEquals(1, itemReads, "A modal-to-modal edit must reuse the same item snapshot")
+        assertEquals(org.bukkit.Material.STONE, wire.nativeItems.getValue("background-item").type)
+        clickButton("cancel")
+        assertFalse(wire.visible!!.modal)
+        assertEquals(2, originReads)
+        assertEquals(2, itemReads, "Returning to Canvas must perform a fresh item read")
+        assertEquals(
+            org.bukkit.Material.GOLD_INGOT,
+            wire.nativeItems.getValue("background-item").type,
+        )
+    }
+
+    @Test
+    fun entryCanvasItemsNeedSupportOnlyWhenAnInitialModalRendersTheEntry() {
+        engine.registerItems(
+            plugin,
+            "test:items",
+            ProviderDescriptor("items"),
+            ItemProvider { _, _ ->
+                CompletableFuture.completedFuture(
+                    org.bukkit.inventory.ItemStack(org.bukkit.Material.STONE)
+                )
+            },
+        )
+        wire.canvasItemsSupported = false
+        engine.install(modalCandidate(canvasItemEntry = true, canvasTarget = true))
+
+        assertTrue(
+            engine
+                .open(player, "test:form", emptyMap(), UiOpenOptions(initialPage = "canvas-target"))
+                .join()
+                .opened
+        )
+        val shown = wire.shown.size
+        assertEquals(
+            UiFailureCode.UNSUPPORTED_CLIENT,
+            engine
+                .open(
+                    player,
+                    "test:form",
+                    emptyMap(),
+                    UiOpenOptions(initialPage = "form"),
+                )
+                .join()
+                .failure,
+        )
+        assertEquals(shown, wire.shown.size)
+    }
+
+    @Test
+    fun lateCanvasItemProviderCannotPopulateAReplacementOrClosedSession() {
+        val requests =
+            mutableListOf<Pair<UiContext, CompletableFuture<org.bukkit.inventory.ItemStack>>>()
+        engine.registerItems(
+            plugin,
+            "test:items",
+            ProviderDescriptor("items"),
+            ItemProvider { context, _ ->
+                CompletableFuture<org.bukkit.inventory.ItemStack>().also {
+                    requests += context to it
+                }
+            },
+        )
+        val base = modalCandidate(canvasItemEntry = true)
+        val replacement = candidate(other()).snapshot.menus.getValue("test:other")
+        engine.install(
+            base.copy(
+                snapshot =
+                    base.snapshot.copy(menus = base.snapshot.menus + ("test:other" to replacement))
+            )
+        )
+
+        val opening = engine.open(player, "test:form")
+        assertEquals(1, requests.size)
+        assertTrue(engine.open(player, "test:other").join().opened)
+        val shownAfterReplacement = wire.shown.size
+        requests[0].second.complete(org.bukkit.inventory.ItemStack(org.bukkit.Material.STONE))
+        drainMain()
+        assertEquals(UiFailureCode.SUPERSEDED, opening.join().failure)
+        assertEquals(shownAfterReplacement, wire.shown.size)
+        assertEquals("replacement", wire.plain())
+        assertTrue(wire.nativeItems.isEmpty())
+
+        val closing = engine.open(player, "test:form")
+        assertEquals(2, requests.size)
+        val sessionId = requests.last().first.sessionId
+        engine.close(player, sessionId).join()
+        val shownAfterClose = wire.shown.size
+        requests[1].second.complete(org.bukkit.inventory.ItemStack(org.bukkit.Material.GOLD_INGOT))
+        drainMain()
+        assertEquals(UiFailureCode.SUPERSEDED, closing.join().failure)
+        assertEquals(shownAfterClose, wire.shown.size)
+        assertNull(wire.visible)
+        assertTrue(wire.nativeItems.isEmpty())
     }
 
     @Test

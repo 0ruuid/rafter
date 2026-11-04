@@ -79,6 +79,11 @@ object DialogFrameShaders {
                 },
             ) +
             "\n" +
+            table(
+                "RAFTER_CANVAS_METRIC",
+                backdrops.map { listOf(it.containerWidth, it.inset, 0, 0) },
+            ) +
+            "\n" +
             constants +
             "\n" +
             templates.getValue("frame_vertex.glsl")

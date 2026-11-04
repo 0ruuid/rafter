@@ -5,9 +5,11 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.hiusers.rafter.asset.DialogFrameGlyph
+import com.hiusers.rafter.asset.ModalBackdropLayout
 import com.hiusers.rafter.asset.ModalEncoding
 import com.hiusers.rafter.asset.TextOffsets
 import com.hiusers.rafter.model.NativeGeometry
+import com.hiusers.rafter.render.Message
 import com.hiusers.rafter.runtime.FrozenCanvas
 import java.awt.Color
 import kotlin.math.abs
@@ -34,6 +36,45 @@ internal object ModalText {
         index: Int,
         dim: Double,
     ): ComponentText {
+        return paint(
+            text,
+            snapshot.layout,
+            snapshot.title,
+            snapshot.titleWidth,
+            snapshot.parts,
+            index,
+            dim,
+        )
+    }
+
+    fun canvas(
+        text: CompositeText,
+        title: ComponentText,
+        message: Message,
+        layout: ModalBackdropLayout,
+    ): ComponentText =
+        paint(
+            text,
+            layout,
+            title.toRawMessage(),
+            text.width(title).roundToInt(),
+            message.parts.map { it.text.toRawMessage() },
+            text.assets.modalBackdrops.indexOf(layout),
+            1.0,
+        )
+
+    private fun paint(
+        text: CompositeText,
+        layout: ModalBackdropLayout,
+        title: String,
+        titleWidth: Int,
+        parts: List<String>,
+        index: Int,
+        dim: Double,
+    ): ComponentText {
+        require(index in text.assets.modalBackdrops.indices) {
+            "Canvas title layout was not compiled into this pack"
+        }
         require(dim in 0.0..1.0)
         fun dimColor(value: String): String {
             val color = Color(value.parseToHexColor())
@@ -60,7 +101,7 @@ internal object ModalText {
                         ) {
                             "Unsupported font in a frozen Canvas: $font"
                         }
-                        obj.addProperty("font", ModalEncoding.font(index, font))
+                        obj.addProperty("font", ModalEncoding.font(font))
                     }
                 }
                 obj.get("color")?.asString?.let { obj.addProperty("color", dimColor(it)) }
@@ -86,29 +127,29 @@ internal object ModalText {
         }
         val output = Components.empty()
         val xBase = ModalEncoding.xBase(index, text.assets.modalBackdrops)
-        if (snapshot.titleWidth > 0) {
-            val prefix = -xBase + ModalEncoding.ROW_STRIDE - snapshot.titleWidth / 2
+        if (titleWidth > 0) {
+            val prefix = -xBase + ModalEncoding.ROW_STRIDE - titleWidth / 2
             spaces(text, output, prefix.toDouble())
-            output.append(sanitized(snapshot.title))
-            spaces(text, output, (-prefix - snapshot.titleWidth).toDouble())
+            output.append(sanitized(title))
+            spaces(text, output, (-prefix - titleWidth).toDouble())
         }
         spaces(text, output, -xBase.toDouble())
         var row = 0
-        snapshot.parts.forEach { raw ->
+        parts.forEach { raw ->
             if (Components.parseRaw(raw).toPlainText() == "\n") {
                 spaces(
                     text,
                     output,
-                    -(ModalEncoding.ROW_STRIDE + snapshot.layout.width + 2).toDouble(),
+                    -(ModalEncoding.ROW_STRIDE + layout.width + 2).toDouble(),
                 )
                 row++
             } else output.append(sanitized(raw))
         }
-        require(row + 1 == snapshot.layout.height / 9) { "Backdrop row count changed" }
+        require(row + 1 == layout.height / 9) { "Backdrop row count changed" }
         spaces(
             text,
             output,
-            (xBase + row * ModalEncoding.ROW_STRIDE - snapshot.layout.width - 2).toDouble(),
+            (xBase + row * ModalEncoding.ROW_STRIDE - layout.width - 2).toDouble(),
         )
         return output
     }

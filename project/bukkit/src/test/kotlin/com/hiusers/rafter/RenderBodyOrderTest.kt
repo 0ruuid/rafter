@@ -64,6 +64,8 @@ class RenderBodyOrderTest {
             )
         fun key(body: RenderBody): String =
             when (body) {
+                is CanvasCarrierBody ->
+                    error("No Canvas carrier belongs to a native or mixed-page fixture")
                 is ItemBody -> body.node.id
                 is Message ->
                     body.parts

@@ -9,7 +9,7 @@ import javax.imageio.ImageIO
 
 /** 相同背景尺寸共用位移字体，不按玩家或行复制 TTF。 */
 internal object ModalFonts {
-    const val VERSION = "native-modal-fonts-v6"
+    const val VERSION = "native-modal-fonts-v7-shared"
 
     fun manifest(catalog: AssetCatalog): Map<String, Any?> =
         mapOf(
@@ -84,7 +84,7 @@ internal object ModalFonts {
                     )
             ),
         )
-        catalog.modalBackdrops.forEachIndexed { index, _ ->
+        if (catalog.modalBackdrops.isNotEmpty()) {
             val shift = ModalEncoding.FONT_Y_SHIFT
             (catalog.fontFaces.keys +
                     TextOffsetFonts.aliases(catalog) +
@@ -106,9 +106,7 @@ internal object ModalFonts {
                         }
                     }
                     Json.write(
-                        fonts.resolve(
-                            ModalEncoding.font(index, original).substringAfter(':') + ".json"
-                        ),
+                        fonts.resolve(ModalEncoding.font(original).substringAfter(':') + ".json"),
                         font,
                     )
                 }

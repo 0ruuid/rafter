@@ -35,8 +35,10 @@ bool rafter_modal_backdrop_position() {
         } else {
             float sourceWidth = sourceLayout.x - RAFTER_MODAL_TEXT_PADDING * 2.0 - RAFTER_MODAL_WRAP_SLACK;
             if (localX < -128.0 || localX > sourceWidth + 128.0) continue;
-            point = vec2(floor((gui.x - sourceLayout.x) * 0.5) + RAFTER_MODAL_TEXT_PADDING + localX,
-                rafter_modal_body_top(gui, sourceLayout.z, RAFTER_MODAL_FOOTER_HEIGHT) + RAFTER_MODAL_TEXT_PADDING +
+            vec4 metric = RAFTER_CANVAS_METRICS[index];
+            point = vec2(floor((gui.x - metric.x - 20.0) * 0.5) + 10.0 +
+                floor((metric.x - sourceLayout.x) * 0.5) + RAFTER_MODAL_TEXT_PADDING + localX,
+                rafter_modal_body_top(gui, sourceLayout.z, RAFTER_MODAL_FOOTER_HEIGHT) + RAFTER_MODAL_TEXT_PADDING + metric.y +
                 float(row) * RAFTER_MODAL_ROW_HEIGHT + glyphLocalY);
         }
         gl_Position = ProjMat * ModelViewMat * vec4(point, Position.z, 1.0);

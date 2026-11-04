@@ -25,6 +25,7 @@ object DialogFrameRenderer {
                     width,
                     when (body) {
                         is Message -> body.width + NativeGeometry.TEXT_PADDING * 2
+                        is CanvasCarrierBody -> body.item?.route?.itemWidth ?: 1
                         is ItemBody ->
                             (body.node.width ?: NativeGeometry.ITEM_DESCRIPTION_WIDTH) +
                                 NativeGeometry.ITEM_WIDTH +

@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { constants as fsConstants } from 'node:fs';
 import { access, appendFile, mkdir, realpath, rm, stat, writeFile } from 'node:fs/promises';
 import { createInterface } from 'node:readline';
@@ -279,9 +280,14 @@ async function main() {
                             throw fail('loading', 'An overlay is covering the screen');
                         }
                         const uiPath = join(evidence, `${request.name}.ui.json`);
+                        const uiJson = `${JSON.stringify(redact(uiState), null, 2)}\n`;
                         await writeFile(pngPath, shot.png);
-                        await writeFile(uiPath, `${JSON.stringify(redact(uiState), null, 2)}\n`, 'utf8');
-                        return { pngPath, uiPath, bytes: shot.png.length, ui: uiState };
+                        await writeFile(uiPath, uiJson, 'utf8');
+                        return {
+                            pngPath, uiPath, bytes: shot.png.length, ui: uiState,
+                            pngSha256: createHash('sha256').update(shot.png).digest('hex'),
+                            uiSha256: createHash('sha256').update(uiJson).digest('hex'),
+                        };
                     })(),
                     'snap',
                     OP_TIMEOUT_MS,

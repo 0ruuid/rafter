@@ -1,5 +1,6 @@
 package com.hiusers.rafter.render
 
+import com.hiusers.rafter.asset.CanvasItems
 import com.hiusers.rafter.asset.ModalEncoding
 import com.hiusers.rafter.model.*
 import com.hiusers.rafter.runtime.UiSession
@@ -12,16 +13,21 @@ object NativeModalRenderer {
     fun render(session: UiSession, view: DialogView, text: CompositeText): DialogView {
         val page = session.current().spec
         val modal = page.modal ?: return view
-        val plan = requireNotNull(session.current().modalLayout)
         val snapshot =
             requireNotNull(session.modalBackdrop) { "Modal has no captured Canvas backdrop" }
-        val key = ModalEncoding.key(session.menu.spec.id, page.id)
+        val variant =
+            snapshot.flowKey?.let {
+                text.assets.canvasModalFlows[
+                        CanvasItems.modalKey(session.menu.spec.id, page.id, it)]
+            }
+        val plan = variant?.layout?.plan ?: requireNotNull(session.current().modalLayout)
+        val key = variant?.layout?.key ?: ModalEncoding.key(session.menu.spec.id, page.id)
         val backdropIndex = text.assets.modalBackdrops.indexOf(snapshot.layout)
         require(backdropIndex >= 0) { "The captured Canvas layout was not compiled into this pack" }
         require(view.inputs.map { it.node.id } == plan.inputs.map { it.id }) {
             "Native input flow changed after compilation"
         }
-        require(view.bodies.size == plan.descriptions.size + 1) {
+        require(view.bodies.size == plan.descriptions.size + view.canvasBodyCount) {
             "Native body flow changed after compilation"
         }
         val actual = (view.buttons + view.close).associateBy { it.node.id }
@@ -66,11 +72,21 @@ object NativeModalRenderer {
             }
         val title = ModalText.backdrop(text, snapshot, backdropIndex, modal.dim)
         title.append(ModalText.panel(text, text.assets.modalFrames.getValue(key)))
+        if (variant != null) {
+            title.append(
+                ModalText.canvas(
+                    text,
+                    requireNotNull(view.canvasTitle),
+                    requireNotNull(view.painting),
+                    requireNotNull(view.canvasLayout),
+                )
+            )
+        }
         val bodies =
             view.bodies.mapIndexed { index, body ->
-                if (index == 0 || body !is Message) body
+                if (index < view.canvasBodyCount || body !is Message) body
                 else {
-                    val width = plan.descriptions[index - 1].bounds.width
+                    val width = plan.descriptions[index - view.canvasBodyCount].bounds.width
                     val full = Components.empty().apply { body.parts.forEach { append(it.text) } }
                     val line = text.fitLine(full, width)
                     if (line.toPlainText() != full.toPlainText()) line.hoverText(full)

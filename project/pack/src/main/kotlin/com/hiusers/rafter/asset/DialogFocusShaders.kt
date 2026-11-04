@@ -143,17 +143,7 @@ object DialogFocusShaders {
                 focusLayouts = Values.list(layouts),
                 nativeFocusLayouts = Values.list(native),
             )
-        if (active(next) && vectors(next).size + nativeVectors(next).size > MAX_GEOMETRIES)
-            throw DocumentError(
-                Diagnostic(
-                    com.hiusers.rafter.model.ProjectPaths.UI + "/",
-                    if (catalog.hideNativeFocusOutline && native.isNotEmpty())
-                        "$.hide-native-focus-outline"
-                    else "$.hide-canvas-focus-outline",
-                    "FOCUS_GEOMETRY_LIMIT",
-                    "At most $MAX_GEOMETRIES distinct focus geometries; disable the relevant filter to omit its GUI matches",
-                )
-            )
+        checkBudget(next)
         val hash = MessageDigest.getInstance("SHA-256")
         hash.update(catalog.sourceFingerprint.toByteArray(Charsets.UTF_8))
         hash.update(
@@ -175,6 +165,26 @@ object DialogFocusShaders {
             templates.toSortedMap().values.forEach { hash.update(it.toByteArray(Charsets.UTF_8)) }
         }
         return next.copy(fingerprint = hash.digest().joinToString("") { "%02x".format(it) })
+    }
+
+    internal fun checkBudget(catalog: AssetCatalog) {
+        if (active(catalog) && vectors(catalog).size + nativeVectors(catalog).size > MAX_GEOMETRIES)
+            throw DocumentError(
+                Diagnostic(
+                    com.hiusers.rafter.model.ProjectPaths.UI + "/",
+                    if (catalog.hideNativeFocusOutline && catalog.nativeFocusLayouts.isNotEmpty())
+                        "$.hide-native-focus-outline"
+                    else "$.hide-canvas-focus-outline",
+                    "FOCUS_GEOMETRY_LIMIT",
+                    "At most $MAX_GEOMETRIES distinct focus geometries; disable the relevant filter to omit its GUI matches",
+                )
+            )
+    }
+
+    internal fun fingerprint(hash: MessageDigest, catalog: AssetCatalog) {
+        hash.update(Json.gson.toJson(manifest(catalog)).toByteArray(Charsets.UTF_8))
+        if (active(catalog))
+            templates.toSortedMap().values.forEach { hash.update(it.toByteArray(Charsets.UTF_8)) }
     }
 
     fun manifest(catalog: AssetCatalog): Map<String, Any?> =
@@ -260,12 +270,17 @@ object DialogFocusShaders {
                                     0,
                                     NativeGeometry.ITEM_WIDTH + NativeGeometry.ITEM_DESCRIPTION_GAP,
                                 )
+                    NativeFocusKind.CARRIER_ROW.code ->
+                        v[0] == CanvasItems.MAX_CHANNELS * 2 - 1 && v[1] == 1 && v[2] == 0
                     NativeFocusKind.ITEM.code ->
-                        v[0] == NativeGeometry.ITEM_WIDTH &&
-                            v[1] == NativeGeometry.ITEM_HEIGHT &&
-                            v[2] in
-                                -(864 + NativeGeometry.ITEM_DESCRIPTION_GAP)..-(1 +
-                                        NativeGeometry.ITEM_DESCRIPTION_GAP)
+                        v[0] in 1..256 &&
+                            v[1] in 1..256 &&
+                            (v[2] == 0 ||
+                                v[0] == NativeGeometry.ITEM_WIDTH &&
+                                    v[1] == NativeGeometry.ITEM_HEIGHT &&
+                                    v[2] in
+                                        -(864 + NativeGeometry.ITEM_DESCRIPTION_GAP)..-(1 +
+                                                NativeGeometry.ITEM_DESCRIPTION_GAP))
                     else -> false
                 }
             }

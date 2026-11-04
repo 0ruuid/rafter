@@ -31,3 +31,5 @@ tasks.processResources {
         expand("version" to rootProject.version.toString())
     }
 }
+
+tasks.named("build") { dependsOn(tasks.named("installDist")) }

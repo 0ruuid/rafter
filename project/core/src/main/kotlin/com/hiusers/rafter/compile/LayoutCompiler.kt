@@ -57,7 +57,11 @@ object LayoutCompiler {
                             (node.height ?: fail(node, "Click area requires height"))
                     is NodeContent.Item -> {
                         if (node.width != null || node.height != null)
-                            fail(node, "Canvas items use size instead of width/height", "CAPABILITY")
+                            fail(
+                                node,
+                                "Canvas items use size instead of width/height",
+                                "CAPABILITY",
+                            )
                         content.size to content.size
                     }
                     else -> fail(node, "${node.type} is not a canvas element", "CAPABILITY")
@@ -138,7 +142,7 @@ object LayoutCompiler {
     }
 
     /** 自然文字范围必须容纳于声明框，字体抬升同样计入绘制和命中。 */
-    internal fun textBounds(
+    fun textBounds(
         page: PageSpec,
         node: NodeSpec,
         measured: Pair<Int, Int>?,

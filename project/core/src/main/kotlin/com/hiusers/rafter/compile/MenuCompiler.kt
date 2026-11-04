@@ -665,9 +665,15 @@ class MenuCompiler(
                             authoredPage["skin"] as? String,
                         )
                     if (page.modal != null) {
-                        page.elements.firstOrNull { it.content is NodeContent.Item }?.let {
-                            failNode(it, "CAPABILITY", "Canvas items are not supported in modals")
-                        }
+                        page.elements
+                            .firstOrNull { it.content is NodeContent.Item }
+                            ?.let {
+                                failNode(
+                                    it,
+                                    "CAPABILITY",
+                                    "Canvas items are not supported in modals",
+                                )
+                            }
                         if (page.height != null)
                             fail(
                                 "$path.height",
@@ -809,12 +815,6 @@ class MenuCompiler(
                     node,
                     "CAPABILITY",
                     "A modal requires a pure Canvas page without a viewport frame, or a current modal layer",
-                )
-            if (page.elements.any { it.content is NodeContent.Item })
-                failNode(
-                    node,
-                    "CAPABILITY",
-                    "A Canvas page containing items cannot open a native modal",
                 )
             canvasText(page.title, SourcePath.field("$.pages", page.id) + ".title")
         }

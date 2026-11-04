@@ -57,7 +57,7 @@ pages:
 | 声明 | 用途 |
 | --- | --- |
 | `mode: native` | 原生正文、物品、按钮和表单 |
-| `mode: canvas` | 独立图片、文字和点击区，按声明顺序绘制 |
+| `mode: canvas` | 独立图片、文字和点击区，按声明顺序绘制；items 可进入原生空带 flow |
 | `skin` / `content` | 皮肤定义布局，菜单填写内容与动作 |
 | `template` | 通过参数复用组件 |
 | `group` | 组织局部坐标，编译后展开 |
@@ -78,6 +78,10 @@ Canvas 物品叶节点沿用普通 `group`、`list`、`template` 和 `slots`，�
 ```
 
 Canvas 的 `size` 只能取 18 的整数倍且不超过 864；`y` 按 9px 对齐，`x` 不要求对齐。`item` 也可写已注册提供器引用；纯 vanilla 示例无需提供器。Native 物品不接受 `size` 或 `show-count`，只接受新增的 `show-tooltip`；原版 `show_decorations` 无法只控制数量。
+
+Canvas item 的 ID 必须非空且唯一。编译器先按 `CanvasFlow` 生成标题绘制、原生文本命中和真实物品载体的 flow：载体优先复用交互以外的纵向空带，单个载体高度为 1..256，载体间隔为 10px；空带余量使用 `node=null` 空模型填充，空间不足时记录少量前置 inset。运行时布局预算只查询生成包 `item-layouts.json` 的 `routes`、`flows` 和 `modal-flows`，其中 `minimum-gui-width`、`minimum-gui-height` 是实际导出值。
+
+纯 Canvas 含 items 可打开 native modal。modal 冻结独立 `ItemStack`，不重新读取提供器；冻结背景只有绘制，不参与 hover/click，面板裁剪仅用于冻结模型路由。modal 内不新增 item 节点，不支持任意物品 z、遮罩或滚动。通用 `list`、`template`、`group` 与 `slots` 设计、现有数据值边界和结构化动作保持不变。
 
 ## 数据与条件
 
@@ -105,4 +109,4 @@ Canvas 的 `size` 只能取 18 的整数倍且不超过 864；`y` 按 9px 对齐
 
 加载或构包失败时继续使用上一份有效配置。成功更新会关闭旧会话，未提交表单不迁移。已有自定义文件不会被默认配置覆盖。
 
-内置 `/rafter open rafter:items` 演示单件放大、单排、网格、不规则位置和双独立分页，好友菜单仍是默认入口。全局最多 128 个物品编译路由通道，几何冲突可能提前耗尽。物品页须整体放入视口，不支持滚动、item popup 或原生 modal 承载。
+内置 `/rafter open rafter:items` 演示单件放大、单排、网格、不规则位置和双独立分页，好友菜单仍是默认入口。提供 128 种原生宽度通道，不同来源高度可复用；共享角点无可用通道时明确报错。物品页须整体放入视口；item popup、modal 内新增 item 节点、任意 z/遮罩和滚动仍不支持。API 版本保持 0.0.5；六个客户端 profile 已有源码适配，但当前新 flow 尚未完成实机验收，不作测试通过或发布承诺。

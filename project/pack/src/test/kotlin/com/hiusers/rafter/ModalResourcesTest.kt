@@ -121,7 +121,7 @@ class ModalResourcesTest {
     }
 
     @Test
-    fun backdropAliasesReuseAllFontAndImageFilesWithOneShiftedProviderSetPerLayout() {
+    fun backdropAliasesShareOneShiftedProviderSetAcrossLayouts() {
         val root = fixture()
         val catalog =
             AssetCompiler.compile(
@@ -165,7 +165,7 @@ class ModalResourcesTest {
             }
             assertEquals(
                 expected,
-                font(pack, ModalEncoding.font(0, original)),
+                font(pack, ModalEncoding.font(original)),
                 "Only shift/ascent may change: $original",
             )
         }
@@ -185,7 +185,7 @@ class ModalResourcesTest {
             "No rasterization or copied per-layout/per-row TTF sources",
         )
         val ttf =
-            font(pack, ModalEncoding.font(0, catalog.theme.defaultFont))
+            font(pack, ModalEncoding.font(catalog.theme.defaultFont))
                 .getAsJsonArray("providers")[0]
                 .asJsonObject
         assertEquals(catalog.theme.oversample, ttf.get("oversample").asDouble)
@@ -201,7 +201,7 @@ class ModalResourcesTest {
             )) {
             for (bold in listOf(false, true)) assertEquals(
                 catalog.textWidth(text, bold, original),
-                catalog.textWidth(text, bold, ModalEncoding.font(0, original)),
+                catalog.textWidth(text, bold, ModalEncoding.font(original)),
             )
         }
         val fills = font(pack, "rafter:modal_fill").getAsJsonArray("providers")
@@ -287,7 +287,7 @@ class ModalResourcesTest {
             assertTrue(guard in include, guard)
         }
         val shifted =
-            font(pack, ModalEncoding.font(1, catalog.theme.defaultFont))
+            font(pack, ModalEncoding.font(catalog.theme.defaultFont))
                 .getAsJsonArray("providers")[0]
                 .asJsonObject
         val originalShift =

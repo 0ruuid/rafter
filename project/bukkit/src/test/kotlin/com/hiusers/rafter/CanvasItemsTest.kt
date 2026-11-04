@@ -114,6 +114,7 @@ class CanvasItemsTest {
             )
         val hidden = view(false)
         val full = view(true)
+        assertEquals(0.0, CompositeText(assets).width(full.title), full.title.toRawMessage())
         assertEquals(listOf(0, 1), hidden.canvasItems.map { it.route.row })
         assertEquals(listOf(true, false), hidden.canvasItems.map { it.visible })
         assertEquals(hidden.canvasItems.map { it.route }, full.canvasItems.map { it.route })
@@ -139,13 +140,13 @@ class CanvasItemsTest {
         val snapshot = snapshot(listOf(item("first", 9), item("second", 63)))
         val assets = CanvasItemShaders.bind(catalog(), snapshot)
         assertEquals(assets, CanvasItemShaders.bind(assets, snapshot))
-        assertEquals(listOf(1027, 1029), assets.canvasItems.map { it.sourceWidth })
-        assertEquals(listOf(63, 83), assets.canvasItems.map { it.sourceTop })
-        assertEquals(listOf(126, 125), assets.canvasItems.map { it.sourceLeft(1280) })
-        assertEquals(listOf(-193, -194), assets.canvasItems.map { it.sourceLeft(640) })
-        assertEquals(567, assets.canvasItems.first().canvasLeft(1280))
+        assertEquals(listOf(1, 1), assets.canvasItems.map { it.sourceWidth })
+        assertEquals(listOf(63, 117), assets.canvasItems.map { it.sourceTop })
+        assertEquals(listOf(639, 639), assets.canvasItems.map { it.sourceLeft(1280) })
+        assertEquals(listOf(319, 319), assets.canvasItems.map { it.sourceLeft(640) })
+        assertEquals(568, assets.canvasItems.first().canvasLeft(1280))
         assertEquals(248, assets.canvasItems.first().canvasLeft(640))
-        assertEquals(236, assets.canvasItems.first().minimumGuiHeight)
+        assertEquals(166, assets.canvasItems.first().minimumGuiHeight)
         CanvasItemShaders.write(root, assets)
         val shader =
             Files.readString(
@@ -153,8 +154,13 @@ class CanvasItemsTest {
             )
         assertTrue(shader.startsWith("#version 330\n"))
         assertFalse("gl_VertexID" in shader)
-        assertTrue("1049.0" in shader && "10.0 + 1.0" in shader && "10.0 + 0.0" in shader)
-        assertTrue("1.0, 63.0" in shader && "0.0, 83.0" in shader)
+        assertTrue("174.0" in shader && "10.0 + 76.0" in shader)
+        assertTrue("128.0) + 0.0" in shader && "128.0) + 54.0" in shader)
+        assertFalse("1024" in shader || "dimensions.y <" in shader)
+        val flow = assets.canvasFlows.getValue(CanvasItems.key("test:items", "home"))
+        assertEquals(0, flow.inset)
+        assertEquals(98, flow.bodyHeight)
+        assertEquals(128, flow.layoutHeight)
         assertFalse("1280" in shader || "960" in shader || "/* ROUTES */" in shader)
         val exported = Json.map(root.resolve("item-layouts.json"))
         assertEquals(
@@ -244,29 +250,35 @@ class CanvasItemsTest {
         val pages =
             (0 until 6).associate { index ->
                 val id = "page-$index"
-                id to page.copy(spec = page.spec.copy(id = id))
+                val height = listOf(90, 144, 342, 378, 396, 414)[index]
+                id to page.copy(spec = page.spec.copy(id = id, height = height), height = height)
             }
         val expanded = original.copy(menus = mapOf("test:items" to menu.copy(pages = pages)))
         val routes = CanvasItemShaders.bind(catalog(), expanded).canvasItems
         assertEquals(36, routes.size)
-        assertEquals(36, routes.map { it.channel }.toSet().size)
+        assertTrue(routes.map { it.channel }.toSet().size < routes.size)
         for (width in listOf(320, 640, 641, 1280, 1281, 1920)) {
-            val corners = routes.flatMap { route ->
-                listOf(0, CanvasItems.ICON_SIZE).flatMap { dx ->
-                    listOf(0, CanvasItems.ICON_SIZE).map { dy ->
-                        route.sourceLeft(width) + dx to route.sourceTop + dy
+            for (height in 400..560) {
+                val visible = routes.filter {
+                    it.minimumGuiHeight <= height && it.minimumGuiWidth <= width
+                }
+                val corners = visible.flatMap { route ->
+                    listOf(0, CanvasItems.ICON_SIZE).flatMap { dx ->
+                        listOf(0, CanvasItems.ICON_SIZE).map { dy ->
+                            route.sourceLeft(width) + dx to route.sourceTop(height) + dy
+                        }
                     }
                 }
+                assertEquals(
+                    corners.size,
+                    corners.toSet().size,
+                    "Ambiguous corners at GUI ${width}x$height",
+                )
             }
-            assertEquals(
-                corners.size,
-                corners.toSet().size,
-                "Ambiguous corners at GUI width $width",
-            )
         }
         val capabilities = Contract.manifest().getValue("canvas") as Map<*, *>
         val items = capabilities["items"] as Map<*, *>
         assertEquals(false, items["durability-bar"])
-        assertEquals("tooltip-only", items["hover-appearance"])
+        assertEquals("native-tooltip-only-no-modal-background-hover", items["hover-appearance"])
     }
 }

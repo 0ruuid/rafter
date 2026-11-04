@@ -44,6 +44,8 @@ fun AssetCatalog.manifest(): Map<String, Any?> =
         "fingerprint" to fingerprint,
         "client-profiles" to ClientRenderProfiles.all.map { it.manifest() },
         "canvas-items" to canvasItems.map { it.manifest() },
+        "canvas-flows" to canvasFlows,
+        "canvas-modal-flows" to canvasModalFlows,
         "cell-height" to 9,
         "unknown-glyph-policy" to "reject-canvas-native-fallback",
         "bounds-anchor" to

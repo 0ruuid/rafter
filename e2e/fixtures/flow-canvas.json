@@ -1,0 +1,10 @@
+{
+  "canvas": {"width": 560, "height": 342},
+  "slots": {"columns": 9, "rows": 2, "x": 18, "y": 99, "step": 54, "size": 36},
+  "items": [
+    {"id": "minecraft:diamond", "count": 32},
+    {"id": "minecraft:oak_planks", "count": 7},
+    {"id": "minecraft:diamond_sword", "count": 1, "components": {"minecraft:damage": 7, "minecraft:enchantments": {"minecraft:unbreaking": 1}}},
+    {"id": "minecraft:paper", "count": 3, "components": {"minecraft:item_model": "rafterprobe:custom", "minecraft:custom_name": {"text": "Flow custom model"}, "minecraft:lore": [{"text": "Real ItemStack; native tooltip"}]}}
+  ]
+}

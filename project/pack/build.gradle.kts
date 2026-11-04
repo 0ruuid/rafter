@@ -1,6 +1,7 @@
 dependencies {
     implementation(project(":project:core"))
     compileOnly("com.google.code.gson:gson:2.10.1")
+    compileOnly("io.izzel.taboolib:minecraft-chat:6.3.0-0e3a911")
     // 复用宿主固定的私有 YAML 命名空间。
     compileOnly("org.yaml:snakeyaml:2.6")
     testImplementation("org.yaml:snakeyaml:2.6")

@@ -49,7 +49,7 @@ TabooLib 插件可在 ENABLE 注册提供器，菜单在 ACTIVE 加载。提前�
 `UiOpenOptions` 包含：
 
 - `initialState`：已声明状态的初始补丁，默认空。接收时深拷贝并冻结，全部校验通过后一起写入，在首次提供器读取前生效。
-- `initialPage`：菜单内已有的目标页，默认使用 `entry`。普通页可为 native 或 Canvas；目标为 modal 时，入口须为不含原生控件和物品节点、无 frame 的纯 Canvas。
+- `initialPage`：菜单内已有的目标页，默认使用 `entry`。普通页可为 native 或 Canvas；目标为 modal 时，入口须为不含原生控件、无 frame 的纯 Canvas（可含真实物品）。
 - 直接打开 modal 会先发送入口 Canvas 并捕获背景，再打开目标表单，沿用同一会话 ID。两阶段共用渲染时限。
 - 参数、初始状态或目标页校验失败时保留旧会话。初始化被关闭、替换、重载或超时后，迟到结果失效。
 
@@ -64,7 +64,9 @@ modal 之间用 `open-page` 同层替换，复用背景，不追加历史。表�
 - `service-api.open.initial-modal`: `present-entry-canvas-then-modal`
 - `service-api.open.completion`: `final-target-sent`
 - `native-modal.replacement`: `same-layer-reuse-backdrop-no-history-push`
-- `contract-version`: `15`
+- `contract-version`: `16`
+
+`native-modal.snapshot`、`native-modal.background-interaction` 声明冻结物品背景及交互隔离；布局预算读取导出资源中的 `item-layouts.json`，其中 `flows`、`modal-flows` 与 `routes` 和本次构包一致。物品仍由 `ItemProvider` 返回，不要求接入方处理载体或 Shader。
 
 `canvas.items.profiles` 和 `native-modal.profiles` 导出同一份协议、资源格式及 Shader 分组。`canvas-items-runtime-tested` 区分已有实机记录与仅完成源码适配的版本。
 

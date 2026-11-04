@@ -27,6 +27,7 @@ data class CanvasFocusLayout(
 enum class NativeFocusKind(val code: Int) {
     TEXT(0),
     ITEM(1),
+    CARRIER_ROW(2),
 }
 
 /** 文字高度由客户端按 9*n+8 计算；偏移倍增以保留半像素。 */

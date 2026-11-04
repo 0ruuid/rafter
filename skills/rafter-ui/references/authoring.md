@@ -13,7 +13,9 @@ python3 scripts/author.py pack --project /absolute/path/to/Rafter --archive
 
 `describe --project ...` 同时导出该项目的编译布局和规则。工具不会连接服务器，扩展清单以目标服务器导出为准。`pack` 只读取配置中显式声明的合并源，不启动自托管，也不发送资源包。
 
-能力字段见 `service-api.open` 和 `native-modal.replacement`。服务 API 可用 `initialPage` 指定入口或已有页，`initialState` 在首读前原子校验；modal 目标先呈现入口 Canvas，再切换到目标页。modal 同层替换复用背景且不追加历史。表单只有显式 `submit` 才写入状态，Esc、关闭或返回不自动保存原生输入；`ActionProvider` 返回链不要等待同会话 `refresh`。
+能力字段见 `service-api.open`、`native-modal.replacement`、`canvas.items.layout-budget` 和 `canvas.items.modal`。服务 API 可用 `initialPage` 指定入口或已有页，`initialState` 在首读前原子校验；纯 Canvas（可含 items）先呈现入口，再切换到 native modal。modal 同层替换复用背景且不追加历史；背景使用冻结的独立 `ItemStack`，不重读 `ItemProvider`，也不参与 hover/click，面板裁剪只作用于冻结模型路由。表单只有显式 `submit` 才写入状态，Esc、关闭或返回不自动保存原生输入；`ActionProvider` 返回链不要等待同会话 `refresh`。
+
+Canvas item 的布局预算从生成包 `item-layouts.json` 查询：`routes[*].minimum-gui-width`、`routes[*].minimum-gui-height` 是实际 GUI 预算，`flows` 与 `modal-flows` 是原生正文 flow；不要用 item 数量和 Canvas 高度拼接旧公式。flow 载体高度为 1..256，载体间隔为 10px，优先使用交互以外空带，空间不足时由编译器增加少量 9px 前置 inset；modal 内不新增 item 节点，也不支持任意物品 z、遮罩或滚动。
 
 退出码：`0`=本次离线范围通过，`1`=错误，`2`=结构可编译但目标 Kether／扩展未验证，`64`=用法或工具不可用。stdout 是 JSON（help 除外）；不能只看进程是否生成了图片。
 

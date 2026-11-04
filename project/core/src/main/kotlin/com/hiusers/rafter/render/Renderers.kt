@@ -2,7 +2,7 @@ package com.hiusers.rafter.render
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
-import com.hiusers.rafter.asset.TextOffsets
+import com.hiusers.rafter.asset.*
 import com.hiusers.rafter.asset.CanvasItemRoute
 import com.hiusers.rafter.compile.LayoutCompiler
 import com.hiusers.rafter.model.ActionSpec
@@ -20,14 +20,20 @@ import com.hiusers.rafter.model.PositionedNode
 import com.hiusers.rafter.model.Rect
 import com.hiusers.rafter.model.SourceLocation
 import com.hiusers.rafter.model.TextSpec
+import com.hiusers.rafter.model.Values
 import com.hiusers.rafter.runtime.UiSession
 import com.hiusers.rafter.text.CompositeText
+import com.hiusers.rafter.text.ModalText
 import kotlin.math.roundToInt
 import taboolib.module.chat.ComponentText
 import taboolib.module.chat.Components
 
 /** 与协议无关的文本片段，CUSTOM 元数据仅在发送边界绑定。 */
-data class Fragment(val text: ComponentText, val handle: String? = null, val hoverItem: String? = null)
+data class Fragment(
+    val text: ComponentText,
+    val handle: String? = null,
+    val hoverItem: String? = null,
+)
 
 /** 静态载体与本帧可见性分离，隐藏行不改变后续物品的传输位置。 */
 data class CanvasItem(val node: NodeSpec, val route: CanvasItemRoute, val visible: Boolean)
@@ -36,6 +42,8 @@ data class CanvasItem(val node: NodeSpec, val route: CanvasItemRoute, val visibl
 sealed interface RenderBody
 
 data class Message(val parts: List<Fragment>, val width: Int) : RenderBody
+
+data class CanvasCarrierBody(val carrier: CanvasCarrier, val item: CanvasItem?) : RenderBody
 
 data class RenderButton(
     val node: NodeSpec,
@@ -58,6 +66,11 @@ data class DialogView(
     val fallbackTitle: ComponentText? = null,
     val modal: Boolean = false,
     val canvasItems: List<CanvasItem> = emptyList(),
+    val painting: Message? = null,
+    val canvasTitle: ComponentText? = null,
+    val canvasLayout: ModalBackdropLayout? = null,
+    val canvasFlowKey: String? = null,
+    val canvasBodyCount: Int = 0,
 ) {
     /** 类型化只读投影，正文顺序仅由 [bodies] 决定。 */
     val messages: List<Message>
@@ -229,14 +242,18 @@ object CanvasRenderer {
         val page = session.current()
         val rows = List(page.height / CanvasGeometry.ROW_HEIGHT) { mutableListOf<Fragment>() }
         val advances = DoubleArray(rows.size)
+        val foreground = List(rows.size) { mutableListOf<Fragment>() }
+        val foregroundAdvances = DoubleArray(rows.size)
         val hits = mutableListOf<Hit>()
-        fun draw(x: Double, y: Int, component: ComponentText) {
+        fun draw(x: Double, y: Int, component: ComponentText, overlay: Boolean = false) {
             val row = y / CanvasGeometry.ROW_HEIGHT
             require(row in rows.indices) { "Element exceeds the compiled canvas height" }
             val at = x.roundToInt() + EDGE_INSET
-            rows[row] += Fragment(text.spaces(at - advances[row]))
-            rows[row] += Fragment(component)
-            advances[row] = at + text.width(component)
+            val output = if (overlay) foreground else rows
+            val width = if (overlay) foregroundAdvances else advances
+            output[row] += Fragment(text.spaces(at - width[row]))
+            output[row] += Fragment(component)
+            width[row] = at + text.width(component)
         }
         rows.indices.forEach { row ->
             draw(0.0, row * CanvasGeometry.ROW_HEIGHT, text.glyph("\ue001", "rafter:fill"))
@@ -351,8 +368,12 @@ object CanvasRenderer {
                                 val height = text.bounds(count).second
                                 val y = box.y + box.height - height
                                 val row = y / CanvasGeometry.ROW_HEIGHT * CanvasGeometry.ROW_HEIGHT
-                                draw(box.x + box.width - text.width(count), row,
-                                    text.offsetY(count, y - row))
+                                draw(
+                                    box.x + box.width - text.width(count),
+                                    row,
+                                    text.offsetY(count, y - row),
+                                    overlay = true,
+                                )
                             }
                         }
                         else -> error("Unsupported canvas element ${node.type}")
@@ -365,15 +386,21 @@ object CanvasRenderer {
                     ) {
                         // 禁用的上层区域仍遮挡底层点击；悬停和点击分别处理。
                         val handle = if (frame.enabled[node.id] == true) handles[node.id] else null
-                        val followedItem = node.hitTarget?.takeIf { frame.visible[it] == true }
-                            ?.let { id -> frame.resolvedNodes[id]
-                                ?: page.scene.firstOrNull { it.node.id == id }?.node }
-                        val itemHover = when {
-                            node.tooltip != null -> null
-                            (node.content as? NodeContent.Item)?.showTooltip == true -> node.id
-                            (followedItem?.content as? NodeContent.Item)?.showTooltip == true -> followedItem.id
-                            else -> null
-                        }
+                        val followedItem =
+                            node.hitTarget
+                                ?.takeIf { frame.visible[it] == true }
+                                ?.let { id ->
+                                    frame.resolvedNodes[id]
+                                        ?: page.scene.firstOrNull { it.node.id == id }?.node
+                                }
+                        val itemHover =
+                            when {
+                                node.tooltip != null -> null
+                                (node.content as? NodeContent.Item)?.showTooltip == true -> node.id
+                                (followedItem?.content as? NodeContent.Item)?.showTooltip == true ->
+                                    followedItem.id
+                                else -> null
+                            }
                         hits +=
                             Hit(
                                 box,
@@ -421,14 +448,27 @@ object CanvasRenderer {
                     )
             }
         }
-        val fragments = mutableListOf<Fragment>()
         val lineWidth = CanvasGeometry.lineWidth(page.spec.width)
-        rows.forEachIndexed { index, painted ->
-            fragments += Fragment(text.spaces(EDGE_INSET))
-            var cursor = 0
-            val active = hits.filter {
-                index * CanvasGeometry.ROW_HEIGHT in it.box.y until it.box.y + it.box.height
+        fun graphicRow(index: Int, counts: Boolean): List<Fragment> = buildList {
+            addAll(rows[index])
+            if (counts && foreground[index].isNotEmpty()) {
+                add(Fragment(text.spaces(-advances[index])))
+                addAll(foreground[index])
+                add(Fragment(text.spaces(lineWidth - foregroundAdvances[index])))
+            } else add(Fragment(text.spaces(lineWidth - advances[index])))
+        }
+        fun flatten(lines: List<List<Fragment>>) = buildList {
+            lines.forEachIndexed { index, parts ->
+                addAll(parts)
+                if (index < lines.lastIndex) add(Fragment(text.literal("\n")))
             }
+        }
+        fun hitRow(index: Int): List<Fragment> = buildList {
+            // 纯空格没有原生文本边界；两端微透明字形固定鼠标命中范围。
+            add(Fragment(text.glyph("\ue001", "rafter:fill")))
+            add(Fragment(text.spaces(EDGE_INSET - 9)))
+            var cursor = 0
+            val active = hits.filter { index * 9 in it.box.y until it.box.y + it.box.height }
             val edges =
                 (listOf(0, page.spec.width) +
                         active.flatMap { listOf(it.box.x, it.box.x + it.box.width) })
@@ -441,35 +481,157 @@ object CanvasRenderer {
                 }
                 val hoverOwner = active.lastOrNull(covers)
                 val clickOwner = active.lastOrNull { it.capturesClick && covers(it) }
-                fragments += Fragment(text.spaces(left - cursor))
+                add(Fragment(text.spaces(left - cursor)))
                 val segment = text.spaces(right - left)
                 hoverOwner?.tooltip?.let(segment::hoverText)
-                fragments += Fragment(segment, clickOwner?.handle, hoverOwner?.item)
+                add(Fragment(segment, clickOwner?.handle, hoverOwner?.item))
                 cursor = right
             }
-            fragments += Fragment(text.spaces(lineWidth - EDGE_INSET - cursor))
-            fragments += Fragment(text.spaces(-lineWidth))
-            fragments += painted
-            fragments += Fragment(text.spaces(lineWidth - advances[index]))
-            if (index < rows.lastIndex) fragments += Fragment(text.literal("\n"))
+            add(Fragment(text.spaces(lineWidth - EDGE_INSET - cursor - 9)))
+            add(Fragment(text.glyph("\ue001", "rafter:fill")))
+            add(Fragment(text.spaces(-lineWidth)))
+            addAll(foreground[index])
+            add(Fragment(text.spaces(lineWidth - foregroundAdvances[index])))
         }
         val native = NativeRenderer.render(session, frame, text, errors, handles)
-        val canvas = Message(fragments, CanvasGeometry.bodyWidth(page.spec.width))
-        val combined =
-            native.copy(
-                canvasItems = text.assets.canvasItems
-                    .filter { it.menu == session.menu.spec.id && it.page == page.spec.id }
-                    .map { route ->
-                        val node = frame.resolvedNodes[route.node]
-                            ?: page.scene.first { it.node.id == route.node }.node
-                        CanvasItem(node, route, frame.visible[route.node] == true && route.node !in hiddenUnderlay)
-                    },
-                bodies =
-                    when (page.spec.nativeBodyPosition) {
-                        NativeBodyPosition.BEFORE_CANVAS -> native.bodies + canvas
-                        NativeBodyPosition.AFTER_CANVAS -> listOf(canvas) + native.bodies
-                    }
+        val painting =
+            Message(
+                flatten(rows.indices.map { graphicRow(it, true) }),
+                CanvasGeometry.bodyWidth(page.spec.width),
             )
+        val key = CanvasItems.key(session.menu.spec.id, page.spec.id, session.popup)
+        val modalFlow =
+            session.modalBackdrop?.flowKey?.let { origin ->
+                text.assets.canvasModalFlows[
+                        CanvasItems.modalKey(session.menu.spec.id, page.spec.id, origin)]
+            }
+        val flow = modalFlow?.flow ?: text.assets.canvasFlows[key]
+        val combined =
+            if (flow != null) {
+                val origin = modalFlow?.origin
+                val frozen = session.modalBackdrop?.items.orEmpty().associateBy { it.node.id }
+                val items =
+                    text.assets.canvasItems
+                        .filter {
+                            it.menu == session.menu.spec.id &&
+                                it.page == page.spec.id &&
+                                it.popup == session.popup &&
+                                it.origin == origin
+                        }
+                        .map { route ->
+                            if (origin != null) frozen.getValue(route.node).copy(route = route)
+                            else {
+                                val node =
+                                    frame.resolvedNodes[route.node]
+                                        ?: page.scene.first { it.node.id == route.node }.node
+                                CanvasItem(
+                                    node,
+                                    route,
+                                    frame.visible[route.node] == true &&
+                                        route.node !in hiddenUnderlay,
+                                )
+                            }
+                        }
+                val layout =
+                    if (modalFlow != null)
+                        ModalBackdropLayout(
+                            flow.width,
+                            flow.height,
+                            flow.inset,
+                            modalFlow.layout.bodyHeight,
+                            modalFlow.layout.bodyWidth,
+                        )
+                    else
+                        items.firstOrNull()?.route?.layout
+                            ?: ModalBackdropLayout(
+                                flow.width,
+                                flow.height,
+                                flow.inset,
+                                flow.layoutHeight,
+                            )
+                val bands = flow.blocks.filterIsInstance<CanvasTextBand>()
+                run {
+                    hits.forEach { hit ->
+                        val active = hit.box.y / 9 until (hit.box.y + hit.box.height + 8) / 9
+                        require(
+                            active.all { row ->
+                                bands.any { row in it.startRow until it.startRow + it.rowCount }
+                            }
+                        ) {
+                            "Runtime interaction exceeds its compiled native text bands"
+                        }
+                    }
+                }
+                val bodies =
+                    flow.blocks.map { block ->
+                        when (block) {
+                            is CanvasCarrier ->
+                                CanvasCarrierBody(
+                                    block,
+                                    block.node?.let { id -> items.single { it.node.id == id } },
+                                )
+                            is CanvasTextBand -> {
+                                val padding =
+                                    layout.containerWidth -
+                                        CanvasGeometry.bodyWidth(page.spec.width)
+                                val left = padding / 2
+                                Message(
+                                    flatten(
+                                        (block.startRow until block.startRow + block.rowCount)
+                                            .map { row ->
+                                                listOf(Fragment(text.spaces(left))) +
+                                                    hitRow(row) +
+                                                    Fragment(text.spaces(padding - left))
+                                            }
+                                    ),
+                                    layout.containerWidth,
+                                )
+                            }
+                        }
+                    }
+                native.copy(
+                    title =
+                        if (modalFlow != null) native.title
+                        else
+                            ModalText.canvas(
+                                text,
+                                native.title,
+                                Message(
+                                    flatten(rows.indices.map { graphicRow(it, false) }),
+                                    painting.width,
+                                ),
+                                layout,
+                            ),
+                    bodies = bodies + native.bodies,
+                    canvasItems = Values.list(items),
+                    painting = painting,
+                    canvasTitle = native.title,
+                    canvasLayout = layout,
+                    canvasFlowKey = key,
+                    canvasBodyCount = bodies.size,
+                )
+            } else {
+                val fragments =
+                    flatten(
+                        rows.indices.map { index ->
+                            hitRow(index) +
+                                listOf(Fragment(text.spaces(-lineWidth))) +
+                                graphicRow(index, true)
+                        }
+                    )
+                val canvas = Message(fragments, CanvasGeometry.bodyWidth(page.spec.width))
+                native.copy(
+                    bodies =
+                        when (page.spec.nativeBodyPosition) {
+                            NativeBodyPosition.BEFORE_CANVAS -> native.bodies + canvas
+                            NativeBodyPosition.AFTER_CANVAS -> listOf(canvas) + native.bodies
+                        },
+                    painting = painting,
+                    canvasTitle = native.title,
+                    canvasLayout = ModalBackdropLayout(page.spec.width, page.height),
+                    canvasBodyCount = 1,
+                )
+            }
         return NativeModalRenderer.render(session, combined, text)
     }
 }
