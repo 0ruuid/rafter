@@ -24,13 +24,15 @@ class IndependentDefaultsContractTest {
             MenuRepository(
                     root,
                     { error("Static preview must not execute Kether") },
-                    { _, _, _ -> error("Static preview must not call providers") },
+                    ::checkStaticItemReference,
                     { Yaml(SafeConstructor(LoaderOptions())).load(it) },
                 )
                 .load()
         val candidate = assertNotNull(loaded.candidate, loaded.diagnostics.joinToString("\n"))
         assertEquals("rafter:friends", candidate.defaultMenu)
-        assertEquals(setOf("rafter:friends", "rafter:tasks"), candidate.snapshot.menus.keys)
+        assertEquals(setOf("rafter:friends", "rafter:tasks", "rafter:player-profile", "rafter:items"), candidate.snapshot.menus.keys)
+        assertTrue(candidate.assets.modalBackdrops.none { it.width == 432 && it.height == 144 })
+        assertTrue(candidate.assets.modalBackdrops.none { it.width == 864 && it.height == 216 })
         val menu = candidate.snapshot.menus.getValue("rafter:friends")
         assertEquals(setOf("friends", "add", "search", "chat", "memo", "remove"), menu.pages.keys)
         assertTrue(menu.pages.values.all { it.spec.skin != null })

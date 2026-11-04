@@ -238,13 +238,17 @@ internal class RafterEngine(
             val page =
                 definition.pages[target]
                     ?: return@mainFuture rejected(UiFailureCode.INVALID_ARGUMENT)
+            if (page.scene.any { it.node.content is NodeContent.Item } &&
+                page.spec.mode == PageMode.CANVAS && !transport.supportsCanvasItems(player))
+                return@mainFuture rejected(UiFailureCode.UNSUPPORTED_CLIENT)
             val entry = definition.pages.getValue(definition.spec.entry).spec
             if (
                 page.spec.modal != null &&
                     (entry.mode != PageMode.CANVAS ||
                         entry.components.isNotEmpty() ||
                         entry.frame != null ||
-                        entry.modal != null)
+                        entry.modal != null ||
+                        entry.elements.any { it.content is NodeContent.Item })
             ) return@mainFuture rejected(UiFailureCode.INVALID_ARGUMENT)
             val session =
                 try {
@@ -668,7 +672,8 @@ internal class RafterEngine(
                                 "__popup-dismiss".takeIf { session.popup != null },
                             )
                     val handles = session.ready(generation, targets)
-                    val frame = Frame(values, visible, enabled, resolved.toMap())
+                    val frame = Frame(values, visible, enabled, resolved.toMap(),
+                        itemValues.mapValues { (_, stack) -> stack.amount })
                     val text = CompositeText(assets)
                     val view =
                         if (session.current().spec.mode == PageMode.NATIVE) {
@@ -687,6 +692,7 @@ internal class RafterEngine(
                     if (
                         page.spec.mode == PageMode.CANVAS &&
                             page.spec.components.isEmpty() &&
+                            view.canvasItems.isEmpty() &&
                             page.spec.frame == null &&
                             page.spec.modal == null
                     ) {

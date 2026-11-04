@@ -98,12 +98,15 @@ object ModalAssets {
             if (layouts.isEmpty()) emptyList()
             else
                 snapshot.menus.values
+                    .filter { menu -> menu.pages.values.any { it.spec.modal != null } }
                     .flatMap { menu ->
                         menu.pages.values
                             .filter {
                                 it.spec.mode == PageMode.CANVAS &&
                                     it.spec.modal == null &&
-                                    it.spec.components.isEmpty()
+                                    it.spec.components.isEmpty() &&
+                                    it.spec.frame == null &&
+                                    it.scene.none { node -> node.node.content is NodeContent.Item }
                             }
                             .map { ModalBackdropLayout(it.spec.width, it.height) }
                     }

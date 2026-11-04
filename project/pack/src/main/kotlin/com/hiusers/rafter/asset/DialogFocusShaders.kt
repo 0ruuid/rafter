@@ -93,7 +93,8 @@ object DialogFocusShaders {
                     .toSortedMap()
                     .values
                     .filter {
-                        it.spec.mode == PageMode.CANVAS && it.spec.components.isEmpty()
+                        it.spec.mode == PageMode.CANVAS && it.spec.components.isEmpty() &&
+                            it.scene.none { placed -> placed.node.content is NodeContent.Item }
                     }
                     .map { page ->
                         CanvasFocusLayout(
@@ -250,6 +251,7 @@ object DialogFocusShaders {
             )
         val enabled = profiles.filter {
             active(catalog) ||
+                (catalog.canvasItems.isNotEmpty() && it.directory == "rafter_v260200") ||
                 ((catalog.dialogFrames.isNotEmpty() ||
                     catalog.modalFrames.isNotEmpty() ||
                     catalog.modalBackdrops.isNotEmpty()) &&

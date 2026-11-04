@@ -90,7 +90,7 @@ class ContractDescriptorTest {
             assertFalse("schema-version" in assertIs<List<*>>(schema["required"]))
             assertEquals(false, schema["additionalProperties"])
         }
-        assertEquals(13, AuthoringContract.VERSION)
+        assertEquals(14, AuthoringContract.VERSION)
         val service = objectValue(manifest["service-api"])
         assertEquals("node-row-record-or-null", service["item-context"])
         assertEquals("client-flow-template-rows", service["native-lists"])
@@ -278,7 +278,7 @@ class ContractDescriptorTest {
             )
         }
         assertFalse("input" in Contract.modes.getValue("canvas"))
-        assertFalse("item" in Contract.modes.getValue("canvas"))
+        assertTrue("item" in Contract.modes.getValue("canvas"))
         assertFalse("row" in Contract.modes.getValue("native"))
         assertFalse("toggle" in Contract.modes.getValue("native"))
     }

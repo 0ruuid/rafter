@@ -21,7 +21,11 @@ class AuthoringPipelineTest {
             MenuRepository(
                     root,
                     { error("Unexpected script") },
-                    { _, _, _ -> error("Unexpected provider") },
+                    { kind, key, args ->
+                        check(kind == "item" && key.startsWith("minecraft:") && args.isEmpty()) {
+                            "Unexpected external provider"
+                        }
+                    },
                 )
                 .load()
         return assertNotNull(loaded.candidate, loaded.diagnostics.joinToString("\n"))
@@ -48,6 +52,7 @@ class AuthoringPipelineTest {
                     PreviewScenario(form = mapOf("input" to "Player")),
                 ),
                 Triple("rafter:tasks", "journal", PreviewScenario()),
+                Triple("rafter:items", "grid", PreviewScenario()),
             )) {
             val output = PreviewRenderer.write(root, candidate, menu, page, scenario)
             val image = assertNotNull(ImageIO.read(output.resolve("preview.png").toFile()))

@@ -3,6 +3,7 @@ package com.hiusers.rafter.render
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import com.hiusers.rafter.asset.TextOffsets
+import com.hiusers.rafter.asset.CanvasItemRoute
 import com.hiusers.rafter.compile.LayoutCompiler
 import com.hiusers.rafter.model.ActionSpec
 import com.hiusers.rafter.model.BindingSpec
@@ -26,7 +27,10 @@ import taboolib.module.chat.ComponentText
 import taboolib.module.chat.Components
 
 /** 与协议无关的文本片段，CUSTOM 元数据仅在发送边界绑定。 */
-data class Fragment(val text: ComponentText, val handle: String? = null)
+data class Fragment(val text: ComponentText, val handle: String? = null, val hoverItem: String? = null)
+
+/** 静态载体与本帧可见性分离，隐藏行不改变后续物品的传输位置。 */
+data class CanvasItem(val node: NodeSpec, val route: CanvasItemRoute, val visible: Boolean)
 
 /** 正文文字、图片和物品共用顺序；输入与页脚独立。 */
 sealed interface RenderBody
@@ -53,6 +57,7 @@ data class DialogView(
     val columns: Int,
     val fallbackTitle: ComponentText? = null,
     val modal: Boolean = false,
+    val canvasItems: List<CanvasItem> = emptyList(),
 ) {
     /** 类型化只读投影，正文顺序仅由 [bodies] 决定。 */
     val messages: List<Message>
@@ -67,6 +72,7 @@ data class Frame(
     val visible: Map<String, Boolean>,
     val enabled: Map<String, Boolean>,
     val resolvedNodes: Map<String, NodeSpec> = emptyMap(),
+    val itemCounts: Map<String, Int> = emptyMap(),
 )
 
 /** 读取编译页面与已签发能力，不修改会话或授权目标。 */
@@ -193,6 +199,7 @@ object CanvasRenderer {
         val handle: String?,
         val tooltip: ComponentText?,
         val capturesClick: Boolean,
+        val item: String? = null,
     )
 
     /** 协议字体别名已合并位移，不重复叠加父级偏移。 */
@@ -337,21 +344,43 @@ object CanvasRenderer {
                                 )
                             }
                         NodeContent.HitArea -> Unit
+                        is NodeContent.Item -> {
+                            val amount = frame.itemCounts[node.id] ?: 1
+                            if (content.showCount && amount > 1) {
+                                val count = text.literal(amount.toString())
+                                val height = text.bounds(count).second
+                                val y = box.y + box.height - height
+                                val row = y / CanvasGeometry.ROW_HEIGHT * CanvasGeometry.ROW_HEIGHT
+                                draw(box.x + box.width - text.width(count), row,
+                                    text.offsetY(count, y - row))
+                            }
+                        }
                         else -> error("Unsupported canvas element ${node.type}")
                     }
                     if (
                         node.content == NodeContent.HitArea ||
                             node.clickable ||
-                            node.tooltip != null
+                            node.tooltip != null ||
+                            (node.content as? NodeContent.Item)?.showTooltip == true
                     ) {
                         // 禁用的上层区域仍遮挡底层点击；悬停和点击分别处理。
                         val handle = if (frame.enabled[node.id] == true) handles[node.id] else null
+                        val followedItem = node.hitTarget?.takeIf { frame.visible[it] == true }
+                            ?.let { id -> frame.resolvedNodes[id]
+                                ?: page.scene.firstOrNull { it.node.id == id }?.node }
+                        val itemHover = when {
+                            node.tooltip != null -> null
+                            (node.content as? NodeContent.Item)?.showTooltip == true -> node.id
+                            (followedItem?.content as? NodeContent.Item)?.showTooltip == true -> followedItem.id
+                            else -> null
+                        }
                         hits +=
                             Hit(
                                 box,
                                 handle,
                                 node.tooltip?.let { text.render(it, frame.values) },
                                 node.clickable,
+                                itemHover,
                             )
                     }
                     box
@@ -415,7 +444,7 @@ object CanvasRenderer {
                 fragments += Fragment(text.spaces(left - cursor))
                 val segment = text.spaces(right - left)
                 hoverOwner?.tooltip?.let(segment::hoverText)
-                fragments += Fragment(segment, clickOwner?.handle)
+                fragments += Fragment(segment, clickOwner?.handle, hoverOwner?.item)
                 cursor = right
             }
             fragments += Fragment(text.spaces(lineWidth - EDGE_INSET - cursor))
@@ -428,6 +457,13 @@ object CanvasRenderer {
         val canvas = Message(fragments, CanvasGeometry.bodyWidth(page.spec.width))
         val combined =
             native.copy(
+                canvasItems = text.assets.canvasItems
+                    .filter { it.menu == session.menu.spec.id && it.page == page.spec.id }
+                    .map { route ->
+                        val node = frame.resolvedNodes[route.node]
+                            ?: page.scene.first { it.node.id == route.node }.node
+                        CanvasItem(node, route, frame.visible[route.node] == true && route.node !in hiddenUnderlay)
+                    },
                 bodies =
                     when (page.spec.nativeBodyPosition) {
                         NativeBodyPosition.BEFORE_CANVAS -> native.bodies + canvas

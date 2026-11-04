@@ -143,7 +143,8 @@ object DialogFrameShaders {
         if (!active(catalog)) return metadata
         val enabled =
             DialogFocusShaders.profiles.filter {
-                DialogFocusShaders.active(catalog) || it in supportedProfiles
+                DialogFocusShaders.active(catalog) || it in supportedProfiles ||
+                    (catalog.canvasItems.isNotEmpty() && it.directory == "rafter_v260200")
             }
         return metadata + ("overlays" to mapOf("entries" to enabled.map { it.overlay() }))
     }

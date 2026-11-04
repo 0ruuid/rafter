@@ -144,6 +144,7 @@ class UiSession(
                     require(
                         currentPage.mode == PageMode.CANVAS &&
                             currentPage.components.isEmpty() &&
+                            currentPage.elements.none { it.content is NodeContent.Item } &&
                             currentPage.frame == null
                     ) {
                         "A modal requires a visible Canvas origin"

@@ -1,0 +1,17 @@
+{
+  "providers": [
+    {
+      "type": "space",
+      "advances": {
+        "\ue001": 30
+      }
+    },
+    {
+      "type": "bitmap",
+      "file": "rafterprobe:font/hit.png",
+      "height": 9,
+      "ascent": 7,
+      "chars": ["\ue002"]
+    }
+  ]
+}

@@ -58,6 +58,8 @@ data class AssetCatalog(
     val modalBackdrops: List<ModalBackdropLayout> = emptyList(),
     val modalFrames: Map<String, DialogFrameGlyph> = emptyMap(),
     val textOffsets: Set<Int> = TextOffsets.OFFSETS.toSet(),
+    val canvasItems: List<CanvasItemRoute> = emptyList(),
+    val canvasItemBaseFingerprint: String? = null,
 ) {
     fun dimensions() = images.mapValues { (_, glyph) -> glyph.width to glyph.height }
 

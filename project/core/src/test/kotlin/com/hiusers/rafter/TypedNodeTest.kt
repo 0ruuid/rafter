@@ -31,7 +31,10 @@ class TypedNodeTest {
                 mapOf("id" to "range", "type" to "slider", "state" to "number", "step" to 5),
                 mapOf("id" to "button", "type" to "button", "actions" to emptyList<Any>()),
             )
-        assertEquals(NodeKind.entries.map { it.id }.toSet() + "template", Contract.nodes.keys)
+        assertEquals(
+            NodeKind.entries.map { it.id }.toSet() + setOf("group", "list", "template"),
+            Contract.nodes.keys,
+        )
         val menu = compiled(minimal(components = nodes))
         val actual = menu.pages.getValue("main").spec.nodes
         assertSame(NodeContent.Text, actual[0].content)
@@ -206,7 +209,7 @@ class TypedNodeTest {
         val preview = AuthoringContract.previewData(snapshot)
         val manifest = AuthoringContract.manifest("0.0.2", emptyMap())
         assertEquals(before, validations)
-        assertEquals(11, manifest["contract-version"])
+        assertEquals(AuthoringContract.VERSION, manifest["contract-version"])
         assertTrue(preview.toString().contains("explicit-stubs-required"))
         assertTrue(manifest.toString().contains("disabled"))
         val native = AuthoringContract.layouts(snapshot).toString()

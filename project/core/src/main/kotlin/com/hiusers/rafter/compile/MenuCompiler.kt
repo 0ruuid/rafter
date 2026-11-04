@@ -371,6 +371,10 @@ class MenuCompiler(
             fun inspect(base: NodeSpec, native: Boolean) {
                 base.variants.forEach { variant ->
                     val branch = variant.node
+                    val baseItem = base.content as? NodeContent.Item
+                    val branchItem = branch.content as? NodeContent.Item
+                    if (baseItem != null && branchItem != null && baseItem.size != branchItem.size)
+                        failNode(branch, "LAYOUT", "Variant item size must match the base")
                     if (
                         base.content is NodeContent.Image &&
                             imageSize(base, native) != imageSize(branch, native)
@@ -661,6 +665,9 @@ class MenuCompiler(
                             authoredPage["skin"] as? String,
                         )
                     if (page.modal != null) {
+                        page.elements.firstOrNull { it.content is NodeContent.Item }?.let {
+                            failNode(it, "CAPABILITY", "Canvas items are not supported in modals")
+                        }
                         if (page.height != null)
                             fail(
                                 "$path.height",
@@ -802,6 +809,12 @@ class MenuCompiler(
                     node,
                     "CAPABILITY",
                     "A modal requires a pure Canvas page without a viewport frame, or a current modal layer",
+                )
+            if (page.elements.any { it.content is NodeContent.Item })
+                failNode(
+                    node,
+                    "CAPABILITY",
+                    "A Canvas page containing items cannot open a native modal",
                 )
             canvasText(page.title, SourcePath.field("$.pages", page.id) + ".title")
         }
@@ -1452,6 +1465,8 @@ class MenuCompiler(
             if (type !in Contract.nodes) fail(path, "UNKNOWN_TYPE", "Unknown component $type")
             if (type !in Contract.modes[mode.name.lowercase()]!!)
                 fail(path, "CAPABILITY", "$type is not available in $mode")
+            if (mode == PageMode.CANVAS && type == "item" && currentPopup != null)
+                fail(path, "CAPABILITY", "Canvas items are not supported in popups")
             val fields = Contract.fields(type, mode.name.lowercase())
             Contract.check(input, fields, file, path)
             // 仅作者显式填写的多行选项需要 multiline；单行也会注入默认值。
@@ -1633,7 +1648,13 @@ class MenuCompiler(
                             m["fill"] as String,
                             m["track"] as String,
                         )
-                    "item" -> NodeContent.Item(m["item"] as String)
+                    "item" ->
+                        NodeContent.Item(
+                            reference = m["item"] as String,
+                            size = integer("size", 18),
+                            showCount = m["show-count"] as? Boolean ?: true,
+                            showTooltip = m["show-tooltip"] as? Boolean ?: true,
+                        )
                     "button" ->
                         NodeContent.Button(
                             Values.list(actions),

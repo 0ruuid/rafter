@@ -4,6 +4,8 @@
   "files": [
     "config.yml",
     "core/menus/friends.yml",
+    "core/menus/items.yml",
+    "core/ui/templates/items/slot.yml",
     "core/ui/theme.yml",
     "core/ui/fonts/rafter-mono.ttf",
     "core/ui/fonts/rafter-mono.license",

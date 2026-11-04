@@ -64,10 +64,26 @@ pages:
 
 Canvas 中的原生控件按客户端规则排列，见[布局与交互](rendering.md)。完整示例见[好友菜单](../project/bukkit/src/main/resources/core/menus/friends.yml)和[任务菜单](../project/bukkit/src/main/resources/core/menus/tasks.yml)。
 
+Canvas 物品叶节点沿用普通 `group`、`list`、`template` 和 `slots`，不使用物品专用网格。最小示例：
+
+```yaml
+- id: diamond
+  type: item
+  item: minecraft:diamond
+  size: 36
+  show-count: true
+  show-tooltip: true
+  x: 189
+  y: 45
+```
+
+Canvas 的 `size` 只能取 18 的整数倍且不超过 864；`y` 按 9px 对齐，`x` 不要求对齐。`item` 也可写已注册提供器引用；纯 vanilla 示例无需提供器。Native 物品不接受 `size` 或 `show-count`，只接受新增的 `show-tooltip`；原版 `show_decorations` 无法只控制数量。
+
 ## 数据与条件
 
 - 本地数据声明 `id` 和 `items`，每条记录使用稳定 ID；列表选择保存记录 ID。
 - `list` 支持分页、过滤和子集合。Canvas 可用行高或显式槽位；原生 `components` 列表按流排版，不接受 `x`、`y`、`slots`、`row-height`。
+- 普通静态列表数据写在 `core/data`，菜单用 `data` 的 `type: document` 和 `key` 引用；当前 schema 不添加未定义的 `menu.documents` 字段。
 - 可绑定 `args`、`state`、当前行、选中记录、列表统计和业务提供器。本地记录修改会话副本，外部数据通过业务动作更新。
 - 条件支持 `equals`、`at-least`、`all`、`any`、`not`、`kether`。比较条件在 `value` 与 `compare` 中二选一；显式 `null` 与未填写不同。
 - 变体使用第一个匹配项，未命中时使用基础定义。变体可调整显示和行为，不改变 ID 和布局；点击时重新检查权限、条件、变体和表单。
@@ -88,3 +104,5 @@ Canvas 中的原生控件按客户端规则排列，见[布局与交互](renderi
 | 字体、图片、尺寸或生成布局 | `/rafter pack`，然后更新客户端资源包 |
 
 加载或构包失败时继续使用上一份有效配置。成功更新会关闭旧会话，未提交表单不迁移。已有自定义文件不会被默认配置覆盖。
+
+内置 `/rafter open rafter:items` 演示单件放大、单排、网格、不规则位置和双独立分页，好友菜单仍是默认入口。全局最多 128 个物品编译路由通道，几何冲突可能提前耗尽。物品页须整体放入视口，不支持滚动、item popup 或原生 modal 承载。

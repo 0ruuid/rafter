@@ -1,6 +1,7 @@
 package com.hiusers.rafter
 
 import com.hiusers.rafter.asset.AssetCompiler
+import com.hiusers.rafter.asset.AutoAssets
 import com.hiusers.rafter.model.NodeContent
 import com.hiusers.rafter.model.NodeSpec
 import com.hiusers.rafter.model.TextSpec
@@ -24,7 +25,7 @@ class DialogInputProtocolTest {
         Components.useAdventure = true
         val ui = root.resolve("core/ui")
         copyLegacyUiTo(ui)
-        val text = CompositeText(AssetCompiler.compile(ui, legacyUiDocument()))
+        val text = CompositeText(AssetCompiler.compile(ui, AutoAssets.document(ui)))
         val label = Components.text("Input", color = false)
         val inputs =
             listOf(

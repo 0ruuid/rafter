@@ -115,7 +115,8 @@ object Contract {
                     "list",
                     "template",
                 ),
-            "canvas" to setOf("text", "image", "meter", "hit-area", "group", "list", "template"),
+            "canvas" to
+                setOf("text", "image", "meter", "hit-area", "item", "group", "list", "template"),
         )
     val settings =
         linkedMapOf(
@@ -389,6 +390,8 @@ object Contract {
             "color",
             "asset",
             "item",
+            "show-count",
+            "show-tooltip",
             "actions",
             "enabled",
             "skin",
@@ -506,7 +509,11 @@ object Contract {
                             "fill" to color.copy(default = "#FFFFFF"),
                             "track" to color.copy(default = "#333333"),
                         ),
-                    "item" to fields("item" to Field("string", true)),
+                    "item" to
+                        fields(
+                            "item" to Field("string", true),
+                            "show-tooltip" to Field("boolean", default = true),
+                        ),
                     "button" to
                         fields(
                             "actions" to Field("actions", true),
@@ -586,11 +593,14 @@ object Contract {
             return if (mode == "canvas")
                 fields + mapOf("x" to common.getValue("x"), "y" to common.getValue("y"))
             else fields
-        if (mode == "native")
-            return fields -
-                (setOf("x", "y", "color", "label-offset") +
+        if (mode == "native") {
+            val ignored =
+                setOf("x", "y", "color", "label-offset") +
                     (if (type == "image") emptySet() else setOf("height")) +
-                    if (type == "button") setOf("asset") else emptySet())
+                    (if (type == "button") setOf("asset") else emptySet()) +
+                    (if (type == "item") setOf("show-count") else emptySet())
+            return fields - ignored
+        }
         val canvas =
             fields +
                 mapOf(
@@ -611,6 +621,20 @@ object Contract {
                             Field("string", values = listOf("error", "clip"), default = "error"),
                     )
             "hit-area" -> canvas - setOf("text", "style")
+            "item" ->
+                (canvas +
+                    mapOf(
+                        "show-count" to Field("boolean", default = true),
+                        "size" to
+                            Field(
+                                "integer",
+                                minimum = 18,
+                                maximum = 864,
+                                multipleOf = 18,
+                                default = 18,
+                                code = "LAYOUT",
+                            )
+                    )) - setOf("text", "font", "font-size", "style", "width", "height")
             else -> canvas
         }
     }
@@ -1489,6 +1513,16 @@ object Contract {
                     "providers" to "page-dependencies-read-once-per-frame",
                     "script-item" to "readonly-record",
                 ),
+            "native-items" to
+                mapOf(
+                    "placement" to "native-body-flow",
+                    "canvas-coordinates" to false,
+                    "components" to "server-codec-snapshot",
+                    "count-min" to NativeGeometry.ITEM_MIN_COUNT,
+                    "count-max" to NativeGeometry.ITEM_MAX_COUNT,
+                    "tooltip" to "native-item-stack",
+                    "resource-pack" to "client-loaded-assets-required-for-custom-models",
+                ),
             "components" to nodes.mapValues { (_, fields) -> describe(fields) },
             "capabilities" to
                 modes.mapValues { (mode, allowed) ->
@@ -1542,6 +1576,36 @@ object Contract {
                             it !in setOf("template", "group", "list")
                         },
                     "authoring-types" to listOf("group", "list", "template"),
+                    "items" to
+                        mapOf(
+                            "resource-pack" to "26.2-required",
+                            "page" to
+                                "standalone-canvas-without-native-components-or-frame",
+                            "placement" to "static-x-and-9px-y",
+                            "bounds" to "static-size-by-size-frame-including-count-reservation",
+                            "data" to "native-item-component-snapshot",
+                            "layout" to "reuses-canvas-layout-compiler",
+                            "carrier" to mapOf("height" to 10, "gap" to 10),
+                            "channel-limit" to 128,
+                            "viewport" to "finite-complete-fit-no-scroll",
+                            "minimum-gui-height" to
+                                "63 + itemCount*20 + canvasHeight+8 + 30 + 5",
+                            "containers" to
+                                mapOf(
+                                    "main-scene" to "supported",
+                                    "popup" to "item-not-hosted;covering-overlay-requires-hide-underlay",
+                                    "modal" to "not-supported",
+                                ),
+                            "count-overlay" to "read-only-actual-stack-count",
+                            "durability-bar" to false,
+                            "cooldown-overlay" to false,
+                            "tooltip" to "native-show-item-or-explicit-text",
+                            "hover-appearance" to "tooltip-only",
+                            "layering" to "native-model-layer-no-arbitrary-occlusion-or-clipping",
+                            "static" to listOf("x", "y", "size", "layout", "capacity"),
+                            "dynamic" to listOf("item-provider-result", "visible", "enabled", "variant", "page", "selection"),
+                            "actions" to listOf("single-click"),
+                        ),
                     "native-component-types" to modes.getValue("native").toList(),
                     "native-layout-owner" to "native-client",
                     "native-layout-order" to listOf("body", "inputs", "actions"),

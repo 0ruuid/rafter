@@ -40,7 +40,7 @@ TabooLib 插件可在 ENABLE 注册提供器，菜单在 ACTIVE 加载。提前�
 `UiOpenOptions` 需要 Rafter `0.0.4+`：
 
 - `initialState`：已声明状态的初始补丁，默认空。接收时深拷贝并冻结，全部校验通过后一起写入，在首次提供器读取前生效。
-- `initialPage`：菜单内已有的目标页，默认使用 `entry`。普通页可为 native 或 Canvas；目标为 modal 时，入口须为不含原生控件、无 frame 的纯 Canvas。
+- `initialPage`：菜单内已有的目标页，默认使用 `entry`。普通页可为 native 或 Canvas；目标为 modal 时，入口须为不含原生控件和物品节点、无 frame 的纯 Canvas。
 - 直接打开 modal 会先发送入口 Canvas 并捕获背景，再打开目标表单，沿用同一会话 ID。两阶段共用渲染时限。
 - 参数、初始状态或目标页校验失败时保留旧会话。初始化被关闭、替换、重载或超时后，迟到结果失效。
 
@@ -55,7 +55,7 @@ modal 之间用 `open-page` 同层替换，复用背景，不追加历史。表�
 - `service-api.open.initial-modal`: `present-entry-canvas-then-modal`
 - `service-api.open.completion`: `final-target-sent`
 - `native-modal.replacement`: `same-layer-reuse-backdrop-no-history-push`
-- `contract-version`: `13`
+- `contract-version`: `14`
 
 界面操作可跨线程发起，但后台不能读取 Player，也不要阻塞等待 Future。完成回调不保证位于主线程。
 
@@ -85,6 +85,10 @@ modal 之间用 `open-page` 同层替换，复用背景，不追加历史。表�
 `UiContext` 包含 `player`、`sessionId`、`menu`、`page`、`args`、`state`、`form` 和当前行 `item`，集合为只读快照。
 
 列表中的 ItemProvider 取得各节点自己的行记录，非列表节点的 `item` 为 `null`，可通过 `state` 或 `args` 展示选中项。ItemStack 只通过 ItemProvider 返回，不能放入 DataProvider。
+
+物品以服务端完整组件快照发送，保留模型、名称、Lore、附魔和耐久；自定义模型需客户端加载对应资源包。物品须非空、数量为 `1..99`，不改变真实堆叠上限。
+
+Native 按原生正文排列；Canvas 的 `item` 使用编译坐标和 `size`，复用 group、list、template 与 slots，默认显示真实物品 tooltip，数量文字只读。能力和限制见 `contract()["canvas"]["items"]`，各页最小 GUI 尺寸见资源包的 `item-layouts.json`。
 
 ## 动作结果
 

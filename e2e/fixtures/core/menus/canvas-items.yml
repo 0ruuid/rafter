@@ -1,0 +1,330 @@
+id: rafterprobe:canvas-items
+entry: grid
+state:
+  page: 0
+  selected: ""
+  left-page: 0
+  right-page: 0
+  left-selected: ""
+  right-selected: ""
+  last-click: ""
+  hint: ""
+data:
+  rows:
+    type: data
+    key: rafterprobe:rows
+  left:
+    type: data
+    key: rafterprobe:left
+  right:
+    type: data
+    key: rafterprobe:right
+pages:
+  grid:
+    mode: canvas
+    title: ""
+    width: 648
+    height: 180
+    elements:
+      - id: title
+        type: text
+        x: 18
+        y: 9
+        text: "18 real items"
+      - id: free-label
+        type: text
+        x: 240
+        y: 9
+        text: Free
+      - id: free
+        type: hit-area
+        x: 240
+        y: 9
+        width: 60
+        height: 18
+        actions:
+          - type: open-page
+            page: free
+      - id: regions-label
+        type: text
+        x: 320
+        y: 9
+        text: Regions
+      - id: regions
+        type: hit-area
+        x: 320
+        y: 9
+        width: 60
+        height: 18
+        actions:
+          - type: open-page
+            page: regions
+      - id: large-label
+        type: text
+        x: 420
+        y: 9
+        text: Large
+      - id: large
+        type: hit-area
+        x: 420
+        y: 9
+        width: 60
+        height: 18
+        actions:
+          - type: open-page
+            page: large
+      - id: page-next-label
+        type: text
+        x: 540
+        y: 9
+        text: Next
+      - id: page-next
+        type: hit-area
+        x: 540
+        y: 9
+        width: 60
+        height: 18
+        actions:
+          - type: page-list
+            list: models
+            step: 1
+      - id: models
+        type: list
+        x: 18
+        y: 45
+        source: rows
+        template: rafterprobe:slot
+        page-state: page
+        selection-state: selected
+        slots:
+          - x: 0
+            y: 0
+          - x: 54
+            y: 0
+          - x: 108
+            y: 0
+          - x: 162
+            y: 0
+          - x: 216
+            y: 0
+          - x: 270
+            y: 0
+          - x: 324
+            y: 0
+          - x: 378
+            y: 0
+          - x: 432
+            y: 0
+          - x: 0
+            y: 54
+          - x: 54
+            y: 54
+          - x: 108
+            y: 54
+          - x: 162
+            y: 54
+          - x: 216
+            y: 54
+          - x: 270
+            y: 54
+          - x: 324
+            y: 54
+          - x: 378
+            y: 54
+          - x: 432
+            y: 54
+      - id: result
+        type: text
+        x: 18
+        y: 153
+        width: 600
+        overflow: clip
+        text:
+          format: literal
+          binding:
+            type: state
+            key: hint
+  free:
+    mode: canvas
+    title: ""
+    width: 648
+    height: 180
+    elements:
+      - id: title
+        type: text
+        x: 18
+        y: 9
+        text: "Independent positions"
+      - id: grid-label
+        type: text
+        x: 540
+        y: 9
+        text: Grid
+      - id: grid
+        type: hit-area
+        x: 540
+        y: 9
+        width: 60
+        height: 18
+        actions:
+          - type: open-page
+            page: grid
+      - id: free-0
+        type: item
+        item: rafterprobe:items#custom
+        size: 54
+        x: 36
+        y: 45
+      - id: free-1
+        type: item
+        item: rafterprobe:items#diamond
+        size: 36
+        x: 180
+        y: 81
+      - id: free-2
+        type: item
+        item: rafterprobe:items#tool
+        size: 18
+        x: 360
+        y: 27
+      - id: free-3
+        type: item
+        item: rafterprobe:items#block
+        size: 36
+        x: 450
+        y: 117
+  large:
+    mode: canvas
+    title: ""
+    width: 648
+    height: 180
+    elements:
+      - id: title
+        type: text
+        x: 18
+        y: 9
+        text: "Large real item"
+      - id: grid-label
+        type: text
+        x: 540
+        y: 9
+        text: Grid
+      - id: grid
+        type: hit-area
+        x: 540
+        y: 9
+        width: 60
+        height: 18
+        actions:
+          - type: open-page
+            page: grid
+      - id: large-item
+        type: item
+        item: rafterprobe:items#custom
+        size: 72
+        x: 180
+        y: 45
+  regions:
+    mode: canvas
+    title: ""
+    width: 648
+    height: 216
+    elements:
+      - id: title
+        type: text
+        x: 18
+        y: 9
+        text: "Independent sources"
+      - id: grid-label
+        type: text
+        x: 540
+        y: 9
+        text: Grid
+      - id: grid
+        type: hit-area
+        x: 540
+        y: 9
+        width: 60
+        height: 18
+        actions:
+          - type: open-page
+            page: grid
+      - id: left-page-next-label
+        type: text
+        x: 210
+        y: 9
+        text: Next
+      - id: left-page-next
+        type: hit-area
+        x: 210
+        y: 9
+        width: 60
+        height: 18
+        actions:
+          - type: page-list
+            list: left-items
+            step: 1
+      - id: right-page-next-label
+        type: text
+        x: 450
+        y: 9
+        text: Next
+      - id: right-page-next
+        type: hit-area
+        x: 450
+        y: 9
+        width: 60
+        height: 18
+        actions:
+          - type: page-list
+            list: right-items
+            step: 1
+      - id: left-items
+        type: list
+        x: 18
+        y: 45
+        source: left
+        template: rafterprobe:slot
+        page-state: left-page
+        selection-state: left-selected
+        slots:
+          - x: 0
+            y: 0
+          - x: 54
+            y: 0
+          - x: 108
+            y: 0
+          - x: 0
+            y: 54
+          - x: 54
+            y: 54
+          - x: 108
+            y: 54
+      - id: right-items
+        type: list
+        x: 360
+        y: 45
+        source: right
+        template: rafterprobe:slot
+        page-state: right-page
+        selection-state: right-selected
+        slots:
+          - x: 0
+            y: 0
+          - x: 72
+            y: 0
+          - x: 0
+            y: 72
+          - x: 90
+            y: 72
+      - id: result
+        type: text
+        x: 18
+        y: 189
+        width: 600
+        overflow: clip
+        text:
+          format: literal
+          binding:
+            type: state
+            key: hint

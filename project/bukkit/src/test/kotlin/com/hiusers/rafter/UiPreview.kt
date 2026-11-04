@@ -109,8 +109,12 @@ object UiPreview {
                     caption(text.render(node.text, values), box.x.toDouble(), box.y)
                 is ClickContent -> error("Native controls are not canvas visuals")
                 NodeContent.HitArea -> Unit
-                is FormContent,
-                is NodeContent.Item -> error("Not a canvas preview component: ${node.type}")
+                is NodeContent.Item -> {
+                    g.color = Color.GRAY
+                    g.drawRect(box.x, box.y, box.width - 1, box.height - 1)
+                    caption(text.literal("item"), box.x.toDouble(), box.y)
+                }
+                is FormContent -> error("Not a canvas preview component: ${node.type}")
             }
         }
         g.dispose()

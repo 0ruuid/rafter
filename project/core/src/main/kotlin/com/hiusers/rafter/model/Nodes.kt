@@ -74,7 +74,12 @@ sealed interface NodeContent {
         override val kind = NodeKind.METER
     }
 
-    data class Item(val reference: String) : NodeContent {
+    data class Item(
+        val reference: String,
+        val size: Int = 18,
+        val showCount: Boolean = true,
+        val showTooltip: Boolean = true,
+    ) : NodeContent {
         override val kind = NodeKind.ITEM
     }
 

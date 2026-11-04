@@ -21,7 +21,7 @@ data class FrozenCanvas(
             require(
                 page.spec.components.isEmpty() && page.spec.frame == null && page.spec.modal == null
             )
-            require(view.bodies.size == 1 && view.inputs.isEmpty())
+            require(view.bodies.size == 1 && view.inputs.isEmpty() && view.canvasItems.isEmpty())
             val width = ceil(text.width(view.title)).toInt()
             require(width in 0..864) { "Canvas title cannot be measured for a modal backdrop" }
             return FrozenCanvas(

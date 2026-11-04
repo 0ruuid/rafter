@@ -307,6 +307,7 @@ object PreviewRenderer {
                             )
                         }
                         NodeContent.HitArea -> Unit
+                        is NodeContent.Item -> widget(g, node, box, regions)
                         else -> error("Unexpected canvas component ${node.type}")
                     }
                     if (

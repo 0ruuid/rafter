@@ -112,7 +112,7 @@ class NativeModalSmokeTest {
             MenuRepository(
                     root,
                     { error("Unexpected script") },
-                    { _, _, _ -> error("Unexpected provider") },
+                    ::checkStaticItemReference,
                     { Yaml(SafeConstructor(LoaderOptions())).load(it) },
                 )
                 .load()
