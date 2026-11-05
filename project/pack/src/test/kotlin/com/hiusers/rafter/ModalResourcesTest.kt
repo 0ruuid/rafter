@@ -43,6 +43,31 @@ class ModalResourcesTest {
     private val backdrop = ModalBackdropLayout(256, 90)
 
     @Test
+    fun canvasOrderingBoundsAreInvisibleAndShareTheDeclaredAdvance() {
+        val root = fixture()
+        val catalog =
+            AssetCompiler.compile(
+                root,
+                AutoAssets.document(root),
+                modal = ModalAssets.Requests(emptyList(), listOf(backdrop)),
+            )
+        val pack = AssetCompiler.build(root, catalog, temp.resolve("bounds"))
+        val provider =
+            font(pack, ModalEncoding.BOUNDS_FONT).getAsJsonArray("providers")[0].asJsonObject
+        assertEquals(4096, provider.get("height").asInt)
+        assertEquals(7, provider.get("ascent").asInt)
+        assertEquals(
+            4097.0,
+            catalog.textWidth(ModalEncoding.BOUNDS_CHARACTER, font = ModalEncoding.BOUNDS_FONT),
+        )
+        val image =
+            ImageIO.read(pack.resolve("assets/rafter/textures/font/canvas_bounds.png").toFile())
+        assertEquals(2, image.width)
+        assertEquals(2, image.height)
+        for (y in 0..1) for (x in 0..1) assertEquals(0x01000000, image.getRGB(x, y))
+    }
+
+    @Test
     fun privateModalCopiesClearOnlyRequestedSourcePixelsAndKeepViewportArtworkUntouched() {
         val root = fixture()
         val original = Files.readAllBytes(root.resolve("images/dialogs/search.png"))

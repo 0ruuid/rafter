@@ -114,6 +114,10 @@ class CanvasItemsTest {
             )
         val hidden = view(false)
         val full = view(true)
+        assertTrue(
+            full.title.toRawMessage().contains("rafter:canvas_bounds"),
+            "Shader-moved Canvas paint must keep native CPU bounds ahead of item carriers",
+        )
         assertEquals(0.0, CompositeText(assets).width(full.title), full.title.toRawMessage())
         assertEquals(listOf(0, 1), hidden.canvasItems.map { it.route.row })
         assertEquals(listOf(true, false), hidden.canvasItems.map { it.visible })

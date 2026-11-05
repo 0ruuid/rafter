@@ -87,3 +87,26 @@ python3 e2e/calcite/check-integrated-evidence.py \
 python3 e2e/calcite/test_check_evidence.py
 python3 e2e/calcite/test_integrated_evidence.py
 ```
+
+## 不透明背景排序回归
+
+`item-opaque.yml` 与 `probe/opaque-item.yml` 使用同款不透明窗口、阅读区和槽位配件，四个真实物品通过测试提供器读取，坐标及数量与 2026-11-05 的报告一致。不安装业务插件，不访问数据库。
+
+固定截图名为 `opaque-page1`、`opaque-page2`、`opaque-modal`。两页物品为钻石／面包／指南针／苹果及铁锭／绿宝石／金锭／红石。使用同次服务端构包和完整 start→stop 记录后：
+
+检查器依赖 Pillow，未安装时先执行：
+
+```sh
+python3 -m pip install Pillow
+```
+
+```sh
+python3 -B e2e/calcite/opaque-requests.py \
+  --pack /absolute/run/artifacts/resource-pack > /absolute/run/requests.jsonl
+RAFTER_E2E_ROOT=/absolute/run node e2e/calcite/run.mjs < /absolute/run/requests.jsonl
+python3 -B e2e/calcite/check-opaque-evidence.py --run /absolute/run
+```
+
+检查器现在同时核对两页及冻结背景中的 12 个真实物品图标、原生按钮槽位、面板是否位于视口内和已加载 Shader 哈希；仍只适用于本夹具，不是通用识别器。原用户证据的四组截图中首格均失败；此前客户端启动曾被微软缓存登录 401 阻断，本轮曾返回 400 invalid_grant，均作为已解决的历史记录保留，重新授权后完成复测。2026-11-05 的 `opaque-modal-20261105-final-02` 在 Minecraft 26.2、640×480、同款不透明窗口／阅读区／槽位、`spool/pixel`、10px 下通过；102 项定向 JVM 回归、68 项 Shader 前端检查、38 项客户端检查及最终 API ABI 均通过。最终客户端审查确认细斜线消失，计数区域小三角消失，弹窗位置及冻结背景正常；上一轮 `opaque-modal-20261105-continue` 的细斜线失败截图及此前 `opaque-modal-20261105-final` 的多行计数占位小三角失败截图均原样另行保存，最终通过记录只使用 `final-02` 的同次 start→stop，不与失败轮合并。通道预留同时涵盖按钮九宫格与计数占位的纹理边缘，防止空白占位纹理角点被误路由为物品。
+
+`GuiLayerProbe.java` 可用本地 26.2 客户端 JAR 和已有依赖运行原生 CPU 排序算法。合成的原始边界产生层级 `[0,1,2,3]`，加入排序边界后变为 `[1,2,3,4]`；这不是 GPU 视觉验收。背景裁剪所需的额外高度现放到操作网格之后，前方仅保留真实载体所需的最小 inset；`final-02` 实机确认细斜线和计数区域小三角消失、弹窗位置及冻结背景正常，不能为了上移弹窗删除背景所需的原生裁剪范围。其余版本仍未完成实机验收，历史热更 OOM 仍未关闭。

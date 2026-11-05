@@ -1,0 +1,164 @@
+id: rafterprobe:item-opaque
+entry: home
+state:
+  page: 0
+  selected: ''
+  last-click: ''
+  hint: ''
+  query: Ready
+  message: "First line\nSecond line"
+data:
+  rows:
+    type: data
+    key: rafterprobe:opaque-rows
+pages:
+  home:
+    mode: canvas
+    title: ''
+    width: 560
+    height: 342
+    elements:
+      - id: window
+        type: image
+        asset: rafter:probe/opaque-window
+        width: 560
+        height: 342
+        fit: contain
+      - id: reader
+        type: image
+        asset: rafter:probe/opaque-reader
+        x: 244
+        y: 81
+      - id: title
+        type: text
+        x: 12
+        y: 12
+        text: Opaque Canvas
+      - id: dense-hit-bands
+        type: hit-area
+        x: 0
+        y: 9
+        width: 1
+        height: 333
+        actions:
+          - type: close
+      - id: models
+        type: list
+        x: 256
+        y: 252
+        source: rows
+        template: rafterprobe:opaque-slot
+        page-state: page
+        selection-state: selected
+        slots:
+          - {x: 0, y: 0}
+          - {x: 45, y: 0}
+          - {x: 90, y: 0}
+          - {x: 135, y: 0}
+      - id: previous
+        type: text
+        x: 444
+        y: 261
+        width: 28
+        height: 18
+        text: '<'
+        actions:
+          - type: page-list
+            list: models
+            step: -1
+      - id: next
+        type: text
+        x: 516
+        y: 261
+        width: 28
+        height: 18
+        text: '>'
+        actions:
+          - type: page-list
+            list: models
+            step: 1
+      - id: confirm
+        type: text
+        x: 444
+        y: 99
+        width: 90
+        height: 18
+        text: Confirm
+        actions:
+          - type: open-page
+            page: confirm
+      - id: form
+        type: text
+        x: 12
+        y: 315
+        width: 90
+        height: 18
+        text: Form
+        actions:
+          - type: open-page
+            page: form
+  confirm:
+    mode: canvas
+    title: ''
+    width: 256
+    columns: 2
+    modal:
+      asset: rafter:probe/modal-confirm
+      background: '#4A4B53'
+      top: 94
+      content-top: 87
+      button-gap: 12
+    elements:
+      - id: title
+        type: text
+        x: 4
+        y: 12
+        width: 220
+        text: Confirmation
+      - id: close
+        type: hit-area
+        x: 236
+        y: 1
+        width: 20
+        height: 27
+        actions:
+          - type: back
+    components:
+      - id: cancel
+        type: button
+        width: 112
+        skin:
+          asset: rafter:friends/buttons/cancel_default
+        text: Return
+        actions:
+          - type: back
+      - id: confirm
+        type: button
+        width: 112
+        skin:
+          asset: rafter:friends/buttons/confirm_search_default
+        text: Confirm
+        actions:
+          - type: back
+  form:
+    mode: canvas
+    skin: rafter:friends/add
+    params:
+      panel: rafter:probe/modal
+    content:
+      title:
+        text: Form
+      description:
+        text: Name
+      input:
+        state: query
+        max-length: 32
+      message:
+        text: Message
+        state: message
+        max-length: 120
+      confirm:
+        text: Save
+        actions:
+          - type: submit
+          - type: back

@@ -49,6 +49,11 @@ data class NativeModalLayout(
 
 /** 仅用于已适配 GUI Shader 的背景字体坐标域。 */
 object ModalEncoding {
+    const val BOUNDS_FONT = "rafter:canvas_bounds"
+    const val BOUNDS_CHARACTER = "\ue000"
+    const val BOUNDS_HEIGHT = 4096
+    const val BOUNDS_ADVANCE = BOUNDS_HEIGHT + 1
+    const val BOUNDS_ASCENT = 7
     const val X_BASE = 32768
     const val ROW_STRIDE = 2048
     const val FONT_Y_SHIFT = 256

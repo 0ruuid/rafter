@@ -715,7 +715,7 @@ class NativeModalCompilerTest {
             )) {
             Contract.check(fields, Contract.modal, "modal.yml", "$.pages.search.modal")
         }
-        assertEquals(13, AuthoringContract.VERSION)
+        assertEquals(16, AuthoringContract.VERSION)
     }
 
     @Test

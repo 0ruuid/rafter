@@ -54,7 +54,8 @@ object NativeModalRenderer {
                                 width = cell.nativeWidth,
                             )
                         val paint =
-                            ModalText.inertCell(
+                            if (cell.role == ModalCellRole.CLIP_SPACER) Components.empty()
+                            else ModalText.inertCell(
                                 text,
                                 cell.bounds.width,
                                 modal.background,

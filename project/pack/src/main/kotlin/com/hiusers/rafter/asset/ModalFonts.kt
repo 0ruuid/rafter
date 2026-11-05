@@ -9,7 +9,7 @@ import javax.imageio.ImageIO
 
 /** 相同背景尺寸共用位移字体，不按玩家或行复制 TTF。 */
 internal object ModalFonts {
-    const val VERSION = "native-modal-fonts-v7-shared"
+    const val VERSION = "native-modal-fonts-v8-ordering-bounds"
 
     fun manifest(catalog: AssetCatalog): Map<String, Any?> =
         mapOf(
@@ -24,6 +24,33 @@ internal object ModalFonts {
     fun write(stage: Path, catalog: AssetCatalog) {
         if (catalog.modalLayouts.isEmpty() && catalog.modalBackdrops.isEmpty()) return
         val fonts = stage.resolve("assets/rafter/font")
+        // 保留 CPU 字形边界；彩色和灰度文字通道均在片元阶段丢弃。
+        val bounds = BufferedImage(2, 2, BufferedImage.TYPE_INT_ARGB)
+        for (y in 0..1) for (x in 0..1) bounds.setRGB(x, y, 0x01000000)
+        check(
+            ImageIO.write(
+                bounds,
+                "png",
+                stage.resolve("assets/rafter/textures/font/canvas_bounds.png").toFile(),
+            )
+        ) {
+            "PNG writer unavailable"
+        }
+        Json.write(
+            fonts.resolve("canvas_bounds.json"),
+            mapOf(
+                "providers" to
+                    listOf(
+                        mapOf(
+                            "type" to "bitmap",
+                            "file" to "rafter:font/canvas_bounds.png",
+                            "height" to ModalEncoding.BOUNDS_HEIGHT,
+                            "ascent" to ModalEncoding.BOUNDS_ASCENT,
+                            "chars" to listOf(ModalEncoding.BOUNDS_CHARACTER),
+                        )
+                    )
+            ),
+        )
         val thin = BufferedImage(1, 20, BufferedImage.TYPE_INT_ARGB)
         for (y in 0 until thin.height) thin.setRGB(0, y, 0xffffffff.toInt())
         check(

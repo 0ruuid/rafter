@@ -2817,6 +2817,57 @@ class RuntimeTest {
     }
 
     @Test
+    fun frozenCanvasClippingDoesNotPushTheModalControlsDown() {
+        val candidate = modalCandidate(canvasItemEntry = true)
+        val origin = CanvasItems.key("test:form", "home")
+        for (id in listOf("confirm", "form")) {
+            val page = candidate.snapshot.menus.getValue("test:form").pages.getValue(id)
+            val variant = assets.canvasModalFlows.getValue(CanvasItems.modalKey("test:form", id, origin))
+            val minimal =
+                CanvasFlow.plan(page.spec.width, page.height, listOf("background-item"), emptySet())
+            assertEquals(
+                minimal.inset, variant.flow.inset,
+                "Frozen backdrop height must not become leading modal padding",
+            )
+            val backdrop = assets.canvasItems.first { it.origin == origin && it.page == id }.layout
+            assertTrue(variant.layout.bodyHeight >= backdrop.layoutHeight, "Keep the full native item scissor")
+            val plan = ModalLayoutCompiler.layout(page.spec, variant.layout.bodyWidth, minimal.inset)
+            assertEquals(plan.descriptions, variant.layout.plan.descriptions)
+            assertEquals(plan.inputs, variant.layout.plan.inputs)
+            assertEquals(
+                plan.buttons.filter { it.target != null },
+                variant.layout.plan.buttons.filter { it.target != null },
+            )
+            assertTrue(variant.layout.plan.buttons.filter { it.role == ModalCellRole.CLIP_SPACER }
+                .all { it.target == null && it.nativeWidth == 1 && it.bounds.y >= plan.bodyHeight })
+        }
+    }
+
+    @Test
+    fun modalControlsNeverShareItemSourceEdges() {
+        modalCandidate(canvasItemEntry = true)
+        for (width in listOf(640, 641, 1280)) {
+            val spacerEdges = assets.canvasModalFlows.values.flatMap { variant ->
+                val plan = variant.layout.plan
+                val left = (width - plan.bodyWidth - 20) / 2 + 10
+                plan.buttons.flatMap { cell ->
+                    val x = left + cell.bounds.x + (cell.bounds.width - cell.nativeWidth) / 2
+                    (0..minOf(3, cell.nativeWidth)).flatMap { border ->
+                        listOf(x + border, x + cell.nativeWidth - border)
+                    }
+                }
+            }.toSet()
+            val itemEdges = assets.canvasItems.flatMap {
+                listOf(it.sourceLeft(width), it.sourceLeft(width) + CanvasItems.ICON_SIZE)
+            }.toSet()
+            assertTrue(
+                spacerEdges.intersect(itemEdges).isEmpty(),
+                "A native modal texture corner must not be moved as an item vertex at GUI width $width",
+            )
+        }
+    }
+
+    @Test
     fun entryCanvasItemsNeedSupportOnlyWhenAnInitialModalRendersTheEntry() {
         engine.registerItems(
             plugin,

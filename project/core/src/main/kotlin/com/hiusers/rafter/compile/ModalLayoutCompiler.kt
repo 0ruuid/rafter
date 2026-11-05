@@ -42,8 +42,13 @@ object ModalLayoutCompiler {
         )
     }
 
-    fun layout(page: PageSpec, minimumBodyWidth: Int = 0, leadingInset: Int = 0): ModalLayoutPlan {
-        require(minimumBodyWidth >= 0 && leadingInset >= 0)
+    fun layout(
+        page: PageSpec,
+        minimumBodyWidth: Int = 0,
+        leadingInset: Int = 0,
+        minimumBodyHeight: Int = 0,
+    ): ModalLayoutPlan {
+        require(minimumBodyWidth >= 0 && leadingInset >= 0 && minimumBodyHeight >= 0)
         val modal = requireNotNull(page.modal)
         val authored = page.components.filter { it.content is NodeContent.Button }
         require(authored.isNotEmpty()) { "A modal needs at least one native action button" }
@@ -121,7 +126,14 @@ object ModalLayoutCompiler {
         val gridTop = top
         val cells = mutableListOf<ModalButtonCell>()
         val reservedRows = if (preserveCounter) 1 else 0
-        val rows = reservedRows + (authored.size + columns - 1) / columns
+        val actionRows = reservedRows + (authored.size + columns - 1) / columns
+        val rowHeight = NativeGeometry.BUTTON_HEIGHT + NativeGeometry.GRID_GAP
+        // 扩大原生裁剪范围的空行放在操作之后，避免把面板和控件推向底部。
+        val rows =
+            maxOf(
+                actionRows,
+                (minimumBodyHeight - gridTop + NativeGeometry.GRID_GAP + rowHeight - 1) / rowHeight,
+            )
         repeat(rows) { row ->
             var x = (bodyWidth - buttonWidth) / 2
             repeat(columns) { column ->
@@ -139,7 +151,8 @@ object ModalLayoutCompiler {
                             cellWidth,
                             NativeGeometry.BUTTON_HEIGHT,
                         ),
-                        if (row < reservedRows) ModalCellRole.COUNTER_SPACER
+                        if (row >= actionRows) ModalCellRole.CLIP_SPACER
+                        else if (row < reservedRows) ModalCellRole.COUNTER_SPACER
                         else if (node != null) ModalCellRole.ACTION
                         else ModalCellRole.EMPTY_ACTION_CELL,
                         row < reservedRows,
@@ -156,7 +169,8 @@ object ModalLayoutCompiler {
                                 modal.buttonGap - NativeGeometry.GRID_GAP * 2,
                                 NativeGeometry.BUTTON_HEIGHT,
                             ),
-                            if (row < reservedRows) ModalCellRole.COUNTER_SPACER
+                            if (row >= actionRows) ModalCellRole.CLIP_SPACER
+                            else if (row < reservedRows) ModalCellRole.COUNTER_SPACER
                             else ModalCellRole.HORIZONTAL_SPACER,
                             row < reservedRows,
                         )

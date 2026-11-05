@@ -126,6 +126,11 @@ internal object ModalText {
             return Components.empty().append(Components.parseRaw(parent.toString()))
         }
         val output = Components.empty()
+        // Shader 移动后的画面仍须先进入原生排序范围，不能依赖纹理批次顺序。
+        val halfBounds = ModalEncoding.BOUNDS_HEIGHT / 2
+        output.append(text.spaces(-halfBounds))
+        output.append(text.glyph(ModalEncoding.BOUNDS_CHARACTER, ModalEncoding.BOUNDS_FONT))
+        output.append(text.spaces(halfBounds - ModalEncoding.BOUNDS_ADVANCE))
         val xBase = ModalEncoding.xBase(index, text.assets.modalBackdrops)
         if (titleWidth > 0) {
             val prefix = -xBase + ModalEncoding.ROW_STRIDE - titleWidth / 2

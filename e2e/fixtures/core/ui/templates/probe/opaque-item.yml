@@ -1,0 +1,16 @@
+id: rafterprobe:opaque-slot
+component:
+  id: cell
+  type: group
+  elements:
+    - id: frame
+      type: image
+      asset: rafter:probe/opaque-slot
+    - id: item
+      type: item
+      item: rafterprobe:items#record
+      size: 36
+      actions:
+        - type: select-item
+        - type: provider
+          provider: rafterprobe:click

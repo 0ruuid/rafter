@@ -19,6 +19,7 @@ enum class ModalCellRole(val id: String) {
     HORIZONTAL_SPACER("horizontal-spacer"),
     COUNTER_SPACER("counter-spacer"),
     EMPTY_ACTION_CELL("empty-action-cell"),
+    CLIP_SPACER("clip-spacer"),
 }
 
 data class ModalButtonCell(
@@ -28,7 +29,12 @@ data class ModalButtonCell(
     val preserveInputCounter: Boolean = false,
 ) {
     val nativeWidth: Int
-        get() = if (preserveInputCounter) NativeGeometry.PAINTED_SPACER_WIDTH else bounds.width
+        get() =
+            when {
+                role == ModalCellRole.CLIP_SPACER -> 1
+                preserveInputCounter -> NativeGeometry.PAINTED_SPACER_WIDTH
+                else -> bounds.width
+            }
 
     val labelShift: Int
         get() = bounds.width / 2 - ((bounds.width - nativeWidth) / 2 + nativeWidth / 2)
