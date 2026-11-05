@@ -308,6 +308,136 @@ class NativeModalCompilerTest {
     }
 
     @Test
+    fun inputAppearanceDecodesTransparentBackgroundAndHexTextColor() {
+        val configured =
+            input +
+                ("appearance" to
+                    mapOf<String, Any?>(
+                        "background" to "transparent",
+                        "text-color" to "#aBc123",
+                    ))
+        val snapshot = compiledSnapshot(compile(page(listOf(configured, cancel, submit))))
+        val content =
+            assertIs<NodeContent.TextInput>(
+                snapshot.menus
+                    .getValue("test:modal")
+                    .spec
+                    .pages
+                    .getValue("search")
+                    .components
+                    .first()
+                    .content
+            )
+        assertEquals(TextInputAppearance("transparent", "#aBc123"), content.appearance)
+
+        val preview = obj(obj(obj(AuthoringContract.layouts(snapshot)["menus"])["test:modal"])["search"])
+        val exported = obj(obj(assertIs<List<*>>(preview["native-components"]).first())["input"])
+        assertEquals(
+            mapOf("background" to "transparent", "text-color" to "#aBc123"),
+            exported["appearance"],
+        )
+
+        val defaults =
+            compiledSnapshot(
+                compile(
+                    page(
+                        listOf(
+                            input + ("appearance" to emptyMap<String, Any?>()),
+                            cancel,
+                            submit,
+                        )
+                    )
+                )
+            )
+        assertEquals(
+            TextInputAppearance(),
+            assertIs<NodeContent.TextInput>(
+                    defaults.menus
+                        .getValue("test:modal")
+                        .spec
+                        .pages
+                        .getValue("search")
+                        .components
+                        .first()
+                        .content
+                )
+                .appearance,
+        )
+    }
+
+    @Test
+    fun inputAppearanceRejectsUnknownFieldsBadColorsAndVariantOverrides() {
+        val invalid =
+            listOf(
+                Triple(mapOf<String, Any?>("typo" to true), "UNKNOWN_FIELD", "typo"),
+                Triple(mapOf<String, Any?>("text-color" to "#123"), "COLOR", "text-color"),
+                Triple(mapOf<String, Any?>("text-color" to "white"), "COLOR", "text-color"),
+                Triple(mapOf<String, Any?>("background" to "opaque"), "RANGE", "background"),
+            )
+        for ((appearance, code, field) in invalid) {
+            val failure =
+                rejected(
+                    compile(
+                        page(
+                            listOf(
+                                input + ("appearance" to appearance),
+                                cancel,
+                                submit,
+                            )
+                        )
+                    )
+                )
+            assertEquals(code, failure.code)
+            assertTrue(failure.path.endsWith(".appearance.$field"), failure.toString())
+        }
+
+        val variantFailure =
+            rejected(
+                compile(
+                    page(
+                        listOf(
+                            input +
+                                ("variants" to
+                                    variant(
+                                        mapOf(
+                                            "appearance" to
+                                                mapOf("background" to "transparent")
+                                        )
+                                    )),
+                            cancel,
+                            submit,
+                        )
+                    )
+                )
+            )
+        assertEquals("UNKNOWN_FIELD", variantFailure.code)
+        assertTrue(variantFailure.path.endsWith(".override.appearance"))
+    }
+
+    @Test
+    fun inputAppearanceIsCapabilityGatedToModalPages() {
+        val failure =
+            compiler.compile(
+                mapOf(
+                    "menu.yml" to
+                        minimal(
+                            components =
+                                listOf(
+                                    (input - "label-visible") +
+                                        mapOf(
+                                            "state" to "name",
+                                            "appearance" to mapOf("background" to "transparent"),
+                                        )
+                                )
+                        )
+                )
+            )
+        val diagnostic = failure.diagnostics.single()
+        assertEquals("CAPABILITY", diagnostic.code)
+        assertTrue(diagnostic.message.contains("modal"), diagnostic.toString())
+    }
+
+    @Test
     fun multilineInputsUseActualHeightInModalFlowAndEditorExports() {
         val configurations =
             listOf(
@@ -655,6 +785,19 @@ class NativeModalCompilerTest {
         assertEquals(true, label.default)
         assertFalse("label-visible" in Contract.variantFields("input", "native"))
         val inputFields = Contract.fields("input", "native")
+        assertEquals("input-appearance", inputFields.getValue("appearance").type)
+        assertFalse("appearance" in Contract.variantFields("input", "native"))
+        val appearance = obj(definitions["input-appearance"])
+        assertEquals(false, appearance["additionalProperties"])
+        assertEquals(
+            "native",
+            obj(obj(appearance["properties"])["background"])["default"],
+        )
+        assertEquals(
+            "^#[0-9a-fA-F]{6}(?![\\s\\S])",
+            obj(obj(appearance["properties"])["text-color"])["pattern"],
+        )
+        assertEquals(false, Contract.runtime.getValue("experimental-input-appearance").default)
         for (name in listOf("node", "nativeNode")) {
             val schema =
                 assertIs<List<*>>(obj(definitions[name])["oneOf"]).map(::obj).single {
@@ -715,7 +858,7 @@ class NativeModalCompilerTest {
             )) {
             Contract.check(fields, Contract.modal, "modal.yml", "$.pages.search.modal")
         }
-        assertEquals(16, AuthoringContract.VERSION)
+        assertEquals(17, AuthoringContract.VERSION)
     }
 
     @Test

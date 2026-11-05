@@ -65,44 +65,30 @@ class PackDeliveryTest {
                 emptyList(),
                 PackSettings.Host("127.0.0.1", 0, "http://127.0.0.1", false, false, false),
             )
-        Mockito.mockStatic(Bukkit::class.java).use { mock ->
-            mock.`when`<Boolean> { Bukkit.isPrimaryThread() }.thenReturn(true)
-            mock
-                .`when`<java.util.logging.Logger> { Bukkit.getLogger() }
-                .thenReturn(java.util.logging.Logger.getAnonymousLogger())
-            mock.`when`<Player?> { Bukkit.getPlayer(playerId) }.thenReturn(player)
-            PackBuild.prepare(temp, assets, config).use { a ->
-                val ready = runtime.prepare(a, config, "A")
-                runtime.expect(config, "A")
-                runtime.activate(ready, false)
-                assertFalse(runtime.canOpen(player))
-                runtime.send(player)
-                runtime.send(player)
-                assertEquals(1, sent.size)
-                runtime.status(
-                    PlayerResourcePackStatusEvent(
-                        player,
-                        foreign,
-                        PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED,
-                    )
-                )
-                assertFalse(runtime.canOpen(player))
-                runtime.status(
-                    PlayerResourcePackStatusEvent(
-                        player,
-                        a.id,
-                        PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED,
-                    )
-                )
-                assertTrue(runtime.canOpen(player))
-                PackBuild.prepare(temp, assets, config.copy(compression = 1)).use { b ->
-                    assertNotEquals(a.id, b.id)
-                    val next = runtime.prepare(b, config, "B")
-                    runtime.expect(config, "B")
-                    runtime.activate(next, false)
+        // 离线测试不启动平台语言服务。
+        Mockito.mockStatic(Class.forName("taboolib.platform.util.BukkitLangKt")).use {
+            Mockito.mockStatic(Bukkit::class.java).use { mock ->
+                mock.`when`<Boolean> { Bukkit.isPrimaryThread() }.thenReturn(true)
+                mock
+                    .`when`<java.util.logging.Logger> { Bukkit.getLogger() }
+                    .thenReturn(java.util.logging.Logger.getAnonymousLogger())
+                mock.`when`<Player?> { Bukkit.getPlayer(playerId) }.thenReturn(player)
+                PackBuild.prepare(temp, assets, config).use { a ->
+                    val ready = runtime.prepare(a, config, "A")
+                    runtime.expect(config, "A")
+                    runtime.activate(ready, false)
                     assertFalse(runtime.canOpen(player))
                     runtime.send(player)
-                    assertEquals(2, sent.size)
+                    runtime.send(player)
+                    assertEquals(1, sent.size)
+                    runtime.status(
+                        PlayerResourcePackStatusEvent(
+                            player,
+                            foreign,
+                            PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED,
+                        )
+                    )
+                    assertFalse(runtime.canOpen(player))
                     runtime.status(
                         PlayerResourcePackStatusEvent(
                             player,
@@ -110,29 +96,46 @@ class PackDeliveryTest {
                             PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED,
                         )
                     )
-                    assertFalse(runtime.canOpen(player))
-                    runtime.status(
-                        PlayerResourcePackStatusEvent(
-                            player,
-                            b.id,
-                            PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED,
-                        )
-                    )
                     assertTrue(runtime.canOpen(player))
-                    Mockito.verify(player).removeResourcePack(a.id)
-                    Mockito.verify(player, Mockito.never()).removeResourcePack(foreign)
-                    runtime.status(
-                        PlayerResourcePackStatusEvent(
-                            player,
-                            b.id,
-                            PlayerResourcePackStatusEvent.Status.DISCARDED,
+                    PackBuild.prepare(temp, assets, config.copy(compression = 1)).use { b ->
+                        assertNotEquals(a.id, b.id)
+                        val next = runtime.prepare(b, config, "B")
+                        runtime.expect(config, "B")
+                        runtime.activate(next, false)
+                        assertFalse(runtime.canOpen(player))
+                        runtime.send(player)
+                        assertEquals(2, sent.size)
+                        runtime.status(
+                            PlayerResourcePackStatusEvent(
+                                player,
+                                a.id,
+                                PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED,
+                            )
                         )
-                    )
-                    assertFalse(runtime.canOpen(player))
+                        assertFalse(runtime.canOpen(player))
+                        runtime.status(
+                            PlayerResourcePackStatusEvent(
+                                player,
+                                b.id,
+                                PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED,
+                            )
+                        )
+                        assertTrue(runtime.canOpen(player))
+                        Mockito.verify(player).removeResourcePack(a.id)
+                        Mockito.verify(player, Mockito.never()).removeResourcePack(foreign)
+                        runtime.status(
+                            PlayerResourcePackStatusEvent(
+                                player,
+                                b.id,
+                                PlayerResourcePackStatusEvent.Status.DISCARDED,
+                            )
+                        )
+                        assertFalse(runtime.canOpen(player))
+                    }
                 }
+                runtime.close()
+                Mockito.verify(player, Mockito.never()).removeResourcePacks()
             }
-            runtime.close()
-            Mockito.verify(player, Mockito.never()).removeResourcePacks()
         }
     }
 }

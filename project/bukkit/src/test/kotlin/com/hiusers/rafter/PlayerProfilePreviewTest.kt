@@ -29,7 +29,7 @@ class PlayerProfilePreviewTest {
         MenuRepository(
             root,
             { error("No offline Kether execution") },
-            { _, _, _ -> error("No offline business providers") },
+            ::checkStaticItemReference,
         )
 
     @Test
@@ -201,9 +201,9 @@ class PlayerProfilePreviewTest {
         assertEquals(longName, label("info.name"))
         preview("long-name")
         patch("name", "方".repeat(80))
-        assertTrue(
-            assertFailsWith<IllegalArgumentException> { show() }.message!!.contains("overflows")
-        )
+        val overflow = assertFailsWith<DocumentError> { show() }.diagnostic
+        assertEquals("LAYOUT", overflow.code)
+        assertEquals("info.name", overflow.component)
         patch("name", "不能放在单行画布的\n多行名称")
         assertTrue(
             assertFailsWith<IllegalArgumentException> { show() }.message!!.contains("single line")

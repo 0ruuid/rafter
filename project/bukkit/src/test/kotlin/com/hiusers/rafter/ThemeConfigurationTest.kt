@@ -3,6 +3,7 @@ package com.hiusers.rafter
 import com.hiusers.rafter.asset.AssetCompiler
 import com.hiusers.rafter.asset.AutoAssets
 import com.hiusers.rafter.asset.FontRequest
+import com.hiusers.rafter.asset.TextOffsets
 import com.hiusers.rafter.asset.UiThemes
 import com.hiusers.rafter.compile.MenuCompiler
 import com.hiusers.rafter.model.DocumentError
@@ -15,6 +16,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.UUID
 import kotlin.test.*
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.TextComponent
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.yaml.snakeyaml.Yaml
@@ -132,12 +135,17 @@ class ThemeConfigurationTest {
                 Frame(emptyMap(), mapOf("label" to true), mapOf("label" to true)),
                 text,
             )
+        fun usesHeading(component: Component, inheritedFont: String? = null): Boolean {
+            val font = component.font()?.asString() ?: inheritedFont
+            return component is TextComponent &&
+                "Label" in component.content() &&
+                font?.let(TextOffsets::baseFont) == heading.id ||
+                component.children().any { usesHeading(it, font) }
+        }
         assertTrue(
             view.messages
                 .flatMap { it.parts }
-                .any {
-                    it.text.toPlainText() == "Label" && heading.id in it.text.toRawMessage()
-                }
+                .any { usesHeading(it.text.toAdventureObject()) }
         )
         assertEquals("返回游戏", view.close.label.toPlainText())
     }

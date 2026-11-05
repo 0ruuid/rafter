@@ -48,6 +48,11 @@ enum class ButtonRole(val id: String) {
     EXIT("exit"),
 }
 
+data class TextInputAppearance(
+    val background: String = "native",
+    val textColor: String? = null,
+)
+
 /** 组件只允许自身类型字段，图片不携带滑条或表单状态。 */
 sealed interface NodeContent {
     val kind: NodeKind
@@ -98,6 +103,7 @@ sealed interface NodeContent {
         val labelVisible: Boolean = true,
         val multilineHeight: Int = 48,
         val maxLines: Int = 3,
+        val appearance: TextInputAppearance? = null,
     ) : FormContent {
         override val kind = NodeKind.INPUT
         val inputHeight: Int

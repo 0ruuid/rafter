@@ -102,7 +102,7 @@ class IndependentCanvasTest {
             )
         }
         assertEquals(
-            setOf("text", "image", "hit-area", "template"),
+            setOf("text", "image", "meter", "hit-area", "item", "group", "list", "template"),
             Contract.modes.getValue("canvas"),
         )
     }

@@ -36,6 +36,34 @@ Canvas 的 `type: item` 是叶节点：`item` 可引用 `minecraft:...` 材料�
 Native 物品尺寸和原生流式排版不变；Native 只新增 `show-tooltip`，不新增 `size` 或 `show-count`
 （原版 `show_decorations` 无法只控制数量）。
 
+### 输入外观与透明模式
+
+开发分支从 contract `17` 提供实验性输入外观。节点的 `text`、字体和文字样式仍控制标签；`appearance.text-color` 控制玩家正在编辑的文字，接受任意 `#RRGGBB`，每个输入框独立配置。自定义字色会移除该输入文字的原生阴影，避免浅底深字重影。
+
+先在 `config.yml` 显式启用：
+
+```yaml
+runtime:
+  experimental-input-appearance: true
+```
+
+然后在 modal 的原生 `input` 节点中配置：
+
+```yaml
+- id: message
+  type: input
+  state: message
+  appearance:
+    background: transparent
+    text-color: '#E6D8C4'
+```
+
+`background` 可为 `native` 或 `transparent`，默认 `native`；省略 `text-color` 保留原生字色。透明模式隐藏原生底图与边框，让下面板自己画出输入区域，保留原生编辑、选区和提交。每个 modal 使用自己的编译布局，支持最多 64 个布局（含物品背景变体），位置来自实际输入槽位，不再写死三个示例矩形。外观不允许通过 variants 动态改布局；修改后需要重新构包并让客户端加载。
+
+当前仅支持 Minecraft 26.2 的 modal，其他协议拒绝打开带此外观的页面；未配置外观的页面沿用原生行为。资源包不替换共享 `widget/text_field` 贴图，Shader 仅在活动布局的输入范围内生效。modal 沿用现有的禁止 Esc 关闭规则，通过提交、取消或返回离开。
+
+该模式仍使用负数客户端 `worldAge` 向 Shader 的 `GameTime` 传递布局标记，会临时改变客户端计时。运行时缓存并外推已收到的全部时钟状态，在退出、窗口替换、维度重置和停止时恢复；活动会话续租，停止维护后租期为 60 秒。其他计时消费者及不同 GUI 缩放仍需实机验证，因此默认关闭，暂不承诺稳定跨版本支持。
+
 ## 模态页
 
 弹窗由已成功显示的纯 Canvas 页（可含 items）打开，或由当前模态页同层替换；交互由弹窗接管。首次 Canvas→modal 复用真实 Canvas 背景，同层 modal 替换复用同一背景且不追加历史，`back` 一次回到原 Canvas 或 popup。背景使用冻结的独立物品快照，不重读提供器；背景无 hover/click，面板裁剪只处理冻结模型路由。

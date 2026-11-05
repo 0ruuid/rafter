@@ -89,7 +89,11 @@ class UiDesignTest {
                 assertEquals(compiled.pages.getValue("main").spec.width + 2.0, advance, 0.00001)
                 advance = 0.0
                 rows++
-                assertEquals(2, anchors, "Every native line needs CPU bounds anchors")
+                assertEquals(
+                    4,
+                    anchors,
+                    "Hit and paint planes each need one pair of CPU bounds anchors",
+                )
                 anchors = 0
             } else {
                 anchors += part.text.toPlainText().count { it == '\ue001' }
@@ -100,13 +104,17 @@ class UiDesignTest {
             }
         }
         assertEquals(compiled.pages.getValue("main").spec.width + 2.0, advance, 0.00001)
-        assertEquals(2, anchors, "Last native line also needs CPU bounds anchors")
+        assertEquals(
+            4,
+            anchors,
+            "Hit and paint planes each need one pair of CPU bounds anchors",
+        )
         assertEquals(compiled.pages.getValue("main").height / 9 - 1, rows)
         assertEquals(compiled.pages.getValue("main").spec.width + 10, message.width)
         val firstHit = message.parts.indexOfFirst { it.handle != null }
         val firstPaint =
             message.parts.indexOfFirst {
-                "rafter:fill" in it.text.toRawMessage() || "rafter:images" in it.text.toRawMessage()
+                "rafter:images" in it.text.toRawMessage()
             }
         assertTrue(
             firstHit >= 0 && firstHit < firstPaint,

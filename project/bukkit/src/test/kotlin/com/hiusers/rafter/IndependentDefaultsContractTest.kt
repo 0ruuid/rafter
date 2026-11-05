@@ -36,8 +36,14 @@ class IndependentDefaultsContractTest {
             setOf("rafter:friends", "rafter:tasks", "rafter:player-profile", "rafter:items"),
             candidate.snapshot.menus.keys,
         )
-        assertTrue(candidate.assets.modalBackdrops.none { it.width == 432 && it.height == 144 })
-        assertTrue(candidate.assets.modalBackdrops.none { it.width == 864 && it.height == 216 })
+        val canvasSizes =
+            candidate.snapshot.menus.values
+                .flatMap { it.pages.values }
+                .filter { it.spec.mode == PageMode.CANVAS && it.spec.modal == null }
+                .map { it.spec.width to it.height }
+                .toSet()
+        assertTrue(candidate.assets.modalBackdrops.isNotEmpty())
+        assertTrue(candidate.assets.modalBackdrops.all { (it.width to it.height) in canvasSizes })
         val menu = candidate.snapshot.menus.getValue("rafter:friends")
         assertEquals(setOf("friends", "add", "search", "chat", "memo", "remove"), menu.pages.keys)
         assertTrue(menu.pages.values.all { it.spec.skin != null })

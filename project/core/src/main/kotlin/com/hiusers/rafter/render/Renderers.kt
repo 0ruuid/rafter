@@ -2,8 +2,12 @@ package com.hiusers.rafter.render
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
-import com.hiusers.rafter.asset.*
+import com.hiusers.rafter.asset.CanvasCarrier
 import com.hiusers.rafter.asset.CanvasItemRoute
+import com.hiusers.rafter.asset.CanvasItems
+import com.hiusers.rafter.asset.CanvasTextBand
+import com.hiusers.rafter.asset.ModalBackdropLayout
+import com.hiusers.rafter.asset.TextOffsets
 import com.hiusers.rafter.compile.LayoutCompiler
 import com.hiusers.rafter.model.ActionSpec
 import com.hiusers.rafter.model.BindingSpec
@@ -71,6 +75,7 @@ data class DialogView(
     val canvasLayout: ModalBackdropLayout? = null,
     val canvasFlowKey: String? = null,
     val canvasBodyCount: Int = 0,
+    val inputAppearanceId: Int = 0,
 ) {
     /** 类型化只读投影，正文顺序仅由 [bodies] 决定。 */
     val messages: List<Message>

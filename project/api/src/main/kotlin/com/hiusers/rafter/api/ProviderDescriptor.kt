@@ -1,8 +1,11 @@
 package com.hiusers.rafter.api
 
 /**
- * 参数约束在注册时校验并复制。 required 与 nullable 独立；默认值仅补缺失的可选字段，不替换 null，不能与 required 同时启用。 INTEGER
- * 接受无小数部分的有限普通数值；枚举按 JSON 值比较，范围包含端点。 默认值和枚举同样校验，普通值限制见 [UiContext]。
+ * 参数约束在注册时校验并复制。required 与 nullable 独立；默认值仅补缺失的可选字段，
+ * 不替换 null，不能与 required 同时启用。
+ *
+ * [ParameterType.INTEGER] 接受无小数部分的有限普通数值；枚举按 JSON 值比较，范围包含端点。
+ * 默认值和枚举同样校验，普通值限制见 [UiContext]。
  */
 data class ParameterSpec(
     val type: ParameterType,

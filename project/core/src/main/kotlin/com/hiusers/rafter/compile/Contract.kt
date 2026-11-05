@@ -66,6 +66,7 @@ data class Field(
                 "frame",
                 "modal",
                 "button-skin",
+                "input-appearance",
                 "list-filter" -> mapOf("\$ref" to "#/\$defs/$type")
                 "actions" ->
                     mapOf("type" to "array", "items" to mapOf("\$ref" to "#/\$defs/action"))
@@ -134,6 +135,7 @@ object Contract {
             "render-timeout-seconds" to Field("integer", minimum = 1, maximum = 120, default = 10),
             "action-timeout-seconds" to Field("integer", minimum = 1, maximum = 300, default = 30),
             "read-concurrency" to Field("integer", minimum = 1, maximum = 16, default = 4),
+            "experimental-input-appearance" to Field("boolean", default = false),
         )
     val asset =
         linkedMapOf(
@@ -322,6 +324,17 @@ object Contract {
             "inset" to Field("integer", minimum = 0, maximum = 4, default = 1, code = "LAYOUT"),
             "label-offset-x" to
                 Field("integer", minimum = -432, maximum = 432, default = 0, code = "LAYOUT"),
+        )
+
+    val inputAppearance =
+        linkedMapOf(
+            "background" to
+                Field(
+                    "string",
+                    values = listOf("native", "transparent"),
+                    default = "native",
+                ),
+            "text-color" to color,
         )
 
     val popup =
@@ -538,6 +551,7 @@ object Contract {
                             "multiline-height" to
                                 Field("integer", minimum = 20, maximum = 512, default = 48),
                             "max-lines" to Field("integer", minimum = 1, maximum = 64, default = 3),
+                            "appearance" to Field("input-appearance"),
                         ),
                     "checkbox" to fields("state" to Field("string", true)),
                     "select" to
@@ -938,6 +952,7 @@ object Contract {
                     "frame",
                     "modal",
                     "button-skin",
+                    "input-appearance",
                     "list-filter" -> value is Map<*, *> && value.keys.all { it is String }
                     "array",
                     "actions" -> value is List<*>
@@ -1190,6 +1205,7 @@ object Contract {
                 "popup" to obj(popup),
                 "frame" to obj(frame),
                 "modal" to obj(modal),
+                "input-appearance" to obj(inputAppearance),
                 "list-filter" to (obj(listFilter) + exactlyOne("value", "state")),
                 "list-slot" to obj(listSlot),
                 "record" to mapOf("type" to "object"),
@@ -1395,6 +1411,17 @@ object Contract {
                     "generated" to com.hiusers.rafter.model.ProjectPaths.GENERATE,
                 ),
             "runtime-fields" to describe(runtime),
+            "experimental-features" to
+                mapOf(
+                    "input-appearance" to
+                        mapOf(
+                            "supported-clients" to listOf("26.2"),
+                            "compiled-layouts" to 64,
+                            "scope" to "modal",
+                            "requires-client-gametime-marker" to true,
+                            "stable-cross-version" to false,
+                        ),
+                ),
             "theme-schema" to themeSchema(),
             "style-fields" to describe(style),
             "font-authoring" to "auto-discovered-family-and-integer-size",
@@ -1405,6 +1432,7 @@ object Contract {
             "template-fields" to describe(template),
             "frame-fields" to describe(frame),
             "modal-fields" to describe(modal),
+            "input-appearance-fields" to describe(inputAppearance),
             "rect-fields" to describe(rect),
             "button-skin-fields" to describe(buttonSkin),
             "native-button-skin" to

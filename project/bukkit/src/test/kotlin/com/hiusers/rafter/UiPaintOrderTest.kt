@@ -3,11 +3,12 @@ package com.hiusers.rafter
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import com.hiusers.rafter.asset.*
-import com.hiusers.rafter.compile.MenuCompiler
+import com.hiusers.rafter.compile.MenuRepository
 import com.hiusers.rafter.model.BindingSpec
 import com.hiusers.rafter.render.*
 import com.hiusers.rafter.runtime.UiSession
 import com.hiusers.rafter.text.CompositeText
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.UUID
 import javax.imageio.ImageIO
@@ -21,29 +22,29 @@ class UiPaintOrderTest {
     @Test
     fun legacyFixtureForegroundIsNotPaintedOverByLaterBackgroundRows() {
         taboolib.module.chat.Components.useAdventure = true
+        installLegacyDefaults(temp)
         val root = temp.resolve("core/ui")
-        copyLegacyUiTo(root)
-        val assets = AssetCompiler.compile(root, legacyUiDocument())
+        val loaded = MenuRepository(temp, {}, ::checkStaticItemReference).load()
+        val candidate = assertNotNull(loaded.candidate, loaded.diagnostics.joinToString("\n"))
+        val assets = candidate.assets
         val text = CompositeText(assets)
-        val menu =
-            MenuCompiler(
-                    assets.dimensions(),
-                    textCheck = text::validate,
-                    canvasTextCheck = text::validateCanvas,
-                    styles = assets.theme.styles,
-                )
-                .compile(mapOf("demo.yml" to legacyYaml("core/menus/demo.yml")))
-                .snapshot!!
-                .menus
-                .getValue("rafter:demo")
+        val menu = candidate.snapshot.menus.getValue("rafter:demo")
+        val authoredIds = ImageSizing.requests(candidate.snapshot).associate { it.id to it.asset }
+        val pack = AssetCompiler.build(root, assets, temp.resolve("generate"))
         val tiles =
             assets.images
                 .flatMap { (id, g) -> g.tiles.map { it.character.codePointAt(0) to (id to it) } }
                 .toMap()
+        // 回放实际导出的字形贴图，包含尺寸变换与透明顶行。
         val bitmaps =
-            assets.imageSpecs
-                .filter { it.source != null }
-                .associate { it.id to ImageIO.read(root.resolve(it.source).toFile()) }
+            JsonParser.parseString(Files.readString(pack.resolve("assets/rafter/font/images.json")))
+                .asJsonObject.getAsJsonArray("providers")
+                .associate { entry ->
+                    val provider = entry.asJsonObject
+                    val code = provider.getAsJsonArray("chars")[0].asString.codePointAt(0)
+                    val file = provider.get("file").asString.substringAfter(':')
+                    code to ImageIO.read(pack.resolve("assets/rafter/textures/$file").toFile())
+                }
         fun topAsset(pageId: String, px: Int, py: Int): String? {
             val session = UiSession(UUID.randomUUID(), menu, emptyMap())
             if (session.page != pageId) session.navigate(pageId)
@@ -79,16 +80,11 @@ class UiPaintOrderTest {
                                 val lx = px + CanvasRenderer.EDGE_INSET - x
                                 val ly = py - y
                                 if (lx >= 0 && lx < tile.width && ly >= 0 && ly < tile.height) {
-                                    val spec = assets.imageSpecs.first { it.id == id }
-                                    val bitmap = bitmaps[id]
+                                    val bitmap = bitmaps.getValue(code)
+                                    val scale = bitmap.width / tile.width
                                     val alpha =
-                                        if (bitmap == null) 255
-                                        else
-                                            bitmap.getRGB(
-                                                (tile.x + lx.toInt()) * spec.scale,
-                                                (tile.y + ly) * spec.scale,
-                                            ) ushr 24
-                                    if (alpha > 25) top = id
+                                        bitmap.getRGB(lx.toInt() * scale, ly * scale) ushr 24
+                                    if (alpha > 25) top = authoredIds[id] ?: id
                                 }
                             }
                             x += assets.textWidth(String(Character.toChars(code)), bold, font)

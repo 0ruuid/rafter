@@ -15,7 +15,7 @@ class AssetCompilationTest {
         val theme = UiThemes.compile(UiThemes.document(temp))
         assertEquals(FontRequest("rafter-mono", 10.0), theme.defaultRequest)
         for (name in
-            listOf("core/ui/theme.yml", "ui/fonts/${theme.defaultFamily}.ttf", "shaders/gui.vsh")) {
+            listOf("core/ui/theme.yml", "core/ui/fonts/${theme.defaultFamily}.ttf", "shaders/gui.vsh")) {
             val resources = java.util.Collections.list(javaClass.classLoader.getResources(name))
             assertEquals(1, resources.size, "Expected one resource owner for $name")
             resources.single().openStream().use { assertTrue(it.read() >= 0, name) }

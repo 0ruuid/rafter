@@ -20,7 +20,10 @@ data class UiOpenOptions(
     constructor(initialPage: String?) : this(emptyMap(), initialPage)
 }
 
-/** Rafter 提供只读普通值快照，嵌套最多 32 层；Player 仍限主线程访问。 自行构造此对象不复制集合，也不创建会话。 */
+/**
+ * Rafter 提供只读普通值快照，嵌套最多 32 层；[player] 仍限主线程访问。
+ * 自行构造此对象不复制集合，也不创建会话。
+ */
 data class UiContext(
     val player: Player,
     val sessionId: UUID,
@@ -53,7 +56,12 @@ fun interface ConditionProvider {
     fun test(context: UiContext, args: Map<String, Any?>): CompletableFuture<Boolean>
 }
 
-/** 主线程发起动作，结果由引擎校验并写回原会话；丢弃迟到结果不取消、回滚或重试业务。 动作结束自动重绘，不在返回链中等待同会话 refresh，避免相互等待。 */
+/**
+ * 主线程发起动作，可异步完成；结果由引擎校验并写回原会话。
+ * 丢弃迟到结果不取消、回滚或重试业务。
+ *
+ * 动作结束自动重绘，不在返回链中等待同会话 [RafterService.refresh]，避免相互等待。
+ */
 fun interface ActionProvider {
     fun execute(context: UiContext, args: Map<String, Any?>): CompletableFuture<UiActionResult>
 }
@@ -67,7 +75,10 @@ data class UiActionResult(val statePatch: Map<String, Any?>) {
     }
 }
 
-/** 主线程按 ID 读取物品，item 为节点当前行，非列表节点为 null；返回后不再并发修改 ItemStack。 */
+/**
+ * 主线程按 ID 读取物品，可异步完成；后台不得访问 Player。
+ * [UiContext.item] 为节点当前行，非列表节点为 null；返回后不再并发修改 ItemStack。
+ */
 fun interface ItemProvider {
     fun read(context: UiContext, id: String): CompletableFuture<ItemStack>
 }
@@ -100,8 +111,12 @@ data class OpenResult(
 }
 
 /**
- * 通过 ServicesManager 获取界面服务。 界面操作可跨线程发起，内部回到主线程；不得阻塞等待 Future 或假定延续线程。 注册限主线程，owner
- * 停用自动注销；句柄可跨线程关闭，但返回不代表清理已完成。 旧句柄不影响新注册；有效注销使现存会话失效。超时不保证取消或回滚外部业务。
+ * 通过 ServicesManager 获取界面服务。界面操作可跨线程发起，内部回到主线程；
+ * 不得阻塞等待 Future 或假定延续线程。超时不保证取消或回滚外部业务。
+ *
+ * 注册限主线程，owner 须已启用，停用时自动注销。注册同步校验 ID、描述和重复注册；
+ * 无效参数抛出 [IllegalArgumentException]，线程或引擎状态不符抛出 [IllegalStateException]。
+ * 句柄可跨线程关闭，但返回不代表清理已完成。旧句柄不影响新注册；有效注销使现存会话失效。
  */
 interface RafterService {
     companion object {
@@ -134,10 +149,13 @@ interface RafterService {
         options: UiOpenOptions,
     ): CompletableFuture<OpenResult>
 
-    /** 仅关闭预期会话；无会话时幂等完成，其他会话返回 SUPERSEDED。 */
+    /** 仅关闭预期会话；无会话时幂等完成，其他会话以 [UiFailureCode.SUPERSEDED] 异常完成。 */
     fun close(player: Player, expectedSessionId: UUID): CompletableFuture<Void>
 
-    /** 仅刷新预期会话，不存在或不匹配返回 SUPERSEDED。 忙碌时合并为后续帧，Future 在该帧交给发送层或明确失败后完成。 */
+    /**
+     * 仅刷新预期会话，不存在或不匹配时以 [UiFailureCode.SUPERSEDED] 异常完成。
+     * 忙碌时合并为后续帧，Future 在该帧交给发送层或明确失败后完成。
+     */
     fun refresh(player: Player, expectedSessionId: UUID): CompletableFuture<Void>
 
     fun registerData(

@@ -17,12 +17,14 @@ ui.open(player, "example:menu", UiOpenOptions(
 
 菜单须声明初始状态；modal 目标须有纯 Canvas 入口。表单显式提交，动作完成自动重绘。刷新和关闭使用原会话 ID。
 
-构建插件与 API 后，执行轻量消费方检查：
+使用 JDK 21，先保存部署构件，再生成 API 并执行轻量消费方检查：
 
 ```sh
-./gradlew taboolibBuildApi -PDeleteCode -x test
-./gradlew build -x test --rerun-tasks
-./gradlew :project:api:verifyApiAbi
+./gradlew :plugin:build -x test --no-daemon
+mkdir -p build/api-verification
+cp plugin/build/libs/Rafter.jar build/api-verification/Rafter.jar
+./gradlew taboolibBuildApi :project:api:sourcesJar -PDeleteCode -x test --no-daemon
+./gradlew :project:api:verifyApiAbi -PrafterVerificationPluginJar=build/api-verification/Rafter.jar --no-daemon
 ```
 
 检查 Java／Kotlin 调用及 API 与部署 JAR 的签名，不启动游戏或执行业务。完整接口见 [API](../../docs/api-guide.md)。

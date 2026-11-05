@@ -27,6 +27,7 @@ import com.hiusers.rafter.render.NativeRenderer
 import com.hiusers.rafter.text.CompositeText
 import com.hiusers.rafter.transport.DialogInputNames
 import com.hiusers.rafter.transport.DialogTransport
+import com.hiusers.rafter.transport.InputAppearanceController
 import java.nio.file.Path
 import java.util.UUID
 import java.util.concurrent.CancellationException
@@ -52,6 +53,7 @@ internal class RafterEngine(
     },
     // 测试可替换脚本边界；生产使用 KetherShell。
     scriptEvaluator: ((String, UiContext) -> CompletableFuture<Any?>)? = null,
+    private val inputAppearance: InputAppearanceController? = null,
     private val clock: () -> Long = System::nanoTime,
 ) : RafterService, AutoCloseable {
     private val data = Registry<DataProvider>()
@@ -352,6 +354,7 @@ internal class RafterEngine(
 
     /** 先分离旧状态再完成 Future，延续可能同步打开新界面。 */
     private fun detach(id: UUID): List<CompletableFuture<Void>> {
+        inputAppearance?.clear(id)
         sessions.remove(id)?.close()
         fields.remove(id)
         shownVariants.remove(id)
@@ -381,6 +384,7 @@ internal class RafterEngine(
         check(Bukkit.isPrimaryThread())
         resources.forget(id)
         completeDetached(detach(id), UiFailureCode.SUPERSEDED)
+        inputAppearance?.forget(id)
     }
 
     private fun clear(player: Player) {
@@ -423,6 +427,7 @@ internal class RafterEngine(
         // ESC 无可靠关闭事件；闲置清理不能误关其他插件界面。
         val wall = System.currentTimeMillis()
         sessions.values.filter { it.expired(wall) }.map { it.playerId }.forEach(::forget)
+        sessions.keys.forEach { inputAppearance?.keepAlive(it) }
     }
 
     private fun nodes(session: UiSession) = session.displayedNodes()
@@ -732,10 +737,16 @@ internal class RafterEngine(
                         }
                     shownVariants[player.uniqueId] = choices.toMap()
                     fields[player.uniqueId] = view.inputs.map { it.node.id }
+                    if (view.inputAppearanceId != 0) {
+                        check(policy.experimentalInputAppearance) { "Experimental input appearance is disabled" }
+                        if (inputAppearance?.supports(player) != true)
+                            throw UiOperationException(UiFailureCode.UNSUPPORTED_CLIENT)
+                    }
                     transport.show(player, view, text, values, itemValues)
                     // 发送回调可能同步替换会话，不能清理新帧或捕获旧画面。
                     if (!current(session, generation) || frames[player.uniqueId] !== work)
                         return@main
+                    inputAppearance?.show(player, view.inputAppearanceId)
                     session.data.presented()
                     val page = session.current()
                     if (

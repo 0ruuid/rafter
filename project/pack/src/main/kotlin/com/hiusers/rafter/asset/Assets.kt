@@ -122,6 +122,7 @@ fun AssetCatalog.manifest(): Map<String, Any?> =
         "dialog-frames" to DialogFrameShaders.manifest(this),
         "button-skins" to ButtonSkinFonts.manifest(buttonSkins),
         "modals" to ModalFonts.manifest(this),
+        "input-appearance" to InputAppearanceShaders.manifest(this),
     )
 
 /** 候选内分配字形，保留历史预留以稳定已有 ID。 */
@@ -413,6 +414,8 @@ object AssetCompiler {
         val modalFrames = DialogFrames.compileModal(specs, modalLayouts)
         val hash = MessageDigest.getInstance("SHA-256")
         hash.update(ASSET_FORMAT_REVISION.toByteArray())
+        hash.update(InputAppearances.REVISION.toByteArray(Charsets.UTF_8))
+        hash.update(InputAppearances.layoutJson(emptyList()).toByteArray(Charsets.UTF_8))
         hash.update(Json.gson.toJson(ButtonSkinFonts.manifest(skins)).toByteArray(Charsets.UTF_8))
         hash.update(Json.gson.toJson(frames).toByteArray(Charsets.UTF_8))
         hash.update(
@@ -813,6 +816,7 @@ object AssetCompiler {
             DialogFocusShaders.write(stage, catalog)
             DialogFrameShaders.write(stage, catalog)
             CanvasItemShaders.write(stage, catalog)
+            InputAppearanceShaders.write(stage, catalog)
             Json.write(stage.resolve("pack.mcmeta"), DialogFrameShaders.packMetadata(catalog))
             Json.write(stage.resolve("manifest.json"), catalog.manifest())
             Json.write(stage.resolve("allocation.json"), catalog.allocation)

@@ -7,6 +7,7 @@ data class RuntimePolicy(
     val renderTimeoutMillis: Long = 10_000,
     val actionTimeoutMillis: Long = 30_000,
     val readConcurrency: Int = 4,
+    val experimentalInputAppearance: Boolean = false,
 ) {
     init {
         require(renderTimeoutMillis in 1_000..120_000)
@@ -24,6 +25,7 @@ data class RuntimePolicy(
                 actionTimeoutMillis =
                     (values.getValue("action-timeout-seconds") as Number).toLong() * 1_000,
                 readConcurrency = (values.getValue("read-concurrency") as Number).toInt(),
+                experimentalInputAppearance = values["experimental-input-appearance"] == true,
             )
         }
     }

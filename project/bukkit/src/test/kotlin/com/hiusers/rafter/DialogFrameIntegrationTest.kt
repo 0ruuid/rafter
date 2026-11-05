@@ -28,10 +28,6 @@ class DialogFrameIntegrationTest {
     fun theImageTravelsInTheTitleWithoutAddingBodyRowsOrChangingNativeInputs() {
         Components.useAdventure = true
         installLegacyDefaults(root)
-        Files.move(root.resolve("menus"), root.resolve("core/menus"))
-        Files.move(root.resolve("ui/theme.yml"), root.resolve("core/ui/theme.yml"))
-        Files.move(root.resolve("ui/images"), root.resolve("core/ui/images"))
-        Files.delete(root.resolve("ui"))
         val loaded =
             MenuRepository(
                     root,

@@ -18,6 +18,7 @@ inline vec2 ceil(vec2 a){return {std::ceil(a.x),std::ceil(a.y)};}
 inline vec2 floor(vec2 a){return {std::floor(a.x),std::floor(a.y)};}
 inline float min(float a,float b){return std::min(a,b);}
 inline float max(float a,float b){return std::max(a,b);}
+inline float mod(float x,float y){return x-y*std::floor(x/y);}
 inline vec2 min(vec2 a,vec2 b){return {min(a.x,b.x),min(a.y,b.y)};}
 inline vec2 max(vec2 a,vec2 b){return {max(a.x,b.x),max(a.y,b.y)};}
 inline bvec4 lessThan(vec4 a,vec4 b){return {a.x<b.x,a.y<b.y,a.z<b.z,a.w<b.w};}

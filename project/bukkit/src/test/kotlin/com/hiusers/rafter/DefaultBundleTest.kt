@@ -56,13 +56,18 @@ class DefaultBundleTest {
         assertEquals(files.size, files.distinct().size)
         assertTrue("core/ui/theme.yml" in files)
         assertEquals(
-            setOf("core/menus/friends.yml", "core/menus/tasks.yml"),
+            setOf(
+                "core/menus/friends.yml",
+                "core/menus/items.yml",
+                "core/menus/tasks.yml",
+                "core/menus/player-profile.yml",
+            ),
             files.filter { it.startsWith("core/menus/") }.toSet(),
         )
         assertFalse(files.any { it.startsWith("fixtures/") })
         assertEquals(4, files.count { it.startsWith("core/ui/templates/friends/") })
         assertEquals(6, files.count { it.startsWith("core/ui/skins/friends/") })
-        assertEquals(4, files.count { it.startsWith("core/data/") })
+        assertEquals(5, files.count { it.startsWith("core/data/") })
         for (retired in
             listOf(
                 "core/menus/demo.yml",

@@ -8,6 +8,7 @@ import com.hiusers.rafter.asset.CanvasItemShaders
 import com.hiusers.rafter.asset.DialogFocusShaders
 import com.hiusers.rafter.asset.FontRequests
 import com.hiusers.rafter.asset.ImageSizing
+import com.hiusers.rafter.asset.InputAppearances
 import com.hiusers.rafter.asset.ModalAssets
 import com.hiusers.rafter.asset.UiThemes
 import com.hiusers.rafter.model.Diagnostic
@@ -311,14 +312,27 @@ class MenuRepository(
                 val default = settings["default-menu"] as String
                 require(default in snapshot.menus) { "Default menu does not exist: $default" }
                 val pack = pack(settings)
+                val policy = runtime(settings)
+                val bound = InputAppearances.bind(
+                    CanvasItemShaders.bind(DialogFocusShaders.bind(assets, snapshot), snapshot),
+                    snapshot,
+                )
+                if (bound.inputAppearances.isNotEmpty() && !policy.experimentalInputAppearance) {
+                    throw DocumentError(Diagnostic(
+                        "config.yml",
+                        "$.runtime.experimental-input-appearance",
+                        "CAPABILITY",
+                        "Input appearance requires runtime.experimental-input-appearance=true; this experimental mode changes client game time",
+                    ))
+                }
                 LoadResult(
                     Candidate(
                         snapshot,
-                        CanvasItemShaders.bind(DialogFocusShaders.bind(assets, snapshot), snapshot),
+                        bound,
                         default,
                         timeout * 1000,
                         pack,
-                        runtime(settings),
+                        policy,
                     ),
                     result.diagnostics.map { it.withSources(sources) },
                 )

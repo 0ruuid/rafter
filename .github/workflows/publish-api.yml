@@ -43,6 +43,11 @@ jobs:
           server-username-env-var: MAVEN_USERNAME
           server-password-env-var: MAVEN_PASSWORD
 
+      - name: Run regression tests
+        run: |
+          python3 scripts/verify-modules.py
+          bash ./gradlew :project:core:test :project:pack:test :project:authoring:test :project:bukkit:test :tools:authoring-cli:test --no-daemon
+
       - name: Build and save deployment JAR for ABI verification
         run: |
           bash ./gradlew :plugin:build -x test --no-daemon
@@ -53,20 +58,22 @@ jobs:
           fi
           cp -f plugin/build/libs/Rafter.jar build/api-verification/Rafter.jar
 
-      - name: Build development API JAR
-        run: bash ./gradlew taboolibBuildApi -PDeleteCode -x test --no-daemon
+      - name: Build development API and sources JARs
+        run: bash ./gradlew taboolibBuildApi :project:api:sourcesJar -PDeleteCode -x test --no-daemon
 
       - name: Verify API JAR and read version
         id: api
         run: |
           VERSION=$(sed -n 's/^version=//p' gradle.properties | tr -d '\r')
           JAR_FILE="project/api/build/libs/rafter-api-${VERSION}-api.jar"
-          if [[ -z "$VERSION" || ! -f "$JAR_FILE" ]]; then
-            echo "::error::Expected API JAR not found: $JAR_FILE"
+          SOURCES_FILE="project/api/build/libs/rafter-api-${VERSION}-sources.jar"
+          if [[ -z "$VERSION" || ! -f "$JAR_FILE" || ! -f "$SOURCES_FILE" ]]; then
+            echo "::error::Expected API artifacts not found: $JAR_FILE, $SOURCES_FILE"
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "jar=$JAR_FILE" >> "$GITHUB_OUTPUT"
+          echo "sources=$SOURCES_FILE" >> "$GITHUB_OUTPUT"
 
       - name: Verify API ABI against deployment JAR
         run: |
@@ -79,8 +86,8 @@ jobs:
           API_VERSION: ${{ steps.api.outputs.version }}
         run: |
           BASE_URL="https://repo.hiusers.com/releases/com/hiusers/rafter/rafter-api/${API_VERSION}/rafter-api-${API_VERSION}"
-          for EXTENSION in pom jar; do
-            ARTIFACT_URL="${BASE_URL}.${EXTENSION}"
+          for SUFFIX in .pom .jar -sources.jar; do
+            ARTIFACT_URL="${BASE_URL}${SUFFIX}"
             HTTP_STATUS=$(curl --silent --show-error --location \
               --connect-timeout 15 --max-time 30 \
               --output /dev/null --write-out '%{http_code}' "$ARTIFACT_URL") || {
@@ -100,12 +107,13 @@ jobs:
             esac
           done
 
-      - name: Publish API JAR and POM to Reposilite
+      - name: Publish API, sources and POM to Reposilite
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
           API_VERSION: ${{ steps.api.outputs.version }}
           API_JAR: ${{ steps.api.outputs.jar }}
+          API_SOURCES: ${{ steps.api.outputs.sources }}
         run: |
           mvn --batch-mode --no-transfer-progress \
             org.apache.maven.plugins:maven-deploy-plugin:3.1.4:deploy-file \
@@ -116,4 +124,5 @@ jobs:
             "-Dversion=$API_VERSION" \
             -Dpackaging=jar \
             "-Dfile=$API_JAR" \
+            "-Dsources=$API_SOURCES" \
             -DgeneratePom=true
