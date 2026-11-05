@@ -64,7 +64,7 @@ modal 之间用 `open-page` 同层替换，复用背景，不追加历史。表�
 - `service-api.open.initial-modal`: `present-entry-canvas-then-modal`
 - `service-api.open.completion`: `final-target-sent`
 - `native-modal.replacement`: `same-layer-reuse-backdrop-no-history-push`
-- `contract-version`: `17`
+- `contract-version`: `18`
 
 `native-modal.snapshot`、`native-modal.background-interaction` 声明冻结物品背景及交互隔离；布局预算读取导出资源中的 `item-layouts.json`，其中 `flows`、`modal-flows` 与 `routes` 和本次构包一致。物品仍由 `ItemProvider` 返回，不要求接入方处理载体或 Shader。
 
@@ -170,4 +170,4 @@ cp plugin/build/libs/Rafter.jar build/api-verification/Rafter.jar
 
 `verifyApiAbi` 检查公开类、继承关系、非 synthetic 成员及泛型签名，不要求 API JAR 和部署 JAR 的 class 字节相同。它会检查公开签名未泄漏 Kotlin 运行时类型，并分别编译 Java / Kotlin 消费方、核对其 API 引用能否在部署 JAR 中解析；这不代替服务器和客户端验收。
 
-截至 2026-11-05，`com.hiusers.rafter:rafter-api:0.0.5` 已发布，可直接用于业务接入。开发分支的输入外观通过配置和 contract 17 提供，Java / Kotlin 服务接口保持兼容；接入方无需为字色或透明底图增加业务回调。后续发布使用新版本，不覆盖同版本构件；[发布工作流](../.github/workflows/publish-api.yml) 只在 `main` 执行，并拒绝已存在的版本。输入外观的实验开关和范围见[布局与交互](rendering.md#输入外观与透明模式)。
+截至 2026-11-05，`com.hiusers.rafter:rafter-api:0.0.5` 已发布，可直接用于业务接入。输入外观通过节点配置和 contract 18 提供，Java / Kotlin 服务接口保持兼容；接入方无需为字色或透明底图增加业务回调。后续发布使用新版本，不覆盖同版本构件；[发布工作流](../.github/workflows/publish-api.yml) 只在 `main` 执行，并拒绝已存在的版本。输入外观的配置和版本范围见[布局与交互](rendering.md#输入外观与透明模式)。

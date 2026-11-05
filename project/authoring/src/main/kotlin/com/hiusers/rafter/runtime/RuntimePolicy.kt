@@ -7,7 +7,6 @@ data class RuntimePolicy(
     val renderTimeoutMillis: Long = 10_000,
     val actionTimeoutMillis: Long = 30_000,
     val readConcurrency: Int = 4,
-    val experimentalInputAppearance: Boolean = false,
 ) {
     init {
         require(renderTimeoutMillis in 1_000..120_000)
@@ -17,15 +16,18 @@ data class RuntimePolicy(
 
     companion object {
         fun read(raw: Map<String, Any?>): RuntimePolicy {
-            Contract.check(raw, Contract.runtime, "config.yml", "$.runtime")
-            val values = Contract.withDefaults(raw, Contract.runtime)
+            // 兼容已写入磁盘的旧开关；输入外观现由各节点的 appearance 声明决定。
+            val legacyKey = "experimental-input-appearance"
+            if (legacyKey in raw) require(raw[legacyKey] is Boolean) { "$legacyKey must be boolean" }
+            val current = raw - legacyKey
+            Contract.check(current, Contract.runtime, "config.yml", "$.runtime")
+            val values = Contract.withDefaults(current, Contract.runtime)
             return RuntimePolicy(
                 renderTimeoutMillis =
                     (values.getValue("render-timeout-seconds") as Number).toLong() * 1_000,
                 actionTimeoutMillis =
                     (values.getValue("action-timeout-seconds") as Number).toLong() * 1_000,
                 readConcurrency = (values.getValue("read-concurrency") as Number).toInt(),
-                experimentalInputAppearance = values["experimental-input-appearance"] == true,
             )
         }
     }

@@ -317,14 +317,6 @@ class MenuRepository(
                     CanvasItemShaders.bind(DialogFocusShaders.bind(assets, snapshot), snapshot),
                     snapshot,
                 )
-                if (bound.inputAppearances.isNotEmpty() && !policy.experimentalInputAppearance) {
-                    throw DocumentError(Diagnostic(
-                        "config.yml",
-                        "$.runtime.experimental-input-appearance",
-                        "CAPABILITY",
-                        "Input appearance requires runtime.experimental-input-appearance=true; this experimental mode changes client game time",
-                    ))
-                }
                 LoadResult(
                     Candidate(
                         snapshot,

@@ -414,8 +414,7 @@ object AssetCompiler {
         val modalFrames = DialogFrames.compileModal(specs, modalLayouts)
         val hash = MessageDigest.getInstance("SHA-256")
         hash.update(ASSET_FORMAT_REVISION.toByteArray())
-        hash.update(InputAppearances.REVISION.toByteArray(Charsets.UTF_8))
-        hash.update(InputAppearances.layoutJson(emptyList()).toByteArray(Charsets.UTF_8))
+        InputAppearanceShaders.fingerprint(hash)
         hash.update(Json.gson.toJson(ButtonSkinFonts.manifest(skins)).toByteArray(Charsets.UTF_8))
         hash.update(Json.gson.toJson(frames).toByteArray(Charsets.UTF_8))
         hash.update(

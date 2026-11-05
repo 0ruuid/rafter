@@ -1,9 +1,5 @@
 default-menu: rafter:friends
 
-runtime:
-  # 实验性输入外观，仅支持 26.2；会临时标记客户端计时。
-  experimental-input-appearance: false
-
 # 资源包
 resource-pack:
   archive: false

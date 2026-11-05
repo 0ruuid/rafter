@@ -738,7 +738,6 @@ internal class RafterEngine(
                     shownVariants[player.uniqueId] = choices.toMap()
                     fields[player.uniqueId] = view.inputs.map { it.node.id }
                     if (view.inputAppearanceId != 0) {
-                        check(policy.experimentalInputAppearance) { "Experimental input appearance is disabled" }
                         if (inputAppearance?.supports(player) != true)
                             throw UiOperationException(UiFailureCode.UNSUPPORTED_CLIENT)
                     }

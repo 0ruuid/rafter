@@ -1,0 +1,55 @@
+{
+  "resource": "assets/minecraft/shaders/include/globals.glsl",
+  "manifestUrl": "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json",
+  "verifiedOn": "2026-11-05",
+  "entries": [
+    {
+      "version": "1.21.6",
+      "baseline": "1_21_6",
+      "officialUrl": "https://piston-data.mojang.com/v1/objects/740a125b83dd3447feaa3c5e891ead7fbb21ae28/client.jar",
+      "clientSHA1": "740a125b83dd3447feaa3c5e891ead7fbb21ae28",
+      "globalsSHA256": "55ed854f040d1a8e136b9031a45b0e58a6081cd3fe448f623de917a8fa8a2d41",
+      "globalsCRC32": "629e44e9"
+    },
+    {
+      "version": "1.21.9",
+      "baseline": "1_21_9",
+      "officialUrl": "https://piston-data.mojang.com/v1/objects/ce92fd8d1b2460c41ceda07ae7b3fe863a80d045/client.jar",
+      "clientSHA1": "ce92fd8d1b2460c41ceda07ae7b3fe863a80d045",
+      "globalsSHA256": "bb27eff60dbee7725f6a557e20c4f197773d74ddc6fe6939de908421515b18af",
+      "globalsCRC32": "62805122"
+    },
+    {
+      "version": "1.21.11",
+      "baseline": "1_21_11",
+      "officialUrl": "https://piston-data.mojang.com/v1/objects/ba2df812c2d12e0219c489c4cd9a5e1f0760f5bd/client.jar",
+      "clientSHA1": "ba2df812c2d12e0219c489c4cd9a5e1f0760f5bd",
+      "globalsSHA256": "52d4de27129b96b6ef4924c53123140630b1d26228360b15ed0f1b5cba08c328",
+      "globalsCRC32": "c9c27d63"
+    },
+    {
+      "version": "26.1",
+      "baseline": "26_1",
+      "officialUrl": "https://piston-data.mojang.com/v1/objects/191771837687b766537a8c4607cb6fad79c533a1/client.jar",
+      "clientSHA1": "191771837687b766537a8c4607cb6fad79c533a1",
+      "globalsSHA256": "52d4de27129b96b6ef4924c53123140630b1d26228360b15ed0f1b5cba08c328",
+      "globalsCRC32": "c9c27d63"
+    },
+    {
+      "version": "26.2",
+      "baseline": "26_2",
+      "officialUrl": "https://piston-data.mojang.com/v1/objects/2dc72797acbc1b63fc16a11c4ac393605f453754/client.jar",
+      "clientSHA1": "2dc72797acbc1b63fc16a11c4ac393605f453754",
+      "globalsSHA256": "52d4de27129b96b6ef4924c53123140630b1d26228360b15ed0f1b5cba08c328",
+      "globalsCRC32": "c9c27d63"
+    },
+    {
+      "version": "26.3",
+      "baseline": "26_3",
+      "officialUrl": "https://piston-data.mojang.com/v1/objects/e877b6a07acd633fb3bb475002175cec036e7b87/client.jar",
+      "clientSHA1": "e877b6a07acd633fb3bb475002175cec036e7b87",
+      "globalsSHA256": "85784f154ace14501ff33310a69b48e6d01f3af30b52444ce6192b9049be1060",
+      "globalsCRC32": "9cf8e5d2"
+    }
+  ]
+}

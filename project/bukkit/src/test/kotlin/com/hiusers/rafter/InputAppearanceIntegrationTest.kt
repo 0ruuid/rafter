@@ -1,6 +1,7 @@
 package com.hiusers.rafter
 
 import com.hiusers.rafter.asset.ModalEncoding
+import com.hiusers.rafter.asset.ClientRenderProfiles
 import com.hiusers.rafter.compile.DefaultBundle
 import com.hiusers.rafter.compile.MenuRepository
 import com.hiusers.rafter.pack.PackBuild
@@ -19,7 +20,7 @@ class InputAppearanceIntegrationTest {
     @TempDir lateinit var root: Path
 
     @Test
-    fun configuredAppearanceReachesTheModalAndGeneratedPackOnlyWhenEnabled() {
+    fun configuredAppearanceReachesTheModalAndEverySupportedClientProfile() {
         taboolib.module.chat.Components.useAdventure = true
         DefaultBundle.install(root)
         val skin = root.resolve("core/ui/skins/friends/search.yml")
@@ -28,18 +29,8 @@ class InputAppearanceIntegrationTest {
             "        type: input\n        appearance:\n          background: transparent\n          text-color: '#123456'\n",
         ))
         val repository = MenuRepository(root, {}, ::checkStaticItemReference)
-        val disabled = repository.load()
-        assertNull(disabled.candidate)
-        assertTrue(disabled.diagnostics.any {
-            it.path == "$.runtime.experimental-input-appearance" && it.code == "CAPABILITY"
-        }, disabled.diagnostics.toString())
-        val config = root.resolve("config.yml")
-        Files.writeString(config, Files.readString(config).replace(
-            "experimental-input-appearance: false", "experimental-input-appearance: true",
-        ))
         val loaded = repository.load()
         val candidate = assertNotNull(loaded.candidate, loaded.diagnostics.toString())
-        assertTrue(candidate.runtime.experimentalInputAppearance)
         val layout = candidate.assets.inputAppearances.single {
             it.key == ModalEncoding.key("rafter:friends", "search")
         }
@@ -68,6 +59,26 @@ class InputAppearanceIntegrationTest {
         val shader = "rafter_v260200/assets/minecraft/shaders/core/text.fsh"
         val firstShader = PackBuild.prepare(root, candidate.assets, candidate.pack).use { build ->
             assertFalse(Files.exists(build.folder.resolve("assets/minecraft/textures/gui/sprites/widget/text_field.png")))
+            for (profile in ClientRenderProfiles.all) {
+                val folder = build.folder.resolve("${profile.directory}/assets/minecraft/shaders/core")
+                for (program in profile.textPrograms + "position_tex_color") {
+                    val vertex = Files.readString(folder.resolve("$program.vsh"))
+                    val fragment = Files.readString(folder.resolve("$program.fsh"))
+                    assertTrue("rafterInputPoint" in vertex, "${profile.directory}/$program.vsh")
+                    assertTrue("GameTime" in fragment, "${profile.directory}/$program.fsh")
+                    assertTrue("rafterInputAppearanceRegion" in fragment)
+                    assertTrue("18.0 / 255.0" in fragment && "52.0 / 255.0" in fragment && "86.0 / 255.0" in fragment)
+                    if (profile.vulkanInterface) {
+                        val location = if (program == "position_tex_color") 6 else 8
+                        assertTrue("layout(location = $location)" in vertex)
+                        assertTrue("layout(location = $location)" in fragment)
+                    }
+                }
+            }
+            (System.getProperty("rafter.inputAppearance.packOutput")
+                ?: System.getenv("RAFTER_INPUT_APPEARANCE_PACK_OUTPUT"))?.let { output ->
+                build.folder.toFile().copyRecursively(Path.of(output).toFile(), overwrite = true)
+            }
             Files.readString(build.folder.resolve(shader)).also { assertTrue("GameTime" in it) }
         }
         Files.writeString(skin, Files.readString(skin).replace("#123456", "#fEdCbA"))
@@ -77,5 +88,15 @@ class InputAppearanceIntegrationTest {
         PackBuild.prepare(root, changed.assets, changed.pack).use { build ->
             assertNotEquals(firstShader, Files.readString(build.folder.resolve(shader)))
         }
+    }
+
+    @Test
+    fun oldAppearanceSwitchDoesNotDisableOrBreakCurrentConfiguration() {
+        taboolib.module.chat.Components.useAdventure = true
+        DefaultBundle.install(root)
+        val config = root.resolve("config.yml")
+        Files.writeString(config, Files.readString(config) + "\nruntime:\n  experimental-input-appearance: false\n")
+        val loaded = MenuRepository(root, {}, ::checkStaticItemReference).load()
+        assertNotNull(loaded.candidate, loaded.diagnostics.toString())
     }
 }

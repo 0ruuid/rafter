@@ -23,7 +23,7 @@ data class InputAppearanceLayout(
 
 /** Stable per-layout input appearance IDs carried by the client clock marker. */
 object InputAppearances {
-    const val REVISION = "rafter-input-appearance-v1"
+    const val REVISION = "rafter-input-appearance-v2"
     const val MAX_LAYOUTS = 64
 
     fun layoutJson(layouts: List<InputAppearanceLayout>): String =

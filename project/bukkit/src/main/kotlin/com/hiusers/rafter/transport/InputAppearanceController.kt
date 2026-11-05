@@ -10,6 +10,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion
 import com.github.retrooper.packetevents.protocol.world.clock.ClockNetworkState
 import com.github.retrooper.packetevents.protocol.world.clock.WorldClock
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTimeUpdate
+import com.hiusers.rafter.asset.ClientRenderProfiles
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Level
@@ -19,33 +20,69 @@ import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
 import org.bukkit.scheduler.BukkitTask
 
-/** Experimental native-input appearance marker; inactive players receive no altered time packets. */
+internal data class InputAppearanceClockSample(
+    val serverAge: Long,
+    val state: ClockNetworkState,
+)
+
+internal fun supportsInputAppearanceProtocol(protocol: Int): Boolean =
+    ClientRenderProfiles.forProtocol(protocol) != null
+
+internal fun projectInputAppearanceClocks(
+    samples: Map<WorldClock, InputAppearanceClockSample>,
+    actualAge: Long,
+): Map<WorldClock, ClockNetworkState>? {
+    val usableSamples = samples.takeUnless { it.isEmpty() } ?: return null
+    val projected = HashMap<WorldClock, ClockNetworkState>(usableSamples.size)
+    for ((clock, sample) in usableSamples) {
+        val state = sample.state
+        val rate = state.rate.toDouble()
+        val delta = (actualAge.toDouble() - sample.serverAge.toDouble()) * rate + state.partialTick
+        if (!rate.isFinite() || !delta.isFinite()) {
+            throw IllegalStateException("Non-finite clock projection for clock=$clock")
+        }
+        val floorDelta = floor(delta).toLong()
+        projected[clock] =
+            ClockNetworkState(
+                state.totalTicks + floorDelta,
+                (delta - floorDelta).toFloat(),
+                state.rate,
+            )
+    }
+    return projected
+}
+
+/** Native-input appearance marker; inactive players receive no altered time packets. */
 internal class InputAppearanceController(private val plugin: Plugin) :
     PacketListenerAbstract(),
     AutoCloseable {
     private companion object {
-        const val PROTOCOL_26_2 = 776
         const val MARKER_UNIT = 256L
         const val LEASE_NANOS = 60_000_000_000L
         const val REFRESH_TICKS = 5L
     }
 
-    private data class ClockSample(
-        val serverAge: Long,
-        val state: ClockNetworkState,
-    )
-
     private data class ActiveAppearance(
         val appearanceId: Int,
         val generation: Long,
         val deadlineNanos: Long,
+        val worldUid: UUID,
+    )
+
+    private data class RespawnRestore(
+        val id: UUID,
+        val generation: Long,
+        val worldUid: UUID,
+        val samples: Map<WorldClock, InputAppearanceClockSample>,
     )
 
     private val active = ConcurrentHashMap<UUID, ActiveAppearance>()
     private val generations = ConcurrentHashMap<UUID, Long>()
     private val pendingRestores = ConcurrentHashMap<UUID, Long>()
+    private val respawnRestores = ConcurrentHashMap<UUID, RespawnRestore>()
     private val deferredForgets = ConcurrentHashMap.newKeySet<UUID>()
-    private val clockSamples = ConcurrentHashMap<UUID, ConcurrentHashMap<WorldClock, ClockSample>>()
+    private val clockSamples =
+        ConcurrentHashMap<UUID, ConcurrentHashMap<WorldClock, InputAppearanceClockSample>>()
     private val stateLock = Any()
 
     @Volatile private var started = false
@@ -69,8 +106,9 @@ internal class InputAppearanceController(private val plugin: Plugin) :
 
     fun supports(player: Player): Boolean =
         runCatching {
-            PacketEvents.getAPI().playerManager.getClientVersion(player).protocolVersion ==
-                PROTOCOL_26_2
+            supportsInputAppearanceProtocol(
+                PacketEvents.getAPI().playerManager.getClientVersion(player).protocolVersion
+            )
         }.getOrDefault(false)
 
     fun show(player: Player, layoutId: Int) {
@@ -80,11 +118,11 @@ internal class InputAppearanceController(private val plugin: Plugin) :
             return
         }
         check(started && !closed) { "Input appearance controller is not running" }
-        check(supports(player)) { "Input appearance requires protocol $PROTOCOL_26_2" }
+        check(supports(player)) { "Input appearance requires a supported client profile" }
         check(!clockSamples[player.uniqueId].isNullOrEmpty()) {
             "Input appearance requires a normal TIME_UPDATE clock baseline"
         }
-        val generation = activate(player.uniqueId, layoutId)
+        val generation = activate(player.uniqueId, layoutId, player.world.uid)
         if (!sendWorldAge(player, marker(layoutId), generation)) {
             throw IllegalStateException("Failed to send input appearance marker")
         }
@@ -127,17 +165,23 @@ internal class InputAppearanceController(private val plugin: Plugin) :
             PacketEvents.getAPI().eventManager.unregisterListener(this)
             started = false
         }
-        val ids = (active.keys + pendingRestores.keys).distinct()
+        val respawnRecords = synchronized(stateLock) { respawnRestores.toMap() }
+        val ids = (active.keys + pendingRestores.keys + respawnRecords.keys).distinct()
         ids.forEach { id ->
             synchronized(stateLock) {
                 active.remove(id)
                 nextGenerationLocked(id)
             }
             val player = Bukkit.getPlayer(id)
-            if (player != null && player.isOnline) sendNormalWorldAge(player)
+            if (player != null && player.isOnline) {
+                val respawnRestore = respawnRecords[id]
+                if (respawnRestore == null) sendNormalWorldAge(player)
+                else sendCloseRespawnRestore(player, respawnRestore)
+            }
         }
         active.clear()
         pendingRestores.clear()
+        respawnRestores.clear()
         deferredForgets.clear()
         clockSamples.clear()
         generations.clear()
@@ -145,14 +189,16 @@ internal class InputAppearanceController(private val plugin: Plugin) :
 
     override fun onPacketSend(event: PacketSendEvent) {
         val id = event.user.uuid ?: return
-        if (!isProtocol26_2(event.user.clientVersion)) return
         try {
             when {
+                event.packetType == PacketType.Play.Server.RESPAWN -> resetForRespawn(id)
                 event.packetType == PacketType.Play.Server.TIME_UPDATE -> {
+                    if (!isSupported(event.user.clientVersion)) return
                     val wrapper = WrapperPlayServerTimeUpdate(event)
                     val originalAge = wrapper.worldAge
                     if (originalAge >= 0L) {
                         cacheClocks(id, originalAge, wrapper.clockUpdates)
+                        cancelRespawnRestoreOnTimeUpdate(id)
                     }
                     val appearance = active[id] ?: return
                     if (originalAge < 0L) return
@@ -166,7 +212,10 @@ internal class InputAppearanceController(private val plugin: Plugin) :
                     wrapper.clockUpdates = projected
                     event.markForReEncode(true)
                 }
-                isServerResetPacket(event.packetType) -> clear(id)
+                isClearResetPacket(event.packetType) -> {
+                    if (!isSupported(event.user.clientVersion)) return
+                    clear(id)
+                }
             }
         } catch (error: Throwable) {
             logError("Failed to rewrite TIME_UPDATE for $id", error)
@@ -260,6 +309,7 @@ internal class InputAppearanceController(private val plugin: Plugin) :
     private fun finishRestore(id: UUID, generation: Long) {
         synchronized(stateLock) {
             pendingRestores.remove(id, generation)
+            if (respawnRestores[id]?.generation == generation) respawnRestores.remove(id)
             if (
                 deferredForgets.remove(id) &&
                     active[id] == null &&
@@ -270,9 +320,96 @@ internal class InputAppearanceController(private val plugin: Plugin) :
         }
     }
 
-    private fun activate(id: UUID, appearanceId: Int): Long =
+    /**
+     * Respawn may reuse the client level for same-dimension death. Detach the old baseline first;
+     * the main-thread task restores it only when the player is still in that world.
+     */
+    private fun resetForRespawn(id: UUID) {
+        val restore =
+            synchronized(stateLock) {
+                val appearance = active.remove(id)
+                val detachedSamples = clockSamples.remove(id)
+                pendingRestores.remove(id)
+                respawnRestores.remove(id)
+                deferredForgets.remove(id)
+                val generation = nextGenerationLocked(id)
+                if (appearance == null || detachedSamples == null || detachedSamples.isEmpty()) {
+                    null
+                } else {
+                    pendingRestores[id] = generation
+                    val restore = RespawnRestore(
+                        id,
+                        generation,
+                        appearance.worldUid,
+                        HashMap(detachedSamples),
+                    )
+                    respawnRestores[id] = restore
+                    restore
+                }
+            }
+        if (restore != null) dispatchRespawnRestore(restore)
+    }
+
+    private fun dispatchRespawnRestore(restore: RespawnRestore) {
+        if (closed) {
+            finishRestore(restore.id, restore.generation)
+            return
+        }
+        try {
+            Bukkit.getScheduler().runTask(plugin, Runnable { restoreAfterRespawn(restore) })
+        } catch (error: Throwable) {
+            logError("Failed to schedule input appearance respawn restore for ${restore.id}", error)
+            finishRestore(restore.id, restore.generation)
+        }
+    }
+
+    private fun restoreAfterRespawn(restore: RespawnRestore) {
+        val shouldRestore =
+            synchronized(stateLock) {
+                !closed &&
+                    active[restore.id] == null &&
+                    generations[restore.id] == restore.generation &&
+                    pendingRestores[restore.id] == restore.generation &&
+                    respawnRestores[restore.id]?.generation == restore.generation
+            }
+        if (!shouldRestore) {
+            finishRestore(restore.id, restore.generation)
+            return
+        }
+        val player = Bukkit.getPlayer(restore.id)
+        if (
+            player == null ||
+                !player.isOnline ||
+                player.world.uid != restore.worldUid
+        ) {
+            finishRestore(restore.id, restore.generation)
+            return
+        }
+        val shouldSendDetached =
+            synchronized(stateLock) {
+                generations[restore.id] == restore.generation &&
+                    pendingRestores[restore.id] == restore.generation &&
+                    respawnRestores[restore.id]?.generation == restore.generation &&
+                    clockSamples[restore.id].isNullOrEmpty()
+            }
+        if (shouldSendDetached) {
+            sendWorldAge(player, player.world.gameTime, restore.samples)
+        }
+        finishRestore(restore.id, restore.generation)
+    }
+
+    private fun cancelRespawnRestoreOnTimeUpdate(id: UUID) {
+        synchronized(stateLock) {
+            val restore = respawnRestores.remove(id) ?: return
+            pendingRestores.remove(id, restore.generation)
+            if (generations[id] == restore.generation) nextGenerationLocked(id)
+        }
+    }
+
+    private fun activate(id: UUID, appearanceId: Int, worldUid: UUID): Long =
         synchronized(stateLock) {
             pendingRestores.remove(id)
+            respawnRestores.remove(id)
             deferredForgets.remove(id)
             val generation = nextGenerationLocked(id)
             active[id] =
@@ -280,9 +417,20 @@ internal class InputAppearanceController(private val plugin: Plugin) :
                     appearanceId,
                     generation,
                     System.nanoTime() + LEASE_NANOS,
+                    worldUid,
                 )
             generation
         }
+
+    private fun sendCloseRespawnRestore(player: Player, restore: RespawnRestore) {
+        val samples =
+            synchronized(stateLock) {
+                clockSamples[player.uniqueId]?.takeUnless { it.isNullOrEmpty() }?.let(::HashMap)
+                    ?: if (player.world.uid == restore.worldUid) restore.samples else null
+            }
+                ?: return
+        sendWorldAge(player, player.world.gameTime, samples)
+    }
 
     private fun clearActive(id: UUID): Long? =
         synchronized(stateLock) {
@@ -302,10 +450,27 @@ internal class InputAppearanceController(private val plugin: Plugin) :
         sendWorldAge(player, player.world.gameTime)
     }
 
-    private fun sendWorldAge(player: Player, worldAge: Long, expectedGeneration: Long? = null): Boolean {
+    private fun sendWorldAge(
+        player: Player,
+        worldAge: Long,
+        expectedGeneration: Long? = null,
+    ): Boolean =
+        sendWorldAge(
+            player,
+            worldAge,
+            clockSamples[player.uniqueId].orEmpty(),
+            expectedGeneration,
+        )
+
+    private fun sendWorldAge(
+        player: Player,
+        worldAge: Long,
+        samples: Map<WorldClock, InputAppearanceClockSample>,
+        expectedGeneration: Long? = null,
+    ): Boolean {
         return try {
             val projected =
-                projectClocks(player.uniqueId, player.world.gameTime)
+                projectInputAppearanceClocks(samples, player.world.gameTime)
                     ?: throw IllegalStateException("No cached TIME_UPDATE clock baseline")
             PacketEvents.getAPI()
                 .playerManager
@@ -326,29 +491,12 @@ internal class InputAppearanceController(private val plugin: Plugin) :
         if (serverAge < 0L || updates.isEmpty()) return
         val samples = clockSamples.computeIfAbsent(id) { ConcurrentHashMap() }
         updates.forEach { (clock, state) ->
-            samples[clock] = ClockSample(serverAge, state)
+            samples[clock] = InputAppearanceClockSample(serverAge, state)
         }
     }
 
     private fun projectClocks(id: UUID, actualAge: Long): Map<WorldClock, ClockNetworkState>? {
-        val samples = clockSamples[id].takeUnless { it.isNullOrEmpty() } ?: return null
-        val projected = HashMap<WorldClock, ClockNetworkState>(samples.size)
-        for ((clock, sample) in samples) {
-            val state = sample.state
-            val rate = state.rate.toDouble()
-            val delta = (actualAge.toDouble() - sample.serverAge.toDouble()) * rate + state.partialTick
-            if (!rate.isFinite() || !delta.isFinite()) {
-                throw IllegalStateException("Non-finite clock projection for $id clock=$clock")
-            }
-            val floorDelta = floor(delta).toLong()
-            projected[clock] =
-                ClockNetworkState(
-                    state.totalTicks + floorDelta,
-                    (delta - floorDelta).toFloat(),
-                    state.rate,
-                )
-        }
-        return projected
+        return projectInputAppearanceClocks(clockSamples[id].orEmpty(), actualAge)
     }
 
     private fun nextGenerationLocked(id: UUID): Long {
@@ -357,16 +505,15 @@ internal class InputAppearanceController(private val plugin: Plugin) :
         return next
     }
 
-    private fun isProtocol26_2(version: ClientVersion): Boolean =
-        version.protocolVersion == PROTOCOL_26_2
+    private fun isSupported(version: ClientVersion): Boolean =
+        supportsInputAppearanceProtocol(version.protocolVersion)
 
     private fun marker(appearanceId: Int): Long = -MARKER_UNIT * appearanceId
 
-    private fun isServerResetPacket(packetType: Any): Boolean =
+    private fun isClearResetPacket(packetType: Any): Boolean =
         packetType == PacketType.Play.Server.SHOW_DIALOG ||
             packetType == PacketType.Play.Server.CLEAR_DIALOG ||
-            packetType == PacketType.Play.Server.OPEN_WINDOW ||
-            packetType == PacketType.Play.Server.RESPAWN
+            packetType == PacketType.Play.Server.OPEN_WINDOW
 
     private fun logError(message: String, error: Throwable) {
         plugin.logger.log(Level.SEVERE, message, error)

@@ -1,6 +1,7 @@
 package com.hiusers.rafter
 
 import com.hiusers.rafter.asset.ModalAssets
+import com.hiusers.rafter.asset.ClientRenderProfiles
 import com.hiusers.rafter.compile.AuthoringContract
 import com.hiusers.rafter.compile.Contract
 import com.hiusers.rafter.compile.MenuCompiler
@@ -797,7 +798,11 @@ class NativeModalCompilerTest {
             "^#[0-9a-fA-F]{6}(?![\\s\\S])",
             obj(obj(appearance["properties"])["text-color"])["pattern"],
         )
-        assertEquals(false, Contract.runtime.getValue("experimental-input-appearance").default)
+        assertFalse("experimental-input-appearance" in Contract.runtime)
+        assertEquals(
+            ClientRenderProfiles.all.flatMap { it.clients },
+            obj(manifest["input-appearance"])["supported-clients"],
+        )
         for (name in listOf("node", "nativeNode")) {
             val schema =
                 assertIs<List<*>>(obj(definitions[name])["oneOf"]).map(::obj).single {
@@ -858,7 +863,7 @@ class NativeModalCompilerTest {
             )) {
             Contract.check(fields, Contract.modal, "modal.yml", "$.pages.search.modal")
         }
-        assertEquals(17, AuthoringContract.VERSION)
+        assertEquals(18, AuthoringContract.VERSION)
     }
 
     @Test

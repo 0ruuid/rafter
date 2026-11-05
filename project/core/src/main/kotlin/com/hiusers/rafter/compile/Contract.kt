@@ -135,7 +135,6 @@ object Contract {
             "render-timeout-seconds" to Field("integer", minimum = 1, maximum = 120, default = 10),
             "action-timeout-seconds" to Field("integer", minimum = 1, maximum = 300, default = 30),
             "read-concurrency" to Field("integer", minimum = 1, maximum = 16, default = 4),
-            "experimental-input-appearance" to Field("boolean", default = false),
         )
     val asset =
         linkedMapOf(
@@ -1411,16 +1410,15 @@ object Contract {
                     "generated" to com.hiusers.rafter.model.ProjectPaths.GENERATE,
                 ),
             "runtime-fields" to describe(runtime),
-            "experimental-features" to
+            "input-appearance" to
                 mapOf(
-                    "input-appearance" to
-                        mapOf(
-                            "supported-clients" to listOf("26.2"),
-                            "compiled-layouts" to 64,
-                            "scope" to "modal",
-                            "requires-client-gametime-marker" to true,
-                            "stable-cross-version" to false,
-                        ),
+                    "supported-clients" to ClientRenderProfiles.all.flatMap { it.clients },
+                    "profiles" to ClientRenderProfiles.all.map { it.manifest() },
+                    "compiled-layouts" to 64,
+                    "scope" to "modal",
+                    "selection" to "per-input-appearance",
+                    "requires-loaded-resource-pack" to true,
+                    "requires-client-gametime-marker" to true,
                 ),
             "theme-schema" to themeSchema(),
             "style-fields" to describe(style),
