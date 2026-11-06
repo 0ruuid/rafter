@@ -52,7 +52,11 @@ internal fun projectInputAppearanceClocks(
     return projected
 }
 
-/** Native-input appearance marker; inactive players receive no altered time packets. */
+/**
+ * Uses the viewer's client GameTime to select an input layout; world clocks are projected separately.
+ * Refreshes can restart other GameTime-driven animations on that client.
+ * Inactive players receive no altered time packets.
+ */
 internal class InputAppearanceController(private val plugin: Plugin) :
     PacketListenerAbstract(),
     AutoCloseable {
