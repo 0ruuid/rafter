@@ -81,7 +81,10 @@ public final class RafterDialogProbe implements CalciteExtension {
         result.put("pack", ref.call(source, "sourcePackId"));
         result.put("bytes", bytes.size());
         result.put("compiledRoutes", text.contains("vec2 source0") || text.contains("vec2 source1"));
-        result.put("cornerPhaseIndependent", !text.contains("gl_VertexID"));
+        int firstRoute = text.indexOf("vec2 source0");
+        String routes = firstRoute < 0 ? text : text.substring(firstRoute);
+        result.put("cornerPhaseIndependent", !routes.contains("gl_VertexID") && !routes.contains("gl_VertexIndex"));
+        result.put("affineSpacerQuads", text.contains("rafterSpacerQuad"));
         byte[] digest = MessageDigest.getInstance("SHA-256").digest(bytes.toByteArray());
         StringBuilder hash = new StringBuilder();
         for (byte value : digest) hash.append(String.format("%02x", value & 255));

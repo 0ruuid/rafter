@@ -14,6 +14,8 @@
 2. 执行 `/rafter pack`，加载生成的 `plugins/Rafter/generate/resource-pack/` 资源包。
 3. 在游戏中执行 `/rafter open`，打开默认好友界面。
 
+输入框透明底图与字色使用客户端 `GameTime` 标记实现，可能使同一客户端的相关动画重复或跳变，详见[输入外观说明](docs/rendering.md#输入外观与透明模式)。
+
 ## 编译
 
 使用 JDK 21：

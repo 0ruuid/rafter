@@ -114,6 +114,10 @@ class CanvasItemsTest {
             )
         val hidden = view(false)
         val full = view(true)
+        assertTrue(
+            full.title.toRawMessage().contains("rafter:canvas_bounds"),
+            "Shader-moved Canvas paint must keep native CPU bounds ahead of item carriers",
+        )
         assertEquals(0.0, CompositeText(assets).width(full.title), full.title.toRawMessage())
         assertEquals(listOf(0, 1), hidden.canvasItems.map { it.route.row })
         assertEquals(listOf(true, false), hidden.canvasItems.map { it.visible })
@@ -280,5 +284,106 @@ class CanvasItemsTest {
         val items = capabilities["items"] as Map<*, *>
         assertEquals(false, items["durability-bar"])
         assertEquals("native-tooltip-only-no-modal-background-hover", items["hover-appearance"])
+    }
+
+    @Test
+    fun popupFlowsKeepTheCompiledCanvasInsetStableAcrossVisibleItems() {
+        val elements =
+            (0 until 6).map { index -> item("item-$index", 205 + 20 * index) } +
+                mapOf(
+                    "id" to "open",
+                    "type" to "hit-area",
+                    "x" to 0,
+                    "y" to 9,
+                    "width" to 9,
+                    "height" to 9,
+                    "actions" to listOf(mapOf("type" to "open-popup", "popup" to "choices")),
+                )
+        val result =
+            MenuCompiler().compile(
+                mapOf(
+                    "items.yml" to
+                        mapOf(
+                            "id" to "test:items",
+                            "entry" to "home",
+                            "pages" to
+                                mapOf(
+                                    "home" to
+                                        mapOf(
+                                            "mode" to "canvas",
+                                            "width" to 512,
+                                            "height" to 306,
+                                            "elements" to elements,
+                                            "popups" to
+                                                mapOf(
+                                                    "choices" to
+                                                        mapOf(
+                                                            "elements" to
+                                                                listOf(
+                                                                    mapOf(
+                                                                        "id" to "choices-close",
+                                                                        "type" to "hit-area",
+                                                                        "x" to 0,
+                                                                        "y" to 54,
+                                                                        "width" to 90,
+                                                                        "height" to 36,
+                                                                        "actions" to
+                                                                            listOf(
+                                                                                mapOf(
+                                                                                    "type" to
+                                                                                        "close-popup"
+                                                                                )
+                                                                            ),
+                                                                    )
+                                                                )
+                                                        ),
+                                                    "covered" to
+                                                        mapOf(
+                                                            "hide-underlay" to
+                                                                (0 until 6).map { "item-$it" },
+                                                            "elements" to
+                                                                listOf(
+                                                                    mapOf(
+                                                                        "id" to "covered-close",
+                                                                        "type" to "hit-area",
+                                                                        "x" to 205,
+                                                                        "y" to 18,
+                                                                        "width" to 120,
+                                                                        "height" to 18,
+                                                                        "actions" to
+                                                                            listOf(
+                                                                                mapOf(
+                                                                                    "type" to
+                                                                                        "close-popup"
+                                                                                )
+                                                                            ),
+                                                                    )
+                                                                )
+                                                        ),
+                                                )
+                                        )
+                                ),
+                        )
+                )
+            )
+        val compiled = assertNotNull(result.snapshot, result.diagnostics.toString())
+        val assets = CanvasItemShaders.bind(catalog(), compiled)
+        val home = assets.canvasFlows.getValue(CanvasItems.key("test:items", "home"))
+        val choices =
+            assets.canvasFlows.getValue(CanvasItems.key("test:items", "home", "choices"))
+        val covered =
+            assets.canvasFlows.getValue(CanvasItems.key("test:items", "home", "covered"))
+
+        for (flow in listOf(choices, covered)) {
+            assertEquals(home.inset, flow.inset)
+            assertEquals(home.bodyHeight, flow.bodyHeight)
+            assertEquals(home.layoutHeight, flow.layoutHeight)
+        }
+        for (popup in listOf<String?>(null, "choices")) {
+            val routes = assets.canvasItems.filter { it.popup == popup }
+            assertEquals(6, routes.size)
+            assertEquals(setOf(home.inset), routes.map { it.layout.inset }.toSet())
+        }
+        assertTrue(assets.canvasItems.none { it.popup == "covered" })
     }
 }

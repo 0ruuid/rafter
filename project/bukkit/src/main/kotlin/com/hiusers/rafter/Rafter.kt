@@ -5,6 +5,7 @@ import com.hiusers.rafter.api.RafterService
 import com.hiusers.rafter.compile.DefaultBundle
 import com.hiusers.rafter.runtime.RafterEngine
 import com.hiusers.rafter.transport.DialogListener
+import com.hiusers.rafter.transport.InputAppearanceController
 import org.bukkit.Bukkit
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
@@ -29,6 +30,7 @@ object Rafter {
         private set
 
     private var ticker: PlatformTask? = null
+    private var inputAppearance: InputAppearanceController? = null
     private val listener = DialogListener({ if (::engine.isInitialized) engine else null })
 
     @Awake(LifeCycle.ENABLE)
@@ -40,7 +42,15 @@ object Rafter {
             Bukkit.getPluginManager()
                 .addPermission(Permission("rafter.admin", BukkitPermissionDefault.OP))
         }
-        engine = RafterEngine(BukkitPlugin.getInstance(), getDataFolder().toPath())
+        val appearance = InputAppearanceController(BukkitPlugin.getInstance())
+        appearance.start()
+        inputAppearance = appearance
+        engine =
+            RafterEngine(
+                BukkitPlugin.getInstance(),
+                getDataFolder().toPath(),
+                inputAppearance = appearance,
+            )
         Bukkit.getServicesManager()
             .register(
                 RafterService::class.java,
@@ -95,6 +105,7 @@ object Rafter {
 
     @SubscribeEvent
     fun quit(event: PlayerQuitEvent) {
+        inputAppearance?.forget(event.player.uniqueId)
         if (::engine.isInitialized) engine.forget(event.player.uniqueId)
     }
 
@@ -107,10 +118,13 @@ object Rafter {
     fun disable() {
         ticker?.cancel()
         ticker = null
+        val appearance = inputAppearance
+        inputAppearance = null
         if (::engine.isInitialized) {
             PacketEvents.getAPI().eventManager.unregisterListener(listener)
             engine.close()
             Bukkit.getServicesManager().unregister(RafterService::class.java, engine)
         }
+        appearance?.close()
     }
 }

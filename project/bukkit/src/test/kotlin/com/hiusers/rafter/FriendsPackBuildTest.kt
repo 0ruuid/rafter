@@ -34,14 +34,14 @@ class FriendsPackBuildTest {
             MenuRepository(
                     root,
                     { error("No scripts in the preview") },
-                    { _, _, _ -> error("No business dependencies") },
+                    ::checkStaticItemReference,
                     { Yaml(SafeConstructor(LoaderOptions())).load(it) },
                 )
                 .load()
         val candidate = assertNotNull(loaded.candidate, loaded.diagnostics.joinToString("\n"))
         assertTrue(candidate.pack.archive)
         assertEquals(
-            setOf(560, 800),
+            setOf(432, 560, 800, 864),
             candidate.snapshot.menus.values
                 .flatMap { it.pages.values }
                 .filter { it.spec.mode.name == "CANVAS" && it.spec.modal == null }

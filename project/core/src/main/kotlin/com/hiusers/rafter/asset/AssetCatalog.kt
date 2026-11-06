@@ -62,6 +62,7 @@ data class AssetCatalog(
     val canvasFlows: Map<String, CanvasFlowPlan> = emptyMap(),
     val canvasModalFlows: Map<String, CanvasModalFlow> = emptyMap(),
     val canvasItemBaseFingerprint: String? = null,
+    val inputAppearances: List<InputAppearanceLayout> = emptyList(),
 ) {
     fun dimensions() = images.mapValues { (_, glyph) -> glyph.width to glyph.height }
 
@@ -85,6 +86,12 @@ data class AssetCatalog(
         return text.codePoints().toArray().sumOf { code ->
             val base =
                 when (metricFont) {
+                    ModalEncoding.BOUNDS_FONT -> {
+                        require(code == ModalEncoding.BOUNDS_CHARACTER.codePointAt(0)) {
+                            "Unknown Canvas ordering glyph"
+                        }
+                        ModalEncoding.BOUNDS_ADVANCE.toDouble()
+                    }
                     "rafter:images" ->
                         requireNotNull(
                                 images.values
@@ -141,7 +148,13 @@ data class AssetCatalog(
             base +
                 if (
                     bold &&
-                        metricFont !in setOf("rafter:space", "rafter:fill", "rafter:modal_fill") &&
+                        metricFont !in
+                            setOf(
+                                "rafter:space",
+                                "rafter:fill",
+                                "rafter:modal_fill",
+                                ModalEncoding.BOUNDS_FONT,
+                            ) &&
                         (code != 32 || metricFont in faces)
                 )
                     1.0

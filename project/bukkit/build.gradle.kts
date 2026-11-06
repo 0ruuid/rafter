@@ -12,6 +12,7 @@ dependencies {
     testImplementation("com.google.code.gson:gson:2.10.1")
     testImplementation(kotlin("test-junit5"))
     testImplementation("org.mockito:mockito-core:5.19.0")
+    testImplementation("io.netty:netty-buffer:4.1.114.Final")
     testImplementation("org.yaml:snakeyaml:2.6")
     testImplementation("io.izzel.taboolib:common-util:6.3.0-0e3a911")
     testImplementation("io.izzel.taboolib:common-platform-api:6.3.0-0e3a911")

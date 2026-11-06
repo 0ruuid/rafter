@@ -4,7 +4,7 @@ import com.hiusers.rafter.model.*
 
 /** 仅导出离线数据，不执行脚本、提供器或玩家操作。 */
 object AuthoringContract {
-    const val VERSION = 16
+    const val VERSION = 18
 
     fun manifest(engineVersion: String, extensions: Map<String, Any?>): Map<String, Any?> =
         Values.contract(
@@ -255,7 +255,16 @@ object AuthoringContract {
                                                         "multiline-height" to it.multilineHeight,
                                                         "max-lines" to it.maxLines,
                                                         "input-height" to it.inputHeight,
-                                                    )
+                                                    ) +
+                                                        (it.appearance?.let { appearance ->
+                                                            mapOf(
+                                                                "appearance" to
+                                                                    mapOf(
+                                                                        "background" to appearance.background,
+                                                                        "text-color" to appearance.textColor,
+                                                                    )
+                                                            )
+                                                        } ?: emptyMap())
                                                 },
                                             "button" to
                                                 (node.content as? NodeContent.Button)?.let { button

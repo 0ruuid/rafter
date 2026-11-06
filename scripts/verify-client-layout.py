@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """使用指定客户端字体重放布局，不登录、启动界面或读取账号文件。"""
-import argparse,json,subprocess
+import argparse,json,os,subprocess
 from pathlib import Path
 p=argparse.ArgumentParser();p.add_argument('--client-json',required=True,type=Path);p.add_argument('--java',required=True,type=Path)
 p.add_argument('--pack',required=True,type=Path);p.add_argument('--wire',type=Path);p.add_argument('--view',type=Path)
@@ -15,10 +15,10 @@ data=json.loads(a.client_json.read_text());meta=a.client_json.parent.parent.pare
 for lib in data['libraries']:
     relative=lib.get('downloads',{}).get('artifact',{}).get('path')
     if relative and (meta/'libraries'/relative).exists():jars.append(meta/'libraries'/relative)
-classpath=':'.join(map(str,jars));source=Path(__file__).parent/'client-probe';classes=Path(__file__).resolve().parent.parent/'project/bukkit/build/client-probe/classes';classes.mkdir(parents=True,exist_ok=True)
+classpath=os.pathsep.join(map(str,jars));source=Path(__file__).parent/'client-probe';classes=Path(__file__).resolve().parent.parent/'project/bukkit/build/client-probe/classes';classes.mkdir(parents=True,exist_ok=True)
 result=subprocess.run([str(a.java.with_name('javac')),'--class-path',classpath,'-d',str(classes),*[str(s) for s in source.glob('*.java')]])
 if result.returncode:raise SystemExit(result.returncode)
-classpath=str(classes)+':'+classpath;natives=meta/'natives'/a.client_json.stem
+classpath=str(classes)+os.pathsep+classpath;natives=meta/'natives'/a.client_json.stem
 command=[str(a.java),'--enable-native-access=ALL-UNNAMED','-Djava.awt.headless=true','-Dorg.lwjgl.librarypath='+str(natives),'--class-path',classpath]
 print('Client:',data['id'],'libraries:',len(jars)-1,flush=True)
 if a.font_raster_probe:raise SystemExit(subprocess.run(command+['FontRasterProbe',str(a.pack)]+(['crisp'] if a.expect_crisp else []),cwd=classes.parent).returncode)

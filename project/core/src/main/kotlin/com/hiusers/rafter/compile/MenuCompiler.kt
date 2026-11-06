@@ -36,6 +36,7 @@ import com.hiusers.rafter.model.RowScope
 import com.hiusers.rafter.model.SourceLocation
 import com.hiusers.rafter.model.SourcePath
 import com.hiusers.rafter.model.StateContent
+import com.hiusers.rafter.model.TextInputAppearance
 import com.hiusers.rafter.model.TextSpec
 import com.hiusers.rafter.model.Values
 import com.hiusers.rafter.model.accepts
@@ -690,6 +691,19 @@ class MenuCompiler(
                                     failure.message ?: "Invalid panel header layout",
                                 )
                             }
+                    } else {
+                        page.components.forEach { node ->
+                            fun rejectAppearance(value: NodeSpec) {
+                                if ((value.content as? NodeContent.TextInput)?.appearance != null)
+                                    failNode(
+                                        value,
+                                        "CAPABILITY",
+                                        "Input appearance is only supported in native modal inputs",
+                                    )
+                                value.variants.forEach { rejectAppearance(it.node) }
+                            }
+                            rejectAppearance(node)
+                        }
                     }
                     validateModal(page, path, state)
                     page
@@ -1604,6 +1618,19 @@ class MenuCompiler(
                 fail(path, "RANGE", "Invalid slider range/step")
             val maxLength = integer("max-length", 64)
             if (maxLength !in 1..4096) fail(path, "RANGE", "max-length must be 1..4096")
+            val appearance =
+                if (type == "input")
+                    m["appearance"]?.let {
+                        val appearancePath = "$path.appearance"
+                        val raw = obj(it, appearancePath)
+                        Contract.check(raw, Contract.inputAppearance, file, appearancePath)
+                        val fields = Contract.withDefaults(raw, Contract.inputAppearance)
+                        TextInputAppearance(
+                            background = fields.getValue("background") as String,
+                            textColor = fields["text-color"] as? String,
+                        )
+                    }
+                else null
             val actions =
                 (m["actions"] as? List<*>)?.mapIndexed { i, value ->
                     action(obj(value, "$path.actions[$i]"), "$path.actions[$i]")
@@ -1669,6 +1696,7 @@ class MenuCompiler(
                             labelVisible = m["label-visible"] as? Boolean ?: true,
                             multilineHeight = integer("multiline-height", 48),
                             maxLines = integer("max-lines", 3),
+                            appearance = appearance,
                         )
                     "checkbox" -> NodeContent.Checkbox(m["state"] as String)
                     "select" ->

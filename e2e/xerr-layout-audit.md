@@ -1,6 +1,6 @@
 # Xerr 布局机制审查
 
-审查日期：2026-11-04。只读核对 `/Volumes/iiDisk/code/kotlin/minecraft/Xerr`（HEAD `1f500ed`）；未运行 Gradle/游戏，未修改 Xerr。
+审查日期：2026-11-04。只读核对同级 `../Xerr` 仓库（HEAD `1f500ed`）；未运行 Gradle/游戏，未修改 Xerr。
 
 ## 结论
 

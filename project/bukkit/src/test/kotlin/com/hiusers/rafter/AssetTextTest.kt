@@ -32,7 +32,7 @@ class AssetTextTest {
         val root = root()
         val doc = legacyUiDocument()
         val first = AssetCompiler.compile(root, doc)
-        val pack = AssetCompiler.build(root, first, temp)
+        val pack = AssetCompiler.build(root, first, temp.resolve("generate"))
         assertEquals(temp.resolve("generate/resource-pack"), pack)
         Files.writeString(pack.resolve("stale-output.txt"), "obsolete")
         val updated =
@@ -42,13 +42,13 @@ class AssetTextTest {
                 first.allocation,
             )
         assertNotEquals(first.fingerprint, updated.fingerprint)
-        assertEquals(pack, AssetCompiler.build(root, updated, temp))
+        assertEquals(pack, AssetCompiler.build(root, updated, temp.resolve("generate")))
         assertEquals(updated.fingerprint, Json.map(pack.resolve("manifest.json"))["fingerprint"])
         assertFalse(Files.exists(pack.resolve("stale-output.txt")))
         assertFalse(Files.exists(pack.resolve("assets/minecraft")))
         Files.list(temp).use { paths ->
             assertEquals(
-                setOf("ui", "resource-pack"),
+                setOf("core", "generate"),
                 paths.map { it.fileName.toString() }.toList().toSet(),
             )
         }
@@ -59,7 +59,7 @@ class AssetTextTest {
         val root = root()
         val doc = legacyUiDocument()
         val first = AssetCompiler.compile(root, doc)
-        val pack = AssetCompiler.build(root, first, temp)
+        val pack = AssetCompiler.build(root, first, temp.resolve("generate"))
         assertTrue(Files.exists(pack.resolve("manifest.json")))
         assertFalse(Files.exists(pack.resolve("assets/minecraft/textures/gui/sprites/widget")))
         val second = AssetCompiler.compile(root, doc, first.allocation)
@@ -93,7 +93,7 @@ class AssetTextTest {
     fun sourceChangeCannotReplaceTheLastSuccessfulPack() {
         val root = root()
         val catalog = AssetCompiler.compile(root, legacyUiDocument())
-        val pack = AssetCompiler.build(root, catalog, temp)
+        val pack = AssetCompiler.build(root, catalog, temp.resolve("generate"))
         val before =
             Files.walk(pack)
                 .use { paths -> paths.filter { Files.isRegularFile(it) }.toList() }
@@ -104,7 +104,7 @@ class AssetTextTest {
                             .toList()
                 }
         Files.writeString(root.resolve("fonts/rafter-mono.ttf"), "changed during build")
-        assertFails { AssetCompiler.build(root, catalog, temp) }
+        assertFails { AssetCompiler.build(root, catalog, temp.resolve("generate")) }
         val after =
             Files.walk(pack)
                 .use { paths -> paths.filter { Files.isRegularFile(it) }.toList() }
@@ -121,7 +121,7 @@ class AssetTextTest {
     fun failedCandidatePreservesPublishedOutputAndRemovesTemporaryFiles() {
         val root = root()
         val catalog = AssetCompiler.compile(root, legacyUiDocument())
-        val pack = AssetCompiler.build(root, catalog, temp)
+        val pack = AssetCompiler.build(root, catalog, temp.resolve("generate"))
         val manifest = Files.readString(pack.resolve("manifest.json"))
         val invalid =
             catalog.copy(
@@ -130,19 +130,19 @@ class AssetTextTest {
                         if (it.source != null) it.copy(width = it.width + 9) else it
                     }
             )
-        assertFails { AssetCompiler.build(root, invalid, temp) }
+        assertFails { AssetCompiler.build(root, invalid, temp.resolve("generate")) }
         assertEquals(manifest, Files.readString(pack.resolve("manifest.json")))
         assertTrue(Files.exists(pack.resolve("pack.mcmeta")))
         Files.list(temp).use { paths ->
             assertEquals(
-                setOf("ui", "resource-pack"),
+                setOf("core", "generate"),
                 paths.map { it.fileName.toString() }.toList().toSet(),
             )
         }
     }
 
     @Test
-    fun readsStableLedgerAndImportsLegacyAllocationWithoutPublishingHashDirectories() {
+    fun readsCurrentLedgerAndIgnoresLegacyHashDirectories() {
         assertEquals(emptyMap(), AssetCompiler.readAllocation(temp))
         val oldHash = "a".repeat(64)
         Json.write(temp.resolve("generated/current.json"), mapOf("directory" to oldHash))
@@ -150,17 +150,19 @@ class AssetTextTest {
             temp.resolve("generated/$oldHash/manifest.json"),
             mapOf("allocation" to mapOf("rafter:mark" to 0xe300)),
         )
+        assertEquals(emptyMap(), AssetCompiler.readAllocation(temp))
+        Json.write(temp.resolve(ProjectPaths.ALLOCATION), mapOf("rafter:mark" to 0xe300))
         assertEquals(mapOf("rafter:mark" to 0xe300), AssetCompiler.readAllocation(temp))
         val root = root()
         val catalog =
             AssetCompiler.compile(root, legacyUiDocument(), AssetCompiler.readAllocation(temp))
-        val pack = AssetCompiler.build(root, catalog, temp)
+        val pack = AssetCompiler.build(root, catalog, temp.resolve("generate"))
         assertEquals(catalog.allocation, AssetCompiler.readAllocation(temp))
         Json.write(temp.resolve("generated/current.json"), mapOf("directory" to "invalid"))
         assertEquals(catalog.allocation, AssetCompiler.readAllocation(temp))
         Json.write(
-            pack.resolve("manifest.json"),
-            mapOf("allocation" to mapOf("rafter:mark" to 58112.5)),
+            pack.resolve("allocation.json"),
+            mapOf("rafter:mark" to 58112.5),
         )
         assertFails { AssetCompiler.readAllocation(temp) }
     }
@@ -205,7 +207,7 @@ class AssetTextTest {
                     "held:test:duplicate" to 0xe345,
                     "held:test:invalid" to -1,
                 )
-        Json.write(temp.resolve("resource-pack/allocation.json"), previous)
+        Json.write(temp.resolve(ProjectPaths.ALLOCATION), previous)
         val catalog =
             AssetCompiler.compile(
                 root,
@@ -216,7 +218,7 @@ class AssetTextTest {
         assertEquals(expected, catalog.allocation)
         assertEquals(0xe345, catalog.images.getValue("rafter:mark").character.codePointAt(0))
         assertEquals(0xe34b, catalog.images.getValue("rafter:aaa").character.codePointAt(0))
-        AssetCompiler.build(root, catalog, temp)
+        AssetCompiler.build(root, catalog, temp.resolve("generate"))
         assertEquals(expected, AssetCompiler.readAllocation(temp))
     }
 

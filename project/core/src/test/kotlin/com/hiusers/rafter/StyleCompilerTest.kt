@@ -263,7 +263,7 @@ class StyleCompilerTest {
                     "style" to "theme",
                     "height" to 27,
                 ),
-                style = mapOf("height" to 10),
+                style = mapOf("height" to 0),
             )
         assertNull(result.snapshot)
         assertEquals("RANGE", result.diagnostics.single().code)

@@ -22,6 +22,8 @@ object NativeModalRenderer {
             }
         val plan = variant?.layout?.plan ?: requireNotNull(session.current().modalLayout)
         val key = variant?.layout?.key ?: ModalEncoding.key(session.menu.spec.id, page.id)
+        val inputAppearanceId =
+            text.assets.inputAppearances.firstOrNull { it.key == key }?.id ?: 0
         val backdropIndex = text.assets.modalBackdrops.indexOf(snapshot.layout)
         require(backdropIndex >= 0) { "The captured Canvas layout was not compiled into this pack" }
         require(view.inputs.map { it.node.id } == plan.inputs.map { it.id }) {
@@ -54,7 +56,8 @@ object NativeModalRenderer {
                                 width = cell.nativeWidth,
                             )
                         val paint =
-                            ModalText.inertCell(
+                            if (cell.role == ModalCellRole.CLIP_SPACER) Components.empty()
+                            else ModalText.inertCell(
                                 text,
                                 cell.bounds.width,
                                 modal.background,
@@ -107,6 +110,7 @@ object NativeModalRenderer {
             columns = plan.columns,
             fallbackTitle = null,
             modal = true,
+            inputAppearanceId = inputAppearanceId,
         )
     }
 }

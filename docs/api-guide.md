@@ -55,7 +55,7 @@ TabooLib 插件可在 ENABLE 注册提供器，菜单在 ACTIVE 加载。提前�
 
 modal 之间用 `open-page` 同层替换，复用背景，不追加历史。表单仍需显式 `submit`；Esc、关闭或返回不会自动保存输入。
 
-打开与刷新 Future 在对应帧交给发送层或明确失败后完成，不代表客户端已显示。`open` 失败读取 `OpenResult.failure`。`refresh`、`close` 的失败通过 `UiOperationException.code` 判断。
+打开与刷新 Future 在对应帧的服务端发送任务结束或明确失败后完成，不代表客户端已显示。`open` 失败读取 `OpenResult.failure`。`refresh`、`close` 的失败通过 `UiOperationException.code` 判断。发送失败返回调用方并记录服务端日志，不自动向玩家发送提示；接入插件自行决定是否展示。
 
 `contract()` 提供以下能力字段：
 
@@ -64,7 +64,7 @@ modal 之间用 `open-page` 同层替换，复用背景，不追加历史。表�
 - `service-api.open.initial-modal`: `present-entry-canvas-then-modal`
 - `service-api.open.completion`: `final-target-sent`
 - `native-modal.replacement`: `same-layer-reuse-backdrop-no-history-push`
-- `contract-version`: `16`
+- `contract-version`: `18`
 
 `native-modal.snapshot`、`native-modal.background-interaction` 声明冻结物品背景及交互隔离；布局预算读取导出资源中的 `item-layouts.json`，其中 `flows`、`modal-flows` 与 `routes` 和本次构包一致。物品仍由 `ItemProvider` 返回，不要求接入方处理载体或 Shader。
 
@@ -154,8 +154,20 @@ Java 示例见 [ApiConsumer](../examples/api-consumer/README.md)。
 
 ## 构建 API
 
+构建和发布校验使用 JDK 21。先保存未经 `DeleteCode` 处理的部署 JAR，再生成 API 并核对签名：
+
 ```sh
-./gradlew taboolibBuildApi -PDeleteCode -x test
+python3 scripts/verify-modules.py
+./gradlew :project:core:test :project:pack:test :project:authoring:test :project:bukkit:test :tools:authoring-cli:test --no-daemon
+./gradlew :plugin:build -x test --no-daemon
+mkdir -p build/api-verification
+cp plugin/build/libs/Rafter.jar build/api-verification/Rafter.jar
+./gradlew taboolibBuildApi :project:api:sourcesJar -PDeleteCode -x test --no-daemon
+./gradlew :project:api:verifyApiAbi -PrafterVerificationPluginJar=build/api-verification/Rafter.jar --no-daemon
 ```
 
-产物：`project/api/build/libs/rafter-api-0.0.5-api.jar`。部署插件请单独构建，不要使用 `DeleteCode` 处理后的插件 JAR。
+产物：`project/api/build/libs/rafter-api-0.0.5-api.jar`，以及包含 KDoc / Javadoc 的 `rafter-api-0.0.5-sources.jar`。后续新版本发布会同时上传源码附件，便于 IDE 查看注释。部署插件请单独构建，不要使用 `DeleteCode` 处理后的插件 JAR。
+
+`verifyApiAbi` 检查公开类、继承关系、非 synthetic 成员及泛型签名，不要求 API JAR 和部署 JAR 的 class 字节相同。它会检查公开签名未泄漏 Kotlin 运行时类型，并分别编译 Java / Kotlin 消费方、核对其 API 引用能否在部署 JAR 中解析；这不代替服务器和客户端验收。
+
+截至 2026-11-05，`com.hiusers.rafter:rafter-api:0.0.5` 已发布，可直接用于业务接入。输入外观通过节点配置和 contract 18 提供，Java / Kotlin 服务接口保持兼容；接入方无需为字色或透明底图增加业务回调。后续发布使用新版本，不覆盖同版本构件；[发布工作流](../.github/workflows/publish-api.yml) 只在 `main` 执行，并拒绝已存在的版本。输入外观的配置和版本范围见[布局与交互](rendering.md#输入外观与透明模式)。

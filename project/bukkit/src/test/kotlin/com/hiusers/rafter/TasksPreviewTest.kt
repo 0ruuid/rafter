@@ -25,7 +25,7 @@ class TasksPreviewTest {
             MenuRepository(
                     root,
                     { error("No script") },
-                    { _, _, _ -> error("No business provider") },
+                    ::checkStaticItemReference,
                 )
                 .load()
         val candidate = assertNotNull(loaded.candidate, loaded.diagnostics.joinToString("\n"))

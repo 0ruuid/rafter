@@ -218,7 +218,7 @@ class PackPipelineTest {
                 }
                 a.commit(temp)
                 assertTrue(Files.exists(temp.resolve("generate/resource-pack.zip")))
-                assertTrue(Files.exists(temp.resolve("resource-pack/manifest.json")))
+                assertTrue(Files.exists(temp.resolve("generate/resource-pack/manifest.json")))
             }
         }
     }
@@ -227,12 +227,12 @@ class PackPipelineTest {
     fun aFailedTwoOutputCommitRestoresBothPreviouslyPublishedArtifacts() {
         val a = assets()
         Files.createDirectories(temp.resolve("generate/resource-pack"))
-        Files.writeString(temp.resolve("resource-pack/keep"), "previous-folder")
+        Files.writeString(temp.resolve("generate/resource-pack/keep"), "previous-folder")
         Files.writeString(temp.resolve("generate/resource-pack.zip"), "previous-zip")
         PackBuild.prepare(temp, a, PackSettings(archive = true)).use { prepared ->
             Files.delete(prepared.archive!!)
             assertFails { prepared.commit(temp) }
-            assertEquals("previous-folder", Files.readString(temp.resolve("resource-pack/keep")))
+            assertEquals("previous-folder", Files.readString(temp.resolve("generate/resource-pack/keep")))
             assertEquals(
                 "previous-zip",
                 Files.readString(temp.resolve("generate/resource-pack.zip")),

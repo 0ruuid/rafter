@@ -264,18 +264,6 @@ class VariantCompilerTest {
             "UNKNOWN_TYPE",
         )
         rejected(compile(nativeButton), "CAPABILITY")
-        for (type in listOf("input", "checkbox", "select", "slider")) rejected(
-            compile(
-                mapOf(
-                    "id" to "control",
-                    "type" to type,
-                    "state" to "name",
-                    "variants" to emptyList<Any>(),
-                ),
-                "native",
-            ),
-            "UNKNOWN_FIELD",
-        )
         for (type in
             listOf("open-page", "set-state", "toggle-state", "provider", "kether")) rejected(
             compile(changed(mapOf("actions" to listOf(mapOf("type" to type, "key" to "old"))))),
@@ -469,5 +457,41 @@ class VariantCompilerTest {
         assertEquals("boolean", Contract.conditions.getValue("constant").getValue("value").type)
         assertEquals(setOf("type", "script"), Contract.bindings.getValue("kether").keys)
         assertTrue("variant-overrides" in Contract.manifest())
+    }
+
+    @Test
+    fun nativeFormVariantsKeepContentAndRejectStateOverrides() {
+        val controls =
+            listOf(
+                mapOf<String, Any?>("id" to "input", "type" to "input", "state" to "name"),
+                mapOf<String, Any?>("id" to "checkbox", "type" to "checkbox", "state" to "enabled"),
+                mapOf(
+                    "id" to "select",
+                    "type" to "select",
+                    "state" to "choice",
+                    "options" to mapOf("a" to "A", "b" to "B"),
+                ),
+                mapOf<String, Any?>("id" to "slider", "type" to "slider", "state" to "number"),
+            )
+        for (control in controls) {
+            val empty = control + ("variants" to emptyList<Any>())
+            val base = node(compile(empty, "native"))
+            assertTrue(base.variants.isEmpty(), control.toString())
+
+            val withText = control + ("variants" to listOf(variant(mapOf("text" to "Alternate"))))
+            val variantNode = node(compile(withText, "native"))
+            val branch = variantNode.variants.single().node
+            assertEquals(variantNode.content, branch.content, control.toString())
+            assertEquals("Alternate", branch.text.value, control.toString())
+
+            rejected(
+                compile(
+                    control +
+                        ("variants" to listOf(variant(mapOf("state" to "other")))),
+                    "native",
+                ),
+                "UNKNOWN_FIELD",
+            )
+        }
     }
 }

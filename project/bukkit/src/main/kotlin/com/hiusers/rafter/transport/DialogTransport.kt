@@ -39,6 +39,7 @@ import com.hiusers.rafter.render.Message
 import com.hiusers.rafter.render.RenderButton
 import com.hiusers.rafter.text.CompositeText
 import io.github.retrooper.packetevents.util.SpigotConversionUtil
+import java.util.concurrent.CompletableFuture
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.api.BinaryTagHolder
 import net.kyori.adventure.text.Component
@@ -48,6 +49,14 @@ import org.bukkit.inventory.ItemStack
 
 /** 仅在此组装协议组件和 CUSTOM 点击元数据；保留渲染顺序与尺寸，玩家操作限主线程。 */
 open class DialogTransport {
+    private var inputAppearance: InputAppearanceController? = null
+
+    constructor()
+
+    internal constructor(inputAppearance: InputAppearanceController?) : this() {
+        this.inputAppearance = inputAppearance
+    }
+
     open fun supportsCanvasItems(player: Player) =
         ClientRenderProfiles.forProtocol(
             PacketEvents.getAPI().playerManager.getClientVersion(player).protocolVersion
@@ -97,7 +106,7 @@ open class DialogTransport {
         text: CompositeText,
         values: Map<BindingSpec, Any?>,
         items: Map<String, ItemStack>,
-    ) {
+    ): CompletableFuture<Void> {
         if (view.canvasItems.isNotEmpty() && !supportsCanvasItems(player))
             throw UiOperationException(UiFailureCode.UNSUPPORTED_CLIENT)
         val dialog =
@@ -134,7 +143,11 @@ open class DialogTransport {
         val packet =
             if (itemData.isEmpty()) WrapperPlayServerShowDialog(dialog)
             else ItemDataShowDialog(dialog, itemData, hovers)
-        PacketEvents.getAPI().playerManager.sendPacket(player, packet)
+        return inputAppearance?.show(player, view.inputAppearanceId, packet)
+            ?: run {
+                PacketEvents.getAPI().playerManager.sendPacket(player, packet)
+                CompletableFuture.completedFuture(null)
+            }
     }
 
     /** 发送与协议测试共用的纯数据包组装。 */

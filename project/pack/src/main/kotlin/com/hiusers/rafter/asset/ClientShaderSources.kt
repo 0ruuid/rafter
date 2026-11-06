@@ -9,7 +9,8 @@ internal object ClientShaderSources {
             .bufferedReader(Charsets.UTF_8)
             .use { it.readText() }
             .also {
-                require(it.startsWith("#version ${profile.glsl}\n")) {
+                // include 继承调用程序的 GLSL 版本；26.3 的原版 include 不再声明 #version。
+                require(name.startsWith("include/") || it.startsWith("#version ${profile.glsl}\n")) {
                     "Unexpected shader version: ${profile.directory}/$name"
                 }
             }

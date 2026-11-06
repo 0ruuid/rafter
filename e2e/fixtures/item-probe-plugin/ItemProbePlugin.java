@@ -83,6 +83,12 @@ public final class ItemProbePlugin extends JavaPlugin {
 
         ItemProvider provider =
                 (context, id) -> {
+                    if (id.equals("record") && context.getItem() != null) {
+                        Map<String, Object> row = context.getItem();
+                        return CompletableFuture.completedFuture(new ItemStack(
+                                Material.valueOf(String.valueOf(row.get("material"))),
+                                ((Number) row.get("amount")).intValue()));
+                    }
                     String key = id.equals("row") && context.getItem() != null
                             ? String.valueOf(context.getItem().get("kind")) : id;
                     ItemStack template = templates.get(key);
@@ -101,6 +107,18 @@ public final class ItemProbePlugin extends JavaPlugin {
                         "rafterprobe:items",
                         new ProviderDescriptor("Real ItemStack probe", Collections.emptyMap()),
                         provider));
+
+        String[] opaqueMaterials = {"DIAMOND", "BREAD", "COMPASS", "APPLE", "IRON_INGOT",
+                "EMERALD", "GOLD_INGOT", "REDSTONE", "LAPIS_LAZULI"};
+        int[] opaqueAmounts = {3, 12, 1, 4, 5, 6, 7, 8, 9};
+        List<Map<String, Object>> opaqueRows = new ArrayList<>();
+        for (int i = 0; i < opaqueMaterials.length; i++) {
+            opaqueRows.add(Map.of("id", "opaque-" + i, "material", opaqueMaterials[i],
+                    "amount", opaqueAmounts[i]));
+        }
+        registrations.add(service.registerData(this, "rafterprobe:opaque-rows",
+                new ProviderDescriptor("Opaque model layering fixture", Collections.emptyMap()),
+                (context, args) -> CompletableFuture.completedFuture(opaqueRows)));
 
         for (String source : List.of("rows", "left", "right")) {
             List<Map<String, Object>> rows = new ArrayList<>();

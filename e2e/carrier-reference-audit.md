@@ -65,9 +65,9 @@
 
 ## 源码证据
 
-两份官方仓库的浅克隆已归档到外置盘：
+两份仓库的审查版本如下，可通过对应提交复现：
 
-- `/Volumes/iiDisk/environment/test/rafter-e2e/carrier-candidate-audit-0.0.5/references/FutureUI`，HEAD `8156d45630b3d8a124d5b06a154218ad82f293db`。
-- `/Volumes/iiDisk/environment/test/rafter-e2e/carrier-candidate-audit-0.0.5/references/DialogMenu`，HEAD `f531be387fc6eebd1e84bc98c15fa6150f2d0dac`。
+- `FutureUI`，HEAD `8156d45630b3d8a124d5b06a154218ad82f293db`。
+- `DialogMenu`，HEAD `f531be387fc6eebd1e84bc98c15fa6150f2d0dac`。
 
 已直接读取上述实现，不以 README 功能名称作结论。主模型另经 GitHub 官方 API 独立核对 `DialogItemPreview.java`（blob `f72eb65bdce64420da8c947ade5fb0a6eb59e258`）和 `ItemMenuRenderer.java`（blob `2b3e4aea8f6528612267c49c0928fc8ca6bfdfc9`）。

@@ -53,13 +53,17 @@ private val legacyDefaults: Path
         )
 private const val sharedFont = "core/ui/fonts/rafter-mono.ttf"
 
-fun legacyYaml(name: String): Map<String, Any?> = yaml("fixtures/legacy-defaults/$name")
+/** 将历史夹具投影到当前 core 布局；生产回退目录不因此扩大。 */
+fun legacyYaml(name: String): Map<String, Any?> =
+    yaml("fixtures/legacy-defaults/${name.removePrefix("core/")}")
 
-fun legacyUiDocument(): Map<String, Any?> = AutoAssets.document(legacyDefaults.resolve("core/ui"))
+fun legacyUiDocument(): Map<String, Any?> = AutoAssets.document(legacyDefaults.resolve("ui"))
 
 fun copyLegacyResourceTo(name: String, target: Path) {
     // 复用唯一的默认字体，测试资源不重复打包 TTF。
-    val resource = if (name == sharedFont) name else "fixtures/legacy-defaults/$name"
+    val resource =
+        if (name == sharedFont) name
+        else "fixtures/legacy-defaults/${name.removePrefix("core/")}"
     Files.createDirectories(target.parent)
     requireNotNull(Fixtures::class.java.classLoader.getResourceAsStream(resource)) {
             "Missing test resource: $resource"
@@ -89,6 +93,8 @@ fun copyLegacyUiTo(root: Path) {
 }
 
 fun installLegacyDefaults(root: Path) {
-    copyLegacyTreeTo("", root)
-    copyLegacyResourceTo(sharedFont, root.resolve(sharedFont))
+    // 将历史夹具投影到当前 core 布局，避免把旧目录加入生产回退。
+    copyLegacyResourceTo("config.yml", root.resolve("config.yml"))
+    copyLegacyTreeTo("menus", root.resolve("core/menus"))
+    copyLegacyUiTo(root.resolve("core/ui"))
 }

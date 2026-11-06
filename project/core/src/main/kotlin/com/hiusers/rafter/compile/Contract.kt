@@ -3,6 +3,7 @@ package com.hiusers.rafter.compile
 import com.hiusers.rafter.asset.CanvasItems
 import com.hiusers.rafter.asset.ClientRenderProfiles
 import com.hiusers.rafter.asset.FontRequest
+import com.hiusers.rafter.asset.InputAppearances
 import com.hiusers.rafter.model.ButtonRole
 import com.hiusers.rafter.model.CanvasGeometry
 import com.hiusers.rafter.model.Diagnostic
@@ -66,6 +67,7 @@ data class Field(
                 "frame",
                 "modal",
                 "button-skin",
+                "input-appearance",
                 "list-filter" -> mapOf("\$ref" to "#/\$defs/$type")
                 "actions" ->
                     mapOf("type" to "array", "items" to mapOf("\$ref" to "#/\$defs/action"))
@@ -324,6 +326,17 @@ object Contract {
                 Field("integer", minimum = -432, maximum = 432, default = 0, code = "LAYOUT"),
         )
 
+    val inputAppearance =
+        linkedMapOf(
+            "background" to
+                Field(
+                    "string",
+                    values = listOf("native", "transparent"),
+                    default = "native",
+                ),
+            "text-color" to color,
+        )
+
     val popup =
         linkedMapOf(
             "elements" to Field("array", true, items = "canvasNode", minItems = 1),
@@ -538,6 +551,7 @@ object Contract {
                             "multiline-height" to
                                 Field("integer", minimum = 20, maximum = 512, default = 48),
                             "max-lines" to Field("integer", minimum = 1, maximum = 64, default = 3),
+                            "appearance" to Field("input-appearance"),
                         ),
                     "checkbox" to fields("state" to Field("string", true)),
                     "select" to
@@ -938,6 +952,7 @@ object Contract {
                     "frame",
                     "modal",
                     "button-skin",
+                    "input-appearance",
                     "list-filter" -> value is Map<*, *> && value.keys.all { it is String }
                     "array",
                     "actions" -> value is List<*>
@@ -1190,6 +1205,7 @@ object Contract {
                 "popup" to obj(popup),
                 "frame" to obj(frame),
                 "modal" to obj(modal),
+                "input-appearance" to obj(inputAppearance),
                 "list-filter" to (obj(listFilter) + exactlyOne("value", "state")),
                 "list-slot" to obj(listSlot),
                 "record" to mapOf("type" to "object"),
@@ -1395,6 +1411,16 @@ object Contract {
                     "generated" to com.hiusers.rafter.model.ProjectPaths.GENERATE,
                 ),
             "runtime-fields" to describe(runtime),
+            "input-appearance" to
+                mapOf(
+                    "supported-clients" to ClientRenderProfiles.all.flatMap { it.clients },
+                    "profiles" to ClientRenderProfiles.all.map { it.manifest() },
+                    "compiled-layouts" to InputAppearances.MAX_LAYOUTS,
+                    "scope" to "modal",
+                    "selection" to "per-input-appearance",
+                    "requires-loaded-resource-pack" to true,
+                    "requires-client-gametime-marker" to true,
+                ),
             "theme-schema" to themeSchema(),
             "style-fields" to describe(style),
             "font-authoring" to "auto-discovered-family-and-integer-size",
@@ -1405,6 +1431,7 @@ object Contract {
             "template-fields" to describe(template),
             "frame-fields" to describe(frame),
             "modal-fields" to describe(modal),
+            "input-appearance-fields" to describe(inputAppearance),
             "rect-fields" to describe(rect),
             "button-skin-fields" to describe(buttonSkin),
             "native-button-skin" to

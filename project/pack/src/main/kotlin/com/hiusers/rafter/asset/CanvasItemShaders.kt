@@ -18,6 +18,53 @@ object CanvasItemShaders {
         val modalFlows = linkedMapOf<String, CanvasModalFlow>()
         val backdrops = catalog.modalBackdrops.toMutableList()
         val modals = catalog.modalLayouts.filter { "@from/" !in it.key }.toMutableList()
+        // 按偶数正文宽度预演一行尾占位，取得不同来源共享的原生按钮边缘。
+        val controlEdges = buildSet {
+            snapshot.menus
+                .filterValues { menu ->
+                    menu.pages.values.any { page ->
+                        page.scene.any { it.node.content is NodeContent.Item }
+                    }
+                }
+                .forEach { (menuId, menu) ->
+                    menu.pages.values
+                        .filter { it.spec.modal != null }
+                        .forEach { page ->
+                            val base =
+                                modals.single {
+                                    it.key == ModalEncoding.key(menuId, page.spec.id)
+                                }
+                            val plan =
+                                ModalLayoutCompiler.layout(
+                                    page.spec,
+                                    minimumBodyWidth = (base.bodyWidth + 1) / 2 * 2,
+                                    minimumBodyHeight =
+                                        base.bodyHeight +
+                                            NativeGeometry.BUTTON_HEIGHT +
+                                            NativeGeometry.GRID_GAP,
+                                )
+                            // 避免原生按钮和计数占位纹理顶点被误当作物品路由。
+                            plan.buttons.forEach { cell ->
+                                val offset =
+                                    cell.bounds.x +
+                                        (cell.bounds.width - cell.nativeWidth) / 2 -
+                                        plan.bodyWidth / 2
+                                // 普通／禁用按钮的九宫格边框为 3px／1px，窄按钮会收缩。
+                                for (border in 0..minOf(3, cell.nativeWidth)) {
+                                    add(offset + border)
+                                    add(offset + cell.nativeWidth - border)
+                                }
+                            }
+                        }
+                }
+        }
+        val reservedChannels =
+            (0 until CanvasItems.MAX_CHANNELS)
+                .filter {
+                    (-1 - it) in controlEdges ||
+                        (CanvasItems.ICON_SIZE - 1 - it) in controlEdges
+                }
+                .toSet()
         val text = CompositeText(catalog)
         fun fail(node: NodeSpec, message: String): Nothing {
             val at = node.origin ?: SourceLocation("project", "$.elements", node.id)
@@ -80,7 +127,7 @@ object CanvasItemShaders {
                         CanvasGeometry.EMPTY_FOOTER_HEIGHT
                 val channel =
                     (0 until CanvasItems.MAX_CHANNELS).firstOrNull { candidate ->
-                        routes.none { other ->
+                        candidate !in reservedChannels && routes.none { other ->
                             val height = maxOf(minimumHeight, other.minimumGuiHeight)
                             val start =
                                 CanvasItems.bodyTop(height, layoutHeight) + carrier.y -
@@ -173,6 +220,18 @@ object CanvasItemShaders {
                             )
                     }
                 }
+                // Keep title paint at the same native inset when a popup opens.
+                // Reserve against all item carriers and the popup's full hit plane;
+                // hidden items may disappear without changing the layout origin.
+                val minimumInset =
+                    if (page.spec.popups.isEmpty()) 0
+                    else
+                        CanvasFlow.plan(
+                            page.spec.width,
+                            page.height,
+                            allItems.map { it.node.id },
+                            hitRows(page, page.spec.popups.keys.first()),
+                        ).inset
                 (listOf<String?>(null) + page.spec.popups.keys.sorted()).forEach { popup ->
                     val hidden = popup?.let { page.spec.popups.getValue(it).hideUnderlay }.orEmpty()
                     val items = allItems.filter { it.node.id !in hidden }
@@ -182,6 +241,7 @@ object CanvasItemShaders {
                             page.height,
                             items.map { it.node.id },
                             hitRows(page, popup),
+                            minimumInset = minimumInset,
                         )
                     val key = CanvasItems.key(menuId, pageId, popup)
                     flows[key] = flow
@@ -206,28 +266,20 @@ object CanvasItemShaders {
                                 catalog.modalLayouts.single {
                                     it.key == ModalEncoding.key(menuId, modalPage.spec.id)
                                 }
-                            var header =
+                            val header =
                                 CanvasFlow.plan(
                                     modalPage.spec.width,
                                     modalPage.height,
                                     items.map { it.node.id },
                                     hitRows(modalPage),
                                 )
-                            // 原生滚动容器还负责裁剪；必须容纳整份冻结背景，而不只是表单。
-                            val missingHeight =
-                                backdrop.layoutHeight - base.bodyHeight - header.inset
-                            if (missingHeight > 0) {
-                                header =
-                                    CanvasFlow.plan(
-                                        modalPage.spec.width,
-                                        modalPage.height,
-                                        items.map { it.node.id },
-                                        hitRows(modalPage),
-                                        header.inset + missingHeight,
-                                    )
-                            }
                             val modalKey = CanvasItems.modalKey(menuId, modalPage.spec.id, key)
-                            val layoutHeight = base.bodyHeight + header.inset
+                            val layoutHeight =
+                                ModalLayoutCompiler.layout(
+                                    modalPage.spec,
+                                    leadingInset = header.inset,
+                                    minimumBodyHeight = backdrop.layoutHeight,
+                                ).bodyHeight
                             val backgroundRoutes =
                                 appendRoutes(
                                     menuId,
@@ -251,7 +303,9 @@ object CanvasItemShaders {
                                 backgroundRoutes.firstOrNull()?.sourceBodyWidth
                                     ?: (maxOf(base.bodyWidth, backdrop.containerWidth) + 1) / 2 * 2
                             val plan =
-                                ModalLayoutCompiler.layout(modalPage.spec, bodyWidth, header.inset)
+                                ModalLayoutCompiler.layout(
+                                    modalPage.spec, bodyWidth, header.inset, backdrop.layoutHeight,
+                                )
                             val layout =
                                 base.copy(
                                     key = modalKey,
@@ -385,14 +439,22 @@ object CanvasItemShaders {
         )
         DialogFrameShaders.fingerprint(hash, modals, uniqueBackdrops)
         DialogFocusShaders.fingerprint(hash, next)
+        val spacers = clipSpacers(modals)
         ClientRenderProfiles.all.forEach {
-            hash.update(source(routes, it).toByteArray())
-            hash.update(fragment(it).toByteArray())
+            hash.update(source(routes, it, spacers).toByteArray())
+            hash.update(fragment(it, spacers).toByteArray())
         }
         return next.copy(fingerprint = hash.digest().joinToString("") { "%02x".format(it) })
     }
 
-    internal fun source(routes: List<CanvasItemRoute>, profile: ClientRenderProfile): String {
+    private fun clipSpacers(layouts: List<NativeModalLayout>) =
+        layouts.filter { layout -> layout.plan.buttons.any { it.role == ModalCellRole.CLIP_SPACER } }
+
+    internal fun source(
+        routes: List<CanvasItemRoute>,
+        profile: ClientRenderProfile,
+        spacers: List<NativeModalLayout> = emptyList(),
+    ): String {
         val cases =
             routes
                 .mapIndexed { index, route ->
@@ -436,7 +498,20 @@ object CanvasItemShaders {
                 "\n" +
                 varying(3, "vec4", "rafterItemClip", true) +
                 "\n" +
+                (if (spacers.isEmpty()) "" else
+                    varying(4, "vec2", "rafterSpacerQuad") + "\n" +
+                        varying(5, "vec2", "rafterSpacerViewport", true) + "\n") +
                 "float rafter_item_body_top(float height, float content) { return min(63.0, height - 5.0 - min(content, max(height - 38.0, 0.0))); }\n"
+        val spacerSetup =
+            if (spacers.isEmpty()) "" else """
+                ${if (profile.vulkanInterface)
+                    "#ifdef VULKAN\n    int corner = gl_VertexIndex & 3;\n#else\n    int corner = gl_VertexID & 3;\n#endif"
+                    else "int corner = gl_VertexID & 3;"}
+                rafterSpacerQuad = vec2(corner >= 2 ? 1.0 : -1.0,
+                    corner == 1 || corner == 2 ? 1.0 : -1.0);
+                rafterSpacerViewport = vec2(0.0);
+                rafterItemPoint = position.xy;
+            """.trimIndent()
         return vanilla
             .replace("void main() {", declarations + "\nvoid main() {")
             .replace(
@@ -446,11 +521,12 @@ object CanvasItemShaders {
             .replace(
                 color,
                 color +
-                    "\n    rafterItemPoint = vec2(0.0);\n    rafterItemClip = vec4(0.0);\n" +
+                    "\n    rafterItemPoint = vec2(0.0);\n    rafterItemClip = vec4(0.0);\n" + spacerSetup + "\n" +
                     """
             if (abs(ProjMat[3][3] - 1.0) > 0.0001 || abs(gl_Position.w) < 0.0001) return;
             vec2 dimensions = round(abs(vec2(2.0 / ProjMat[0][0], 2.0 / ProjMat[1][1])));
             if (any(lessThanEqual(dimensions, vec2(0.0)))) return;
+            ${if (spacers.isEmpty()) "" else "rafterSpacerViewport = dimensions;"}
             vec2 point = position.xy;
             $cases
             """
@@ -458,7 +534,10 @@ object CanvasItemShaders {
             )
     }
 
-    internal fun fragment(profile: ClientRenderProfile): String {
+    internal fun fragment(
+        profile: ClientRenderProfile,
+        spacers: List<NativeModalLayout> = emptyList(),
+    ): String {
         val vanilla = ClientShaderSources.read(profile, "position_tex_color.fsh")
         fun varying(location: Int, type: String, name: String, flat: Boolean = false) =
             (if (profile.vulkanInterface) "layout(location = $location) " else "") +
@@ -470,8 +549,13 @@ object CanvasItemShaders {
                 "\n" +
                 varying(3, "vec4", "rafterItemClip", true) +
                 "\n" +
+                (if (spacers.isEmpty()) "" else
+                    varying(4, "vec2", "rafterSpacerQuad") + "\n" +
+                        varying(5, "vec2", "rafterSpacerViewport", true) + "\n" +
+                        spacerFragment(spacers)) +
                 """
                 void main() {
+                    ${if (spacers.isEmpty()) "" else "if (rafter_modal_clip_spacer()) discard;"}
                     if (rafterItemClip.z > 0.0 && all(greaterThanEqual(rafterItemPoint, rafterItemClip.xy)) &&
                         all(lessThan(rafterItemPoint, rafterItemClip.xy + rafterItemClip.zw))) discard;
                 """
@@ -479,16 +563,59 @@ object CanvasItemShaders {
         )
     }
 
+    /** 只剔除编译出的 1px 空按钮纹理；排序、裁剪和输入命中仍由原生流管理。 */
+    private fun spacerFragment(layouts: List<NativeModalLayout>): String {
+        val matches = layouts.flatMap { layout ->
+            layout.plan.buttons.filter { it.role == ModalCellRole.CLIP_SPACER }
+                .groupBy { it.bounds.x to it.bounds.width }
+                .values.map { cells ->
+                    val first = cells.first().bounds
+                    val x = first.x + (first.width - 1) / 2
+                    """
+                        {
+                            vec2 origin = vec2(trunc((rafterSpacerViewport.x - ${layout.bodyWidth + 20}.0) * 0.5) + ${10 + x}.0,
+                                min(63.0, rafterSpacerViewport.y - 5.0 - min(${layout.bodyHeight}.0, max(rafterSpacerViewport.y - 38.0, 0.0))) + ${first.y}.0);
+                            float row = floor((lower.y - origin.y + 0.02) / 22.0);
+                            if (abs(lower.x - origin.x) < 0.02 && abs(upper.x - origin.x - 1.0) < 0.02 &&
+                                row >= 0.0 && row < ${cells.size}.0 &&
+                                lower.y >= origin.y + row * 22.0 - 0.02 &&
+                                upper.y <= origin.y + row * 22.0 + 20.02) return true;
+                        }
+                    """.trimIndent()
+                }
+        }.distinct().joinToString("\n")
+        return """
+            bool rafter_modal_clip_spacer() {
+                if (rafterSpacerViewport.y <= 0.0) return false;
+                // 仿射恢复不依赖混合顶点缓冲的四角相位，也不会裁掉较大纹理的一角。
+                vec2 qx = dFdx(rafterSpacerQuad), qy = dFdy(rafterSpacerQuad);
+                vec2 px = dFdx(rafterItemPoint), py = dFdy(rafterItemPoint);
+                float determinant = qx.x * qy.y - qx.y * qy.x;
+                if (abs(determinant) < 1.0e-10) return false;
+                vec2 u = (px * qy.y - py * qx.y) / determinant;
+                vec2 v = (py * qx.x - px * qy.x) / determinant;
+                vec2 extent = abs(u) + abs(v);
+                if (abs(extent.x * 2.0 - 1.0) > 0.02 || extent.y <= 0.0 || extent.y > 10.01) return false;
+                vec2 center = rafterItemPoint - u * rafterSpacerQuad.x - v * rafterSpacerQuad.y;
+                vec2 lower = center - extent, upper = center + extent;
+                $matches
+                return false;
+            }
+
+        """.trimIndent() + "\n"
+    }
+
     fun write(stage: Path, catalog: AssetCatalog) {
         if (catalog.canvasItems.isEmpty()) return
+        val spacers = clipSpacers(catalog.modalLayouts)
         ClientRenderProfiles.all.forEach { profile ->
             val folder = stage.resolve("${profile.directory}/assets/minecraft/shaders/core")
             Files.createDirectories(folder)
             Files.writeString(
                 folder.resolve("position_tex_color.vsh"),
-                source(catalog.canvasItems, profile),
+                source(catalog.canvasItems, profile, spacers),
             )
-            Files.writeString(folder.resolve("position_tex_color.fsh"), fragment(profile))
+            Files.writeString(folder.resolve("position_tex_color.fsh"), fragment(profile, spacers))
         }
         Json.write(
             stage.resolve("assets/rafter/items/empty.json"),
