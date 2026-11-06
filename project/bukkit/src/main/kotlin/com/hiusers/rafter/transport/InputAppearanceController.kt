@@ -12,9 +12,12 @@ import com.github.retrooper.packetevents.protocol.world.clock.ClockNetworkState
 import com.github.retrooper.packetevents.protocol.world.clock.WorldClock
 import com.github.retrooper.packetevents.wrapper.PacketWrapper
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTimeUpdate
+import com.hiusers.rafter.api.UiFailureCode
+import com.hiusers.rafter.api.UiOperationException
 import com.hiusers.rafter.asset.ClientRenderProfiles
 import com.hiusers.rafter.asset.InputAppearances
 import java.util.UUID
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Level
 import kotlin.math.floor
@@ -119,7 +122,8 @@ internal class InputAppearanceController(private val plugin: Plugin) :
             )
         }.getOrDefault(false)
 
-    fun show(player: Player, layoutId: Int, packet: PacketWrapper<*>) {
+    /** 完成只表示服务端发送任务结束，异常交给调用方处理。 */
+    fun show(player: Player, layoutId: Int, packet: PacketWrapper<*>): CompletableFuture<Void> {
         require(layoutId in 0..InputAppearances.MAX_LAYOUTS) {
             "Input appearance id must be 0..${InputAppearances.MAX_LAYOUTS}"
         }
@@ -144,27 +148,36 @@ internal class InputAppearanceController(private val plugin: Plugin) :
                     ?: throw IllegalStateException("No cached TIME_UPDATE clock baseline")
             }
         val marker = marker(layoutId)
+        val result = CompletableFuture<Void>()
         try {
             ChannelHelper.runInEventLoop(
                 user.channel,
                 Runnable {
-                    if (closed) return@Runnable
                     var generation: Long? = null
                     try {
-                        user.sendPacket(packet)
-                        if (layoutId == 0 || closed) return@Runnable
-                        generation = activate(id, layoutId, worldUid)
-                        user.sendPacket(WrapperPlayServerTimeUpdate(marker, projected!!))
+                        // ponytail: 与停用共用短临界区；编码成为瓶颈时改为按连接串行收尾。
+                        synchronized(this@InputAppearanceController) {
+                            if (closed) throw UiOperationException(UiFailureCode.ENGINE_STOPPED)
+                            user.sendPacket(packet)
+                            // 发包监听器可能同步停用插件。
+                            if (closed) throw UiOperationException(UiFailureCode.ENGINE_STOPPED)
+                            if (layoutId != 0) {
+                                generation = activate(id, layoutId, worldUid)
+                                user.sendPacket(WrapperPlayServerTimeUpdate(marker, projected!!))
+                            }
+                        }
+                        // 完成回调可重入引擎，必须在释放停用锁后执行。
+                        result.complete(null)
                     } catch (error: Throwable) {
                         generation?.let { clearActiveIfGeneration(id, it) }
-                        logError("Failed to send input appearance dialog to $id", error)
+                        result.completeExceptionally(error)
                     }
                 },
             )
         } catch (error: Throwable) {
-            logError("Failed to queue input appearance dialog for $id", error)
-            throw error
+            result.completeExceptionally(error)
         }
+        return result
     }
 
     /** 延长已有标记租约，协议事件清理后不重新激活。 */

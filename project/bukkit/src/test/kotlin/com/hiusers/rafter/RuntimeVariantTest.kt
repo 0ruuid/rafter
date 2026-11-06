@@ -39,9 +39,10 @@ class RuntimeVariantTest {
             text: CompositeText,
             values: Map<BindingSpec, Any?>,
             items: Map<String, ItemStack>,
-        ) {
+        ): CompletableFuture<Void> {
             views[player.uniqueId] = view
             sends++
+            return CompletableFuture.completedFuture(null)
         }
 
         override fun clear(player: Player) {

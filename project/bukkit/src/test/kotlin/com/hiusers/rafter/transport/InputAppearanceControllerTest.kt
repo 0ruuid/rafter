@@ -2,6 +2,7 @@ package com.hiusers.rafter.transport
 
 import com.github.retrooper.packetevents.PacketEvents
 import com.github.retrooper.packetevents.PacketEventsAPI
+import com.github.retrooper.packetevents.event.EventManager
 import com.github.retrooper.packetevents.event.PacketSendEvent
 import com.github.retrooper.packetevents.event.PacketReceiveEvent
 import com.github.retrooper.packetevents.manager.player.PlayerManager
@@ -9,6 +10,7 @@ import com.github.retrooper.packetevents.manager.server.ServerManager
 import com.github.retrooper.packetevents.manager.server.ServerVersion
 import com.github.retrooper.packetevents.netty.channel.ChannelHelper
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
+import com.github.retrooper.packetevents.protocol.player.ClientVersion
 import com.github.retrooper.packetevents.protocol.player.User
 import com.github.retrooper.packetevents.protocol.world.clock.ClockNetworkState
 import com.github.retrooper.packetevents.protocol.world.clock.WorldClocks
@@ -17,14 +19,20 @@ import com.github.retrooper.packetevents.util.mappings.IRegistryHolder
 import com.github.retrooper.packetevents.wrapper.PacketWrapper
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerShowDialog
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTimeUpdate
+import com.hiusers.rafter.api.UiFailureCode
+import com.hiusers.rafter.api.UiOperationException
 import io.netty.buffer.Unpooled
 import io.github.retrooper.packetevents.impl.netty.NettyManagerImpl
-import java.util.UUID
 import java.util.ArrayDeque
+import java.util.UUID
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionException
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import org.bukkit.Bukkit
 import org.bukkit.World
@@ -220,8 +228,11 @@ class InputAppearanceControllerTest {
                             Unit
                         }
 
-                    controller.show(player, 1, show)
+                    val sentResult = controller.show(player, 1, show)
+                    assertFalse(sentResult.isDone)
                     while (queue.isNotEmpty()) queue.removeFirst().run()
+                    assertTrue(sentResult.isDone)
+                    assertFalse(sentResult.isCompletedExceptionally)
                 }
             }
 
@@ -315,6 +326,126 @@ class InputAppearanceControllerTest {
             field.isAccessible = true
             field.get(controller) as Map<UUID, Long>
         }
+
+    @Test
+    fun queuedSendFailuresReachCallerAndClearActivation() {
+        for (failOnMarker in listOf(false, true)) {
+            withQueuedShow { _, controller, player, user, queue ->
+                val failure = IllegalStateException("send failed")
+                Mockito.doAnswer { invocation ->
+                    val marker = invocation.getArgument<Any>(0) is WrapperPlayServerTimeUpdate
+                    if (marker == failOnMarker) throw failure
+                    null
+                }.`when`(user).sendPacket(Mockito.any(PacketWrapper::class.java))
+
+                val result =
+                    controller.show(player, 1, Mockito.mock(WrapperPlayServerShowDialog::class.java))
+                assertFalse(result.isDone)
+                queue.removeFirst().run()
+
+                assertSame(failure, assertFailsWith<CompletionException> { result.join() }.cause)
+                assertTrue(active(controller).isEmpty())
+            }
+        }
+    }
+
+    @Test
+    fun queuedShowFailsWhenControllerClosesBeforeDispatch() =
+        withQueuedShow { _, controller, player, user, queue ->
+            val result =
+                controller.show(player, 1, Mockito.mock(WrapperPlayServerShowDialog::class.java))
+            controller.close()
+            queue.removeFirst().run()
+
+            val failure = assertFailsWith<CompletionException> { result.join() }.cause
+            assertEquals(UiFailureCode.ENGINE_STOPPED, (failure as UiOperationException).code)
+            Mockito.verify(user, Mockito.never()).sendPacket(Mockito.any(PacketWrapper::class.java))
+            assertTrue(active(controller).isEmpty())
+            assertTrue(generations(controller).isEmpty())
+        }
+
+    @Test
+    fun closeWaitsForInFlightMarkerBeforeFinalCleanup() =
+        withQueuedShow { api, controller, player, user, queue ->
+            val closed = CompletableFuture<Void>()
+            val closer = Thread {
+                try {
+                    Mockito.mockStatic(PacketEvents::class.java).use { packets ->
+                        packets.`when`<PacketEventsAPI<*>> { PacketEvents.getAPI() }.thenReturn(api)
+                        Mockito.mockStatic(Bukkit::class.java).use {
+                            controller.close()
+                        }
+                    }
+                    closed.complete(null)
+                } catch (error: Throwable) {
+                    closed.completeExceptionally(error)
+                }
+            }
+            Mockito.doAnswer { invocation ->
+                if (invocation.getArgument<Any>(0) is WrapperPlayServerTimeUpdate) {
+                    closer.start()
+                    val deadline = System.nanoTime() + 2_000_000_000L
+                    while (!closed.isDone && System.nanoTime() < deadline) {
+                        val blockedAtClose =
+                            closer.state == Thread.State.BLOCKED &&
+                                closer.stackTrace.firstOrNull()?.let {
+                                    it.className == InputAppearanceController::class.java.name &&
+                                        it.methodName == "close"
+                                } == true
+                        if (blockedAtClose) break
+                        Thread.yield()
+                    }
+                    assertFalse(closed.isDone, "Shutdown must wait for the in-flight marker")
+                    assertEquals(Thread.State.BLOCKED, closer.state)
+                }
+                null
+            }.`when`(user).sendPacket(Mockito.any(PacketWrapper::class.java))
+
+            val sent =
+                controller.show(player, 1, Mockito.mock(WrapperPlayServerShowDialog::class.java))
+            try {
+                queue.removeFirst().run()
+            } finally {
+                closer.join(2_000)
+            }
+            assertFalse(closer.isAlive)
+            sent.join()
+            closed.join()
+            assertTrue(active(controller).isEmpty())
+            assertTrue(generations(controller).isEmpty())
+        }
+
+    private fun withQueuedShow(
+        block: (PacketEventsAPI<*>, InputAppearanceController, Player, User, ArrayDeque<Runnable>) -> Unit
+    ) = withPacketEventsApi(ServerVersion.V_26_1) { api, manager ->
+        val controller = InputAppearanceController(Mockito.mock(Plugin::class.java))
+        val player = Mockito.mock(Player::class.java)
+        val world = Mockito.mock(World::class.java)
+        val user = Mockito.mock(User::class.java)
+        val channel = Any()
+        val id = UUID.randomUUID()
+        val queue = ArrayDeque<Runnable>()
+        Mockito.`when`(player.uniqueId).thenReturn(id)
+        Mockito.`when`(player.world).thenReturn(world)
+        Mockito.`when`(world.uid).thenReturn(UUID.randomUUID())
+        Mockito.`when`(world.gameTime).thenReturn(100L)
+        Mockito.`when`(manager.getClientVersion(player)).thenReturn(ClientVersion.V_26_1)
+        Mockito.`when`(manager.getUser(player)).thenReturn(user)
+        Mockito.`when`(user.channel).thenReturn(channel)
+        Mockito.`when`(api.eventManager).thenReturn(Mockito.mock(EventManager::class.java))
+        seedRunningController(controller, id)
+        Mockito.mockStatic(ChannelHelper::class.java).use { channels ->
+            channels
+                .`when`<Unit> {
+                    ChannelHelper.runInEventLoop(Mockito.eq(channel), Mockito.any(Runnable::class.java))
+                }
+                .thenAnswer { invocation ->
+                    queue += invocation.getArgument<Runnable>(1)
+                    Unit
+                }
+            block(api, controller, player, user, queue)
+        }
+    }
 
     @Suppress("UNCHECKED_CAST")
     private fun active(controller: InputAppearanceController): Map<UUID, Any> =

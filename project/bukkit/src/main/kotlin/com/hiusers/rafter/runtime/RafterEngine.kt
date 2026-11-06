@@ -742,42 +742,60 @@ internal class RafterEngine(
                         if (inputAppearance?.supports(player) != true)
                             throw UiOperationException(UiFailureCode.UNSUPPORTED_CLIENT)
                     }
-                    transport.show(player, view, text, values, itemValues)
-                    // 发送回调可能同步替换会话，不能清理新帧或捕获旧画面。
-                    if (!current(session, generation) || frames[player.uniqueId] !== work)
-                        return@main
-                    session.data.presented()
-                    val page = session.current()
-                    if (
-                        page.spec.mode == PageMode.CANVAS &&
-                            page.spec.components.isEmpty() &&
-                            page.spec.frame == null &&
-                            page.spec.modal == null
-                    ) {
-                        val frozen = FrozenCanvas.capture(session, view, text)
-                        val copied =
-                            frozen.items.filter { it.visible }.associate { canvasItem ->
-                                val item =
-                                    itemValues[canvasItem.node.id]
-                                        ?: throw UiOperationException(
-                                            UiFailureCode.INTERNAL_ERROR,
-                                            "Missing Canvas item ${canvasItem.node.id} for ${frozen.page}",
-                                        )
-                                canvasItem.node.id to item.clone()
+                    val sent =
+                        try {
+                            transport.show(player, view, text, values, itemValues)
+                        } catch (error: Throwable) {
+                            CompletableFuture.failedFuture<Void>(error)
+                        }
+                    sent.whenComplete { _, sendFailure ->
+                        main sent@{
+                            // 发送结果可能迟到，不能清理新会话或捕获旧画面。
+                            if (!current(session, generation) || frames[player.uniqueId] !== work)
+                                return@sent
+                            if (sendFailure != null) {
+                                fail(player, session, sendFailure, notifyPlayer = false)
+                                return@sent
                             }
-                        if (current(session, generation) && frames[player.uniqueId] === work) {
-                            session.rememberCanvas(frozen)
-                            canvasItemSnapshots[player.uniqueId] =
-                                CanvasItemSnapshot(
-                                    session.id,
-                                    frozen.page,
-                                    frozen.generation,
-                                    copied,
-                                )
+                            try {
+                                guard()
+                                session.data.presented()
+                                val page = session.current()
+                                if (
+                                    page.spec.mode == PageMode.CANVAS &&
+                                        page.spec.components.isEmpty() &&
+                                        page.spec.frame == null &&
+                                        page.spec.modal == null
+                                ) {
+                                    val frozen = FrozenCanvas.capture(session, view, text)
+                                    val copied =
+                                        frozen.items.filter { it.visible }.associate { canvasItem ->
+                                            val item =
+                                                itemValues[canvasItem.node.id]
+                                                    ?: throw UiOperationException(
+                                                        UiFailureCode.INTERNAL_ERROR,
+                                                        "Missing Canvas item ${canvasItem.node.id} for ${frozen.page}",
+                                                    )
+                                            canvasItem.node.id to item.clone()
+                                        }
+                                    if (current(session, generation) && frames[player.uniqueId] === work) {
+                                        session.rememberCanvas(frozen)
+                                        canvasItemSnapshots[player.uniqueId] =
+                                            CanvasItemSnapshot(
+                                                session.id,
+                                                frozen.page,
+                                                frozen.generation,
+                                                copied,
+                                            )
+                                    }
+                                }
+                                frames.remove(player.uniqueId)
+                                work.result.complete(null)
+                            } catch (error: Throwable) {
+                                fail(player, session, error)
+                            }
                         }
                     }
-                    frames.remove(player.uniqueId)
-                    work.result.complete(null)
                 } catch (error: Throwable) {
                     fail(player, session, error)
                 }
@@ -1124,7 +1142,12 @@ internal class RafterEngine(
         (unwrap(error) as? UiOperationException)
             ?: UiOperationException(failureCode(error), cause = unwrap(error))
 
-    private fun notify(player: Player, session: UiSession, failure: Throwable) {
+    private fun notify(
+        player: Player,
+        session: UiSession,
+        failure: Throwable,
+        notifyPlayer: Boolean = true,
+    ) {
         val code = failureCode(failure)
         if (code == UiFailureCode.INTERNAL_ERROR) {
             plugin.logger.log(
@@ -1133,7 +1156,7 @@ internal class RafterEngine(
                 unwrap(failure),
             )
         }
-        if (player.isOnline) {
+        if (notifyPlayer && player.isOnline) {
             runCatching { player.sendUiFailure(code) }
                 .onFailure {
                     plugin.logger.fine("Unable to send UI failure message: ${it.message}")
@@ -1141,11 +1164,16 @@ internal class RafterEngine(
         }
     }
 
-    private fun fail(player: Player, session: UiSession, failure: Throwable) {
+    private fun fail(
+        player: Player,
+        session: UiSession,
+        failure: Throwable,
+        notifyPlayer: Boolean = true,
+    ) {
         if (sessions[player.uniqueId] !== session) return
         val pending = detach(player.uniqueId)
         clear(player)
-        notify(player, session, failure)
+        notify(player, session, failure, notifyPlayer)
         completeDetached(pending, failureCode(failure), unwrap(failure))
     }
 

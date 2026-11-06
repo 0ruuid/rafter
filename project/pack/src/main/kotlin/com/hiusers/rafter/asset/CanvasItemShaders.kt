@@ -220,6 +220,18 @@ object CanvasItemShaders {
                             )
                     }
                 }
+                // Keep title paint at the same native inset when a popup opens.
+                // Reserve against all item carriers and the popup's full hit plane;
+                // hidden items may disappear without changing the layout origin.
+                val minimumInset =
+                    if (page.spec.popups.isEmpty()) 0
+                    else
+                        CanvasFlow.plan(
+                            page.spec.width,
+                            page.height,
+                            allItems.map { it.node.id },
+                            hitRows(page, page.spec.popups.keys.first()),
+                        ).inset
                 (listOf<String?>(null) + page.spec.popups.keys.sorted()).forEach { popup ->
                     val hidden = popup?.let { page.spec.popups.getValue(it).hideUnderlay }.orEmpty()
                     val items = allItems.filter { it.node.id !in hidden }
@@ -229,6 +241,7 @@ object CanvasItemShaders {
                             page.height,
                             items.map { it.node.id },
                             hitRows(page, popup),
+                            minimumInset = minimumInset,
                         )
                     val key = CanvasItems.key(menuId, pageId, popup)
                     flows[key] = flow

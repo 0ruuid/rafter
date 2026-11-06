@@ -166,6 +166,7 @@ class RuntimeTest {
         var afterShow: ((DialogView) -> Unit)? = null
         var nativeItems: Map<String, org.bukkit.inventory.ItemStack> = emptyMap()
         var canvasItemsSupported = true
+        var sendResult: CompletableFuture<Void> = CompletableFuture.completedFuture(null)
 
         override fun supported(player: Player) = true
 
@@ -177,12 +178,14 @@ class RuntimeTest {
             text: CompositeText,
             values: Map<BindingSpec, Any?>,
             items: Map<String, org.bukkit.inventory.ItemStack>,
-        ) {
+        ): CompletableFuture<Void> {
             assertSame(mainThread, Thread.currentThread())
+            val result = sendResult
             shown += view
             visible = view
             nativeItems = items.toMap()
             afterShow?.invoke(view)
+            return result
         }
 
         override fun clear(player: Player) {
@@ -564,6 +567,95 @@ class RuntimeTest {
             UiFailureCode.ENGINE_STOPPED,
             engine.open(player, "test:other").getNow(null).failure,
         )
+    }
+
+    @Test
+    fun openWaitsForQueuedDialogSend() {
+        val pending = CompletableFuture<Void>()
+        wire.sendResult = pending
+        engine.install(candidate(minimal()))
+
+        val opening = engine.open(player, "test:menu")
+        assertFalse(opening.isDone)
+        assertEquals(1, wire.shown.size)
+
+        pending.complete(null)
+        drainMain()
+        assertTrue(opening.join().opened)
+    }
+
+    @Test
+    fun queuedDialogSendFailureReachesOpenAndRefreshWithoutPlayerMessage() {
+        engine.install(candidate(minimal()))
+        val openingSend = CompletableFuture<Void>()
+        wire.sendResult = openingSend
+        val opening = engine.open(player, "test:menu")
+        assertFalse(opening.isDone)
+
+        openingSend.completeExceptionally(IllegalStateException("opening send failed"))
+        drainMain()
+        assertEquals(UiFailureCode.INTERNAL_ERROR, opening.join().failure)
+
+        wire.sendResult = CompletableFuture.completedFuture(null)
+        val replacement = engine.open(player, "test:menu").join()
+        assertTrue(replacement.opened)
+        val sessionId = assertNotNull(replacement.sessionId)
+
+        val refreshSend = CompletableFuture<Void>()
+        wire.sendResult = refreshSend
+        val refreshed = engine.refresh(player, sessionId)
+        assertFalse(refreshed.isDone)
+        refreshSend.completeExceptionally(IllegalStateException("refresh send failed"))
+        drainMain()
+        assertEquals(UiFailureCode.INTERNAL_ERROR, failure(refreshed))
+
+        val messages =
+            Mockito.mockingDetails(player).invocations.filter {
+                it.method.name == "sendMessage" || it.method.name == "sendRawMessage"
+            }
+        assertTrue(messages.isEmpty(), "Dialog send failures must not message the player")
+    }
+
+    @Test
+    fun backgroundDialogSendCompletionPublishesOnMainThread() {
+        val pending = CompletableFuture<Void>()
+        wire.sendResult = pending
+        engine.install(candidate(minimal()))
+
+        val opening = engine.open(player, "test:menu")
+        assertFalse(opening.isDone)
+        background { pending.complete(null) }
+        assertFalse(opening.isDone)
+
+        drainMain()
+        assertTrue(opening.join().opened)
+    }
+
+    @Test
+    fun lateDialogSendFailureDoesNotCloseReplacementSession() {
+        val oldSend = CompletableFuture<Void>()
+        wire.sendResult = oldSend
+        engine.install(candidate(minimal(), other()))
+
+        val old = engine.open(player, "test:menu")
+        assertFalse(old.isDone)
+
+        wire.sendResult = CompletableFuture.completedFuture(null)
+        val replacement = engine.open(player, "test:other").join()
+        assertTrue(replacement.opened)
+        val replacementSession = assertNotNull(replacement.sessionId)
+        assertEquals(UiFailureCode.SUPERSEDED, old.join().failure)
+        assertEquals("replacement", wire.plain())
+
+        oldSend.completeExceptionally(IllegalStateException("late old send failure"))
+        drainMain()
+        assertEquals("replacement", wire.plain())
+        assertEquals(0, wire.clears)
+
+        val refreshed = engine.refresh(player, replacementSession)
+        drainMain()
+        refreshed.join()
+        assertEquals("replacement", wire.plain())
     }
 
     @Test

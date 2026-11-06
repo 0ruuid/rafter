@@ -55,7 +55,7 @@ TabooLib 插件可在 ENABLE 注册提供器，菜单在 ACTIVE 加载。提前�
 
 modal 之间用 `open-page` 同层替换，复用背景，不追加历史。表单仍需显式 `submit`；Esc、关闭或返回不会自动保存输入。
 
-打开与刷新 Future 在对应帧交给发送层或明确失败后完成，不代表客户端已显示。`open` 失败读取 `OpenResult.failure`。`refresh`、`close` 的失败通过 `UiOperationException.code` 判断。
+打开与刷新 Future 在对应帧的服务端发送任务结束或明确失败后完成，不代表客户端已显示。`open` 失败读取 `OpenResult.failure`。`refresh`、`close` 的失败通过 `UiOperationException.code` 判断。发送失败返回调用方并记录服务端日志，不自动向玩家发送提示；接入插件自行决定是否展示。
 
 `contract()` 提供以下能力字段：
 
