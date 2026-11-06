@@ -40,7 +40,7 @@ python3 e2e/calcite/check-flow-evidence.py --run /absolute/run
 - `flow-canvas-03`：聊天命令仍触发客户端确认。未通过点击验收。
 - `flow-canvas-04`：改为与 Rafter 同类的 custom 点击数据包，14 项记录检查通过，并人工查看原样截图。通过的是本页原型，不是完整引擎。
 
-记录均保留在外置盘 `/Volumes/iiDisk/environment/test/rafter-e2e/`。没有拼接不同运行的图片、聊天或元数据。
+记录保存在对应运行的 `RAFTER_E2E_ROOT` 目录。没有拼接不同运行的图片、聊天或元数据。
 
 ## 正式接入前仍需完成
 

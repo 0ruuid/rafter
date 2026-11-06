@@ -4,7 +4,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.security.MessageDigest
 
-/** Injects the native input appearance overlay into every verified client profile. */
+/** 按已声明的客户端接口注入输入外观，保留候选包中的面板与物品 Shader 修改。 */
 object InputAppearanceShaders {
     fun fingerprint(hash: MessageDigest) {
         hash.update(InputAppearances.REVISION.toByteArray(Charsets.UTF_8))
@@ -36,7 +36,7 @@ object InputAppearanceShaders {
             "native-texture" to "not-replaced",
             "clock-marker" to
                 mapOf(
-                    "world-age" to "-256*layoutId",
+                    "world-age" to "-${InputAppearances.MARKER_UNIT_TICKS}*layoutId",
                     "layout-id-range" to "1..${InputAppearances.MAX_LAYOUTS}",
                     "shader-age" to "-GameTime*24000",
                     "tolerance" to 12,
@@ -346,9 +346,9 @@ object InputAppearanceShaders {
         return """
             int rafterInputAppearanceRegion() {
                 float age = -GameTime * 24000.0;
-                int layoutId = int(floor(age / 256.0 + 0.5));
+                int layoutId = int(floor(age / ${InputAppearances.MARKER_UNIT_TICKS}.0 + 0.5));
                 if (layoutId < 1 || layoutId > ${InputAppearances.MAX_LAYOUTS} ||
-                    abs(age - float(layoutId * 256)) > 12.0) return -1;
+                    abs(age - float(layoutId * ${InputAppearances.MARKER_UNIT_TICKS})) > 12.0) return -1;
                 $matchers
                 return -1;
             }

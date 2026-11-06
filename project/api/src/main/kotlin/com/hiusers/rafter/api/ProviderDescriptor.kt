@@ -19,6 +19,7 @@ data class ParameterSpec(
     val description: String,
 ) {
     companion object {
+        /** 可省略但不接受 null，不设置默认值。 */
         @JvmStatic fun optional(type: ParameterType): ParameterSpec = invoke(type, required = false)
 
         /** Kotlin 支持命名和默认参数；Java 使用 of()。 */
@@ -45,6 +46,7 @@ data class ParameterSpec(
                 description,
             )
 
+        /** 创建参数描述，约束在提供器注册时校验；Java 可按顺序使用重载。 */
         @JvmStatic
         @JvmOverloads
         fun of(

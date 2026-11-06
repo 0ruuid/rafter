@@ -48,6 +48,7 @@ enum class ButtonRole(val id: String) {
     EXIT("exit"),
 }
 
+/** 原生模态输入的底图与正文样式；标签仍使用节点文字样式。 */
 data class TextInputAppearance(
     val background: String = "native",
     val textColor: String? = null,

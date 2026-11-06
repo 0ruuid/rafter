@@ -62,7 +62,7 @@ class IndependentDefaultsContractTest {
         assertEquals(9, canvas["hit-area-y-step"])
         System.getenv("RAFTER_SHADER_CHECK_OUTPUT")?.let { target ->
             val destination = Path.of(target).toAbsolutePath().normalize()
-            require(destination.startsWith(Path.of("/Volumes/iiDisk/environment")))
+            require(destination.parent != null) { "Shader check output must not be a filesystem root" }
             val pack = AssetCompiler.build(root.resolve("core/ui"), candidate.assets, destination)
             for (profile in ClientRenderProfiles.all) {
                 val folder = pack.resolve("${profile.directory}/assets/minecraft/shaders/core")

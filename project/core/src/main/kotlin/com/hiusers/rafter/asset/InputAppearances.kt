@@ -21,10 +21,13 @@ data class InputAppearanceLayout(
     val inputs: List<InputAppearanceRegion>,
 )
 
-/** Stable per-layout input appearance IDs carried by the client clock marker. */
+/** 按编译布局分配输入外观 ID，由客户端时间标记选择。 */
 object InputAppearances {
     const val REVISION = "rafter-input-appearance-v2"
     const val MAX_LAYOUTS = 64
+
+    /** 负数客户端 worldAge 的布局间隔，与生成的 Shader 解码器共用。 */
+    const val MARKER_UNIT_TICKS = 256
 
     fun layoutJson(layouts: List<InputAppearanceLayout>): String =
         JsonForHash.toJson(layouts)

@@ -6,12 +6,13 @@
 
 ## 运行
 
-复用已有 Calcite 0.5.4、Java 25 和正版缓存登录，不复制或输出凭据。缓存、客户端、服务端和证据放在外置盘；不操作 Spool 实例或原测试服。脚本不自动搭建服务端，需预先在 `127.0.0.1:25577` 启动隔离 Paper，安装插件和夹具，再构建并加载该服生成的资源包。
+需要本地 Calcite 0.5.4、Java 25 和正版缓存登录，不复制或输出凭据。客户端、服务端和证据使用独立的测试目录。脚本不自动搭建服务端，需预先在 `127.0.0.1:25577` 启动隔离 Paper，安装插件和夹具，再构建并加载该服生成的资源包。
 
 ```sh
-export RAFTER_E2E_ROOT=/Volumes/iiDisk/environment/test/rafter-e2e
-export CALCITE_HOME=/Volumes/iiDisk/environment/test/spool-rafter-e2e/calcite-home
-export RAFTER_CALCITE_PACKAGE=/Volumes/iiDisk/environment/test/spool-rafter-e2e/tools/node_modules/@bkm016/calcite
+export RAFTER_E2E_ROOT="$HOME/rafter-e2e/run"
+export CALCITE_HOME="$HOME/rafter-e2e/calcite-home"
+export RAFTER_CALCITE_PACKAGE=/absolute/path/to/node_modules/@bkm016/calcite
+export RAFTER_JAVA_PATH=/absolute/path/to/jdk-25/bin/java
 export RAFTER_CALCITE_ACCOUNT=microsoft
 node e2e/calcite/run.mjs
 ```
@@ -26,7 +27,13 @@ node e2e/calcite/run.mjs
 {"op":"stop"}
 ```
 
-`hover`、`click` 使用客户端真实鼠标事件，坐标是当前窗口的逻辑 GUI 像素，不是截图物理像素。截图前检查资源加载和覆盖层，操作失败返回非零退出码。可用 `RAFTER_JAVA_PATH` 覆盖 Java 路径。
+四个路径变量均须显式设置为绝对路径；缓存目录和运行目录不能是文件系统根目录。`hover`、`click` 使用客户端真实鼠标事件，坐标是当前窗口的逻辑 GUI 像素，不是截图物理像素。截图前检查资源加载和覆盖层，操作失败返回非零退出码。
+
+不启动游戏的配置检查：
+
+```sh
+node --test e2e/calcite/run-config.test.mjs
+```
 
 ## 核对
 
@@ -34,7 +41,7 @@ node e2e/calcite/run.mjs
 
 ```sh
 python3 e2e/calcite/check-evidence.py \
-  --evidence /Volumes/iiDisk/environment/test/rafter-e2e/evidence
+  --evidence "$RAFTER_E2E_ROOT/evidence"
 ```
 
 检查器核对物品组件、稳定行 ID、点击结果、空载体、独立分页和实际加载的 Shader。`--suite native` 检查原生流式物品的基础证据。输出的 `manual-visual-review` 必须另行查看：控件坐标仍在原生载体处，不能用控件快照推断 Shader 后的视觉坐标或 tooltip 已显示。

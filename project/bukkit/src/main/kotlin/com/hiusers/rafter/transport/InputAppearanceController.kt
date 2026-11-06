@@ -11,6 +11,7 @@ import com.github.retrooper.packetevents.protocol.world.clock.ClockNetworkState
 import com.github.retrooper.packetevents.protocol.world.clock.WorldClock
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTimeUpdate
 import com.hiusers.rafter.asset.ClientRenderProfiles
+import com.hiusers.rafter.asset.InputAppearances
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Level
@@ -53,15 +54,14 @@ internal fun projectInputAppearanceClocks(
 }
 
 /**
- * Uses the viewer's client GameTime to select an input layout; world clocks are projected separately.
- * Refreshes can restart other GameTime-driven animations on that client.
- * Inactive players receive no altered time packets.
+ * 用观看者客户端的 GameTime 选择输入布局，单独外推正常世界时钟。
+ * 刷新标记可能使该客户端其他依赖 GameTime 的动画重新开始。
+ * 未启用输入外观的玩家不接收改写后的时间包。
  */
 internal class InputAppearanceController(private val plugin: Plugin) :
     PacketListenerAbstract(),
     AutoCloseable {
     private companion object {
-        const val MARKER_UNIT = 256L
         const val LEASE_NANOS = 60_000_000_000L
         const val REFRESH_TICKS = 5L
     }
@@ -88,6 +88,8 @@ internal class InputAppearanceController(private val plugin: Plugin) :
     private val clockSamples =
         ConcurrentHashMap<UUID, ConcurrentHashMap<WorldClock, InputAppearanceClockSample>>()
     private val stateLock = Any()
+    // 由 stateLock 保护，全局递增避免清理玩家记录后重连复用旧代数。
+    private var generationCounter = 0L
 
     @Volatile private var started = false
     @Volatile private var closed = false
@@ -116,7 +118,9 @@ internal class InputAppearanceController(private val plugin: Plugin) :
         }.getOrDefault(false)
 
     fun show(player: Player, layoutId: Int) {
-        require(layoutId in 0..64) { "Input appearance id must be 0..64" }
+        require(layoutId in 0..InputAppearances.MAX_LAYOUTS) {
+            "Input appearance id must be 0..${InputAppearances.MAX_LAYOUTS}"
+        }
         if (layoutId == 0) {
             clear(player.uniqueId)
             return
@@ -132,7 +136,7 @@ internal class InputAppearanceController(private val plugin: Plugin) :
         }
     }
 
-    /** Extends an existing marker lease without reviving a marker cleared by a packet. */
+    /** 延长已有标记租约，协议事件清理后不重新激活。 */
     fun keepAlive(id: UUID) {
         if (closed) return
         synchronized(stateLock) {
@@ -155,7 +159,7 @@ internal class InputAppearanceController(private val plugin: Plugin) :
                 return
             }
             clockSamples.remove(id)
-            nextGenerationLocked(id)
+            generations.remove(id)
         }
     }
 
@@ -222,7 +226,7 @@ internal class InputAppearanceController(private val plugin: Plugin) :
                 }
             }
         } catch (error: Throwable) {
-            logError("Failed to rewrite TIME_UPDATE for $id", error)
+            logError("Failed to update input appearance for $id", error)
             clear(id)
         }
     }
@@ -315,18 +319,19 @@ internal class InputAppearanceController(private val plugin: Plugin) :
             pendingRestores.remove(id, generation)
             if (respawnRestores[id]?.generation == generation) respawnRestores.remove(id)
             if (
-                deferredForgets.remove(id) &&
-                    active[id] == null &&
-                    generations[id] == generation
+                active[id] == null &&
+                    generations[id] == generation &&
+                    deferredForgets.remove(id)
             ) {
                 clockSamples.remove(id)
+                generations.remove(id, generation)
             }
         }
     }
 
     /**
-     * Respawn may reuse the client level for same-dimension death. Detach the old baseline first;
-     * the main-thread task restores it only when the player is still in that world.
+     * 同维度死亡可能复用客户端世界。先分离旧时钟基线，
+     * 主线程任务仅在玩家仍处于原世界时恢复。
      */
     private fun resetForRespawn(id: UUID) {
         val restore =
@@ -504,7 +509,7 @@ internal class InputAppearanceController(private val plugin: Plugin) :
     }
 
     private fun nextGenerationLocked(id: UUID): Long {
-        val next = (generations[id] ?: 0L) + 1L
+        val next = ++generationCounter
         generations[id] = next
         return next
     }
@@ -512,7 +517,8 @@ internal class InputAppearanceController(private val plugin: Plugin) :
     private fun isSupported(version: ClientVersion): Boolean =
         supportsInputAppearanceProtocol(version.protocolVersion)
 
-    private fun marker(appearanceId: Int): Long = -MARKER_UNIT * appearanceId
+    private fun marker(appearanceId: Int): Long =
+        -InputAppearances.MARKER_UNIT_TICKS.toLong() * appearanceId
 
     private fun isClearResetPacket(packetType: Any): Boolean =
         packetType == PacketType.Play.Server.SHOW_DIALOG ||

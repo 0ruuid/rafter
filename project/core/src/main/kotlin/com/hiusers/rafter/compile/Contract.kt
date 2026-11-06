@@ -3,6 +3,7 @@ package com.hiusers.rafter.compile
 import com.hiusers.rafter.asset.CanvasItems
 import com.hiusers.rafter.asset.ClientRenderProfiles
 import com.hiusers.rafter.asset.FontRequest
+import com.hiusers.rafter.asset.InputAppearances
 import com.hiusers.rafter.model.ButtonRole
 import com.hiusers.rafter.model.CanvasGeometry
 import com.hiusers.rafter.model.Diagnostic
@@ -1414,7 +1415,7 @@ object Contract {
                 mapOf(
                     "supported-clients" to ClientRenderProfiles.all.flatMap { it.clients },
                     "profiles" to ClientRenderProfiles.all.map { it.manifest() },
-                    "compiled-layouts" to 64,
+                    "compiled-layouts" to InputAppearances.MAX_LAYOUTS,
                     "scope" to "modal",
                     "selection" to "per-input-appearance",
                     "requires-loaded-resource-pack" to true,

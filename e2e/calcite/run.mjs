@@ -3,15 +3,12 @@ import { createHash } from 'node:crypto';
 import { constants as fsConstants } from 'node:fs';
 import { access, appendFile, mkdir, realpath, rm, stat, writeFile } from 'node:fs/promises';
 import { createInterface } from 'node:readline';
-import { basename, dirname, isAbsolute, join, relative, sep } from 'node:path';
+import { basename, dirname, isAbsolute, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
-const DEFAULT_JAVA_PATH = '/Users/iiabc/.jenv/versions/25/bin/java';
-const JAVA_PATH = process.env.RAFTER_JAVA_PATH || DEFAULT_JAVA_PATH;
-const ENVIRONMENT_ROOT = '/Volumes/iiDisk/environment';
-const DEFAULT_CALCITE_PACKAGE = '/Volumes/iiDisk/environment/test/spool-rafter-e2e/tools/node_modules/@bkm016/calcite';
+const JAVA_PATH = process.env.RAFTER_JAVA_PATH;
 const START_TIMEOUT_MS = 180_000;
 const OP_TIMEOUT_MS = 30_000;
 const STOP_TIMEOUT_MS = 30_000;
@@ -23,10 +20,10 @@ const clean = value =>
 
 const fail = (code, message) => Object.assign(new Error(message), { code });
 
-const pathFromEnv = (name, fallback) => {
-    const value = process.env[name] || fallback;
+const pathFromEnv = name => {
+    const value = process.env[name];
     if (!value || !isAbsolute(value)) {
-        throw fail('configuration', `${name} must be an absolute directory`);
+        throw fail('configuration', `${name} must be an absolute path`);
     }
     return value;
 };
@@ -48,13 +45,9 @@ const resolveActualPath = async value => {
 const writePathFromEnv = async name => {
     const requested = pathFromEnv(name);
     try {
-        const [environmentRoot, actual] = await Promise.all([
-            realpath(ENVIRONMENT_ROOT),
-            resolveActualPath(requested),
-        ]);
-        const relativePath = relative(environmentRoot, actual);
-        if (relativePath === '..' || relativePath.startsWith(`..${sep}`) || isAbsolute(relativePath)) {
-            throw fail('configuration', `${name} must stay under ${ENVIRONMENT_ROOT}`);
+        const actual = await resolveActualPath(requested);
+        if (actual === dirname(actual)) {
+            throw fail('configuration', `${name} must not be a filesystem root`);
         }
         return actual;
     } catch (error) {
@@ -155,9 +148,10 @@ const ensureExtension = async ({ root, packageRoot, source }) => {
 };
 
 async function main() {
+    pathFromEnv('RAFTER_JAVA_PATH');
     const root = await writePathFromEnv('RAFTER_E2E_ROOT');
     const calciteHome = await writePathFromEnv('CALCITE_HOME');
-    const packageRoot = pathFromEnv('RAFTER_CALCITE_PACKAGE', DEFAULT_CALCITE_PACKAGE);
+    const packageRoot = pathFromEnv('RAFTER_CALCITE_PACKAGE');
     const evidence = join(root, 'evidence');
     const actionFile = join(evidence, 'rafter-item-probe-actions.jsonl');
     const source = join(dirname(fileURLToPath(import.meta.url)), 'RafterDialogProbe.java');

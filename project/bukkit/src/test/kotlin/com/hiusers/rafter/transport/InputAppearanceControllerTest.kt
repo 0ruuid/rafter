@@ -2,8 +2,11 @@ package com.hiusers.rafter.transport
 
 import com.github.retrooper.packetevents.PacketEvents
 import com.github.retrooper.packetevents.PacketEventsAPI
+import com.github.retrooper.packetevents.event.PacketSendEvent
 import com.github.retrooper.packetevents.manager.server.ServerManager
 import com.github.retrooper.packetevents.manager.server.ServerVersion
+import com.github.retrooper.packetevents.protocol.packettype.PacketType
+import com.github.retrooper.packetevents.protocol.player.User
 import com.github.retrooper.packetevents.protocol.world.clock.ClockNetworkState
 import com.github.retrooper.packetevents.protocol.world.clock.WorldClocks
 import com.github.retrooper.packetevents.settings.PacketEventsSettings
@@ -11,14 +14,41 @@ import com.github.retrooper.packetevents.util.mappings.IRegistryHolder
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTimeUpdate
 import io.netty.buffer.Unpooled
 import io.github.retrooper.packetevents.impl.netty.NettyManagerImpl
+import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.bukkit.plugin.Plugin
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 
 class InputAppearanceControllerTest {
+
+    @Test
+    fun forgetDoesNotRetainDisconnectedPlayers() {
+        val controller = InputAppearanceController(Mockito.mock(Plugin::class.java))
+        repeat(100) { controller.forget(UUID.randomUUID()) }
+        assertTrue(generations(controller).isEmpty())
+    }
+
+    @Test
+    fun reconnectDoesNotReuseAnEarlierGeneration() = withPacketEventsServer(ServerVersion.V_26_1) {
+        val controller = InputAppearanceController(Mockito.mock(Plugin::class.java))
+        val id = UUID.randomUUID()
+        val user = Mockito.mock(User::class.java)
+        Mockito.`when`(user.uuid).thenReturn(id)
+        val event = Mockito.mock(PacketSendEvent::class.java)
+        Mockito.`when`(event.user).thenReturn(user)
+        Mockito.`when`(event.packetType).thenReturn(PacketType.Play.Server.RESPAWN)
+
+        controller.onPacketSend(event)
+        val first = generations(controller).getValue(id)
+        controller.forget(id)
+        assertFalse(generations(controller).containsKey(id))
+        controller.onPacketSend(event)
+        assertTrue(generations(controller).getValue(id) > first)
+    }
 
     @Test
     fun supportsOnlyDeclaredClientProfiles() {
@@ -118,6 +148,13 @@ class InputAppearanceControllerTest {
             buffer.release()
         }
     }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun generations(controller: InputAppearanceController): Map<UUID, Long> =
+        InputAppearanceController::class.java.getDeclaredField("generations").let { field ->
+            field.isAccessible = true
+            field.get(controller) as Map<UUID, Long>
+        }
 
     private fun withPacketEventsServer(serverVersion: ServerVersion, block: () -> Unit) {
         // 映射初始化逐字节访问 API；仅提供返回值，避免记录几十万次无关调用。
