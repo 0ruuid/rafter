@@ -3,22 +3,32 @@ package com.hiusers.rafter.transport
 import com.github.retrooper.packetevents.PacketEvents
 import com.github.retrooper.packetevents.PacketEventsAPI
 import com.github.retrooper.packetevents.event.PacketSendEvent
+import com.github.retrooper.packetevents.event.PacketReceiveEvent
+import com.github.retrooper.packetevents.manager.player.PlayerManager
 import com.github.retrooper.packetevents.manager.server.ServerManager
 import com.github.retrooper.packetevents.manager.server.ServerVersion
+import com.github.retrooper.packetevents.netty.channel.ChannelHelper
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.protocol.player.User
 import com.github.retrooper.packetevents.protocol.world.clock.ClockNetworkState
 import com.github.retrooper.packetevents.protocol.world.clock.WorldClocks
 import com.github.retrooper.packetevents.settings.PacketEventsSettings
 import com.github.retrooper.packetevents.util.mappings.IRegistryHolder
+import com.github.retrooper.packetevents.wrapper.PacketWrapper
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerShowDialog
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTimeUpdate
 import io.netty.buffer.Unpooled
 import io.github.retrooper.packetevents.impl.netty.NettyManagerImpl
 import java.util.UUID
+import java.util.ArrayDeque
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.bukkit.Bukkit
+import org.bukkit.World
+import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -149,12 +159,218 @@ class InputAppearanceControllerTest {
         }
     }
 
+    @Test
+    fun queuedShowAndMarkerStayOrderedOnOneChannelEventLoop() =
+        withPacketEventsApi(ServerVersion.V_26_1) { _, playerManager ->
+            val controller = InputAppearanceController(Mockito.mock(Plugin::class.java))
+            val id = UUID.randomUUID()
+            val worldUid = UUID.randomUUID()
+            val player = Mockito.mock(Player::class.java)
+            val world = Mockito.mock(World::class.java)
+            val user = Mockito.mock(User::class.java)
+            val channel = Any()
+            val show = Mockito.mock(WrapperPlayServerShowDialog::class.java)
+            val showEvent = Mockito.mock(PacketSendEvent::class.java)
+            val queue = ArrayDeque<Runnable>()
+            val sent = mutableListOf<PacketWrapper<*>>()
+
+            Mockito.`when`(player.uniqueId).thenReturn(id)
+            Mockito.`when`(player.world).thenReturn(world)
+            Mockito.`when`(world.uid).thenReturn(worldUid)
+            Mockito.`when`(world.gameTime).thenReturn(100L)
+            Mockito.`when`(playerManager.getClientVersion(player))
+                .thenReturn(com.github.retrooper.packetevents.protocol.player.ClientVersion.V_26_1)
+            Mockito.`when`(playerManager.getUser(player)).thenReturn(user)
+            Mockito.`when`(user.channel).thenReturn(channel)
+            Mockito.`when`(user.uuid).thenReturn(id)
+            Mockito.`when`(user.clientVersion)
+                .thenReturn(com.github.retrooper.packetevents.protocol.player.ClientVersion.V_26_1)
+            Mockito.`when`(showEvent.user).thenReturn(user)
+            Mockito.`when`(showEvent.packetType).thenReturn(PacketType.Play.Server.SHOW_DIALOG)
+            Mockito.doAnswer { invocation ->
+                val packet = invocation.getArgument<PacketWrapper<*>>(0)
+                sent += packet
+                if (packet is WrapperPlayServerShowDialog) controller.onPacketSend(showEvent)
+                null
+            }.`when`(user).sendPacket(Mockito.any(PacketWrapper::class.java))
+            Mockito.doAnswer { invocation ->
+                queue += Runnable {
+                    user.sendPacket(invocation.getArgument<PacketWrapper<*>>(1))
+                }
+                Unit
+            }.`when`(playerManager)
+                .sendPacket(Mockito.eq(player), Mockito.any(PacketWrapper::class.java))
+            seedRunningController(controller, id)
+
+            Mockito.mockStatic(Bukkit::class.java).use { bukkit ->
+                bukkit.`when`<Boolean> { Bukkit.isPrimaryThread() }.thenReturn(true)
+                bukkit
+                    .`when`<Player?> { Bukkit.getPlayer(id) }
+                    .thenReturn(null)
+                Mockito.mockStatic(ChannelHelper::class.java).use { channels ->
+                    channels
+                        .`when`<Unit> {
+                            ChannelHelper.runInEventLoop(
+                                Mockito.eq(channel),
+                                Mockito.any(Runnable::class.java),
+                            )
+                        }
+                        .thenAnswer { invocation ->
+                            queue += invocation.getArgument<Runnable>(1)
+                            Unit
+                        }
+
+                    controller.show(player, 1, show)
+                    while (queue.isNotEmpty()) queue.removeFirst().run()
+                }
+            }
+
+            assertEquals(listOf(show), sent.take(1))
+            assertEquals(-256L, (sent[1] as WrapperPlayServerTimeUpdate).worldAge)
+            assertEquals(1, activeAppearanceId(controller, id))
+        }
+
+    @Test
+    fun externalDialogAndIncomingClickPacketsStillClearActiveAppearance() =
+        withPacketEventsApi(ServerVersion.V_26_1) { _, playerManager ->
+            val controller = InputAppearanceController(Mockito.mock(Plugin::class.java))
+            val id = UUID.randomUUID()
+            val player = Mockito.mock(Player::class.java)
+            val world = Mockito.mock(World::class.java)
+            val user = Mockito.mock(User::class.java)
+            val channel = Any()
+            val show = Mockito.mock(WrapperPlayServerShowDialog::class.java)
+            val showEvent = Mockito.mock(PacketSendEvent::class.java)
+            val queue = ArrayDeque<Runnable>()
+
+            Mockito.`when`(player.uniqueId).thenReturn(id)
+            Mockito.`when`(player.world).thenReturn(world)
+            Mockito.`when`(world.uid).thenReturn(UUID.randomUUID())
+            Mockito.`when`(world.gameTime).thenReturn(100L)
+            Mockito.`when`(playerManager.getClientVersion(player))
+                .thenReturn(com.github.retrooper.packetevents.protocol.player.ClientVersion.V_26_1)
+            Mockito.`when`(playerManager.getUser(player)).thenReturn(user)
+            Mockito.`when`(user.channel).thenReturn(channel)
+            Mockito.`when`(user.uuid).thenReturn(id)
+            Mockito.`when`(user.clientVersion)
+                .thenReturn(com.github.retrooper.packetevents.protocol.player.ClientVersion.V_26_1)
+            Mockito.`when`(showEvent.user).thenReturn(user)
+            Mockito.`when`(showEvent.packetType).thenReturn(PacketType.Play.Server.SHOW_DIALOG)
+            Mockito.doAnswer { invocation ->
+                if (invocation.getArgument<Any>(0) is WrapperPlayServerShowDialog) {
+                    controller.onPacketSend(showEvent)
+                }
+                null
+            }.`when`(user).sendPacket(Mockito.any(PacketWrapper::class.java))
+            seedRunningController(controller, id)
+
+            Mockito.mockStatic(ChannelHelper::class.java).use { channels ->
+                channels
+                    .`when`<Unit> {
+                        ChannelHelper.runInEventLoop(
+                            Mockito.eq(channel),
+                            Mockito.any(Runnable::class.java),
+                        )
+                    }
+                    .thenAnswer { invocation ->
+                        queue += invocation.getArgument<Runnable>(1)
+                        Unit
+                    }
+                Mockito.mockStatic(Bukkit::class.java).use { bukkit ->
+                    bukkit.`when`<Boolean> { Bukkit.isPrimaryThread() }.thenReturn(true)
+                    bukkit
+                        .`when`<Player?> { Bukkit.getPlayer(id) }
+                        .thenReturn(null)
+
+                    for (packetType in listOf(
+                        PacketType.Play.Server.SHOW_DIALOG,
+                        PacketType.Play.Server.CLEAR_DIALOG,
+                        PacketType.Play.Server.OPEN_WINDOW,
+                    )) {
+                        controller.show(player, 1, show)
+                        while (queue.isNotEmpty()) queue.removeFirst().run()
+                        assertEquals(1, activeAppearanceId(controller, id))
+                        val event = Mockito.mock(PacketSendEvent::class.java)
+                        Mockito.`when`(event.user).thenReturn(user)
+                        Mockito.`when`(event.packetType).thenReturn(packetType)
+                        controller.onPacketSend(event)
+                        assertTrue(active(controller).isEmpty(), packetType.toString())
+                    }
+
+                    controller.show(player, 1, show)
+                    while (queue.isNotEmpty()) queue.removeFirst().run()
+                    val click = Mockito.mock(PacketReceiveEvent::class.java)
+                    Mockito.`when`(click.user).thenReturn(user)
+                    Mockito.`when`(click.packetType)
+                        .thenReturn(PacketType.Play.Client.CUSTOM_CLICK_ACTION)
+                    controller.onPacketReceive(click)
+                    assertTrue(active(controller).isEmpty())
+                }
+            }
+        }
+
     @Suppress("UNCHECKED_CAST")
     private fun generations(controller: InputAppearanceController): Map<UUID, Long> =
         InputAppearanceController::class.java.getDeclaredField("generations").let { field ->
             field.isAccessible = true
             field.get(controller) as Map<UUID, Long>
         }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun active(controller: InputAppearanceController): Map<UUID, Any> =
+        InputAppearanceController::class.java.getDeclaredField("active").let { field ->
+            field.isAccessible = true
+            field.get(controller) as Map<UUID, Any>
+        }
+
+    private fun activeAppearanceId(controller: InputAppearanceController, id: UUID): Int? =
+        active(controller)[id]?.let { value ->
+            value.javaClass.getDeclaredField("appearanceId").let { field ->
+                field.isAccessible = true
+                field.getInt(value)
+            }
+        }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun seedRunningController(controller: InputAppearanceController, id: UUID) {
+        InputAppearanceController::class.java.getDeclaredField("started").let { field ->
+            field.isAccessible = true
+            field.setBoolean(controller, true)
+        }
+        InputAppearanceController::class.java.getDeclaredField("clockSamples").let { field ->
+            field.isAccessible = true
+            val samples = field.get(controller) as ConcurrentHashMap<UUID, ConcurrentHashMap<*, *>>
+            @Suppress("UNCHECKED_CAST")
+            (samples as ConcurrentHashMap<UUID, ConcurrentHashMap<com.github.retrooper.packetevents.protocol.world.clock.WorldClock, InputAppearanceClockSample>>)[id] =
+                ConcurrentHashMap(
+                    mapOf(
+                        WorldClocks.OVERWORLD to
+                            InputAppearanceClockSample(
+                                100L,
+                                ClockNetworkState(1_000L, 0.25f, 1.0f),
+                            ),
+                    ),
+                )
+        }
+    }
+
+    private fun withPacketEventsApi(
+        serverVersion: ServerVersion,
+        block: (PacketEventsAPI<*>, PlayerManager) -> Unit,
+    ) {
+        val api = Mockito.mock(PacketEventsAPI::class.java, Mockito.withSettings().stubOnly()) as PacketEventsAPI<*>
+        val serverManager = Mockito.mock(ServerManager::class.java, Mockito.withSettings().stubOnly())
+        val playerManager = Mockito.mock(PlayerManager::class.java, Mockito.withSettings().stubOnly())
+        Mockito.`when`(api.serverManager).thenReturn(serverManager)
+        Mockito.`when`(api.playerManager).thenReturn(playerManager)
+        Mockito.`when`(api.nettyManager).thenReturn(NettyManagerImpl())
+        Mockito.`when`(api.settings).thenReturn(PacketEventsSettings())
+        Mockito.`when`(serverManager.version).thenReturn(serverVersion)
+        Mockito.mockStatic(PacketEvents::class.java, Mockito.withSettings().stubOnly()).use { packets ->
+            packets.`when`<PacketEventsAPI<*>> { PacketEvents.getAPI() }.thenReturn(api)
+            block(api, playerManager)
+        }
+    }
 
     private fun withPacketEventsServer(serverVersion: ServerVersion, block: () -> Unit) {
         // 映射初始化逐字节访问 API；仅提供返回值，避免记录几十万次无关调用。

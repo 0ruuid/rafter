@@ -46,7 +46,7 @@ import taboolib.common.platform.function.submit
 internal class RafterEngine(
     private val plugin: Plugin,
     private val root: Path,
-    private val transport: DialogTransport = DialogTransport(),
+    transport: DialogTransport? = null,
     private val post: (() -> Unit) -> Unit = { block ->
         submit(delay = 1) { block() }
         Unit
@@ -56,6 +56,7 @@ internal class RafterEngine(
     private val inputAppearance: InputAppearanceController? = null,
     private val clock: () -> Long = System::nanoTime,
 ) : RafterService, AutoCloseable {
+    private val transport = transport ?: DialogTransport(inputAppearance)
     private val data = Registry<DataProvider>()
     private val conditions = Registry<ConditionProvider>()
     private val actions = Registry<ActionProvider>()
@@ -745,7 +746,6 @@ internal class RafterEngine(
                     // 发送回调可能同步替换会话，不能清理新帧或捕获旧画面。
                     if (!current(session, generation) || frames[player.uniqueId] !== work)
                         return@main
-                    inputAppearance?.show(player, view.inputAppearanceId)
                     session.data.presented()
                     val page = session.current()
                     if (

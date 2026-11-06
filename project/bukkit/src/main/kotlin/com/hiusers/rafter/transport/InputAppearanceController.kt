@@ -5,10 +5,12 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract
 import com.github.retrooper.packetevents.event.PacketReceiveEvent
 import com.github.retrooper.packetevents.event.PacketSendEvent
 import com.github.retrooper.packetevents.event.UserDisconnectEvent
+import com.github.retrooper.packetevents.netty.channel.ChannelHelper
 import com.github.retrooper.packetevents.protocol.packettype.PacketType
 import com.github.retrooper.packetevents.protocol.player.ClientVersion
 import com.github.retrooper.packetevents.protocol.world.clock.ClockNetworkState
 import com.github.retrooper.packetevents.protocol.world.clock.WorldClock
+import com.github.retrooper.packetevents.wrapper.PacketWrapper
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTimeUpdate
 import com.hiusers.rafter.asset.ClientRenderProfiles
 import com.hiusers.rafter.asset.InputAppearances
@@ -117,22 +119,51 @@ internal class InputAppearanceController(private val plugin: Plugin) :
             )
         }.getOrDefault(false)
 
-    fun show(player: Player, layoutId: Int) {
+    fun show(player: Player, layoutId: Int, packet: PacketWrapper<*>) {
         require(layoutId in 0..InputAppearances.MAX_LAYOUTS) {
             "Input appearance id must be 0..${InputAppearances.MAX_LAYOUTS}"
         }
-        if (layoutId == 0) {
-            clear(player.uniqueId)
-            return
-        }
-        check(started && !closed) { "Input appearance controller is not running" }
-        check(supports(player)) { "Input appearance requires a supported client profile" }
-        check(!clockSamples[player.uniqueId].isNullOrEmpty()) {
-            "Input appearance requires a normal TIME_UPDATE clock baseline"
-        }
-        val generation = activate(player.uniqueId, layoutId, player.world.uid)
-        if (!sendWorldAge(player, marker(layoutId), generation)) {
-            throw IllegalStateException("Failed to send input appearance marker")
+        val id = player.uniqueId
+        val worldUid = player.world.uid
+        val worldAge = player.world.gameTime
+        val user =
+            requireNotNull(PacketEvents.getAPI().playerManager.getUser(player)) {
+                "PacketEvents user is unavailable for $id"
+            }
+        val projected =
+            if (layoutId == 0) {
+                null
+            } else {
+                check(started && !closed) { "Input appearance controller is not running" }
+                check(supports(player)) { "Input appearance requires a supported client profile" }
+                val samples = clockSamples[id].orEmpty()
+                check(samples.isNotEmpty()) {
+                    "Input appearance requires a normal TIME_UPDATE clock baseline"
+                }
+                projectInputAppearanceClocks(samples, worldAge)
+                    ?: throw IllegalStateException("No cached TIME_UPDATE clock baseline")
+            }
+        val marker = marker(layoutId)
+        try {
+            ChannelHelper.runInEventLoop(
+                user.channel,
+                Runnable {
+                    if (closed) return@Runnable
+                    var generation: Long? = null
+                    try {
+                        user.sendPacket(packet)
+                        if (layoutId == 0 || closed) return@Runnable
+                        generation = activate(id, layoutId, worldUid)
+                        user.sendPacket(WrapperPlayServerTimeUpdate(marker, projected!!))
+                    } catch (error: Throwable) {
+                        generation?.let { clearActiveIfGeneration(id, it) }
+                        logError("Failed to send input appearance dialog to $id", error)
+                    }
+                },
+            )
+        } catch (error: Throwable) {
+            logError("Failed to queue input appearance dialog for $id", error)
+            throw error
         }
     }
 

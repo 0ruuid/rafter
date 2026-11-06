@@ -48,6 +48,14 @@ import org.bukkit.inventory.ItemStack
 
 /** 仅在此组装协议组件和 CUSTOM 点击元数据；保留渲染顺序与尺寸，玩家操作限主线程。 */
 open class DialogTransport {
+    private var inputAppearance: InputAppearanceController? = null
+
+    constructor()
+
+    internal constructor(inputAppearance: InputAppearanceController?) : this() {
+        this.inputAppearance = inputAppearance
+    }
+
     open fun supportsCanvasItems(player: Player) =
         ClientRenderProfiles.forProtocol(
             PacketEvents.getAPI().playerManager.getClientVersion(player).protocolVersion
@@ -134,7 +142,8 @@ open class DialogTransport {
         val packet =
             if (itemData.isEmpty()) WrapperPlayServerShowDialog(dialog)
             else ItemDataShowDialog(dialog, itemData, hovers)
-        PacketEvents.getAPI().playerManager.sendPacket(player, packet)
+        inputAppearance?.show(player, view.inputAppearanceId, packet)
+            ?: PacketEvents.getAPI().playerManager.sendPacket(player, packet)
     }
 
     /** 发送与协议测试共用的纯数据包组装。 */
