@@ -43,6 +43,18 @@ class MenuRepository(
     private val extensionCheck: (String, String, Map<String, Any?>) -> Unit,
     private val decode: (String) -> Map<String, Any?> = { YamlSource.decode(it) },
 ) {
+    companion object {
+        /** 新项目仍安装默认资源，独立项目可在现有配置中关闭自动补装。 */
+        fun shouldInstallDefaults(root: Path): Boolean {
+            val config = root.resolve("config.yml")
+            if (!Files.exists(config)) return true
+            val source = YamlSource.read(root, config)
+            val settings = Values.map(YamlSource.decode(source.text))
+            Contract.check(settings, Contract.settings, "config.yml", "$")
+            return settings["install-default-bundle"] != false
+        }
+    }
+
     private fun checkSourceDirectories() {
         for (legacy in listOf("menus", "data", "templates", "ui")) {
             val directory = root.resolve(legacy)
@@ -160,6 +172,9 @@ class MenuRepository(
             val expanded =
                 structural.snapshot ?: throw DocumentError(structural.diagnostics.first())
             val requested = FontRequests.collect(expanded, theme)
+            val fallbackByFace = FontRequests.authoredOffsetsByFace(expanded, theme)
+            val fallbackOffsets = fallbackByFace.values.flatten().toSet()
+            val canvasOffsets = FontRequests.canvasOffsetsByFace(expanded, theme)
             val imageRequests =
                 ImageSizing.requests(expanded) +
                     com.hiusers.rafter.asset.MeterAssets.requests(expanded)
@@ -178,7 +193,10 @@ class MenuRepository(
                     frameAssets = frames,
                     buttonSkins = ButtonSkins.requests(expanded),
                     modal = ModalAssets.collect(expanded, imageSources),
-                    textOffsets = FontRequests.canvasOffsets(expanded, theme),
+                    textOffsets = canvasOffsets.values.flatten().toSet() + fallbackOffsets,
+                    fallbackTextOffsets = fallbackOffsets,
+                    canvasTextOffsetsByFace = canvasOffsets,
+                    fallbackTextOffsetsByFace = fallbackByFace,
                 )
             require(hashes.all { (path, digest) -> AssetCompiler.sha(path) == digest }) {
                 "Menu sources changed during discovery; retry"

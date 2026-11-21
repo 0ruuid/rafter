@@ -146,6 +146,29 @@ class ModalResourcesTest {
     }
 
     @Test
+    fun canvasOnlyOffsetsDoNotLoadTheNativeFallback() {
+        val root = fixture()
+        val catalog = AssetCompiler.compile(
+            root,
+            AutoAssets.document(root),
+            textOffsets = setOf(-6, 3),
+            fallbackTextOffsets = setOf(3),
+        )
+        val pack = AssetCompiler.build(root, catalog, temp.resolve("canvas-offsets"))
+        val base = catalog.theme.defaultFont
+        val authored = font(pack, TextOffsets.font(base, 3)).getAsJsonArray("providers")
+        val canvas = font(pack, TextOffsets.font(base, -6)).getAsJsonArray("providers")
+
+        assertEquals(setOf(TextOffsets.font(base, -6), TextOffsets.font(base, 3)),
+            TextOffsetFonts.aliases(catalog).toSet())
+        assertEquals("minecraft:default", authored[1].asJsonObject.get("id").asString)
+        assertEquals("minecraft:default",
+            font(pack, base).getAsJsonArray("providers")[1].asJsonObject.get("id").asString)
+        assertEquals(1, canvas.size())
+        assertEquals("ttf", canvas[0].asJsonObject.get("type").asString)
+    }
+
+    @Test
     fun backdropAliasesShareOneShiftedProviderSetAcrossLayouts() {
         val root = fixture()
         val catalog =
@@ -166,7 +189,11 @@ class ModalResourcesTest {
                 listOf("rafter:images", "rafter:fill")
         for (original in originals) {
             val expected = font(pack, original).deepCopy()
-            for (entry in expected.getAsJsonArray("providers")) {
+            val providers = expected.getAsJsonArray("providers")
+            providers.asList().removeIf {
+                it.asJsonObject.get("id")?.asString == "minecraft:default"
+            }
+            for (entry in providers) {
                 val provider = entry.asJsonObject
                 when (provider.get("type").asString) {
                     "ttf" -> {
@@ -191,7 +218,7 @@ class ModalResourcesTest {
             assertEquals(
                 expected,
                 font(pack, ModalEncoding.font(original)),
-                "Only shift/ascent may change: $original",
+                "The backdrop uses shifted, measurable glyphs only: $original",
             )
         }
         val fonts = pack.resolve("assets/rafter/font")

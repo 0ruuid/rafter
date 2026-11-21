@@ -175,11 +175,26 @@ object AssetCompiler {
         buttonSkins: Map<ImageRequest, Int> = emptyMap(),
         modal: ModalAssets.Requests = ModalAssets.Requests(emptyList(), emptyList()),
         textOffsets: Set<Int> = TextOffsets.OFFSETS.toSet(),
+        fallbackTextOffsets: Set<Int> = textOffsets,
+        canvasTextOffsetsByFace: Map<String, Set<Int>>? = null,
+        fallbackTextOffsetsByFace: Map<String, Set<Int>>? = null,
     ): AssetCatalog {
         Contract.check(document, Contract.asset, ProjectPaths.UI + "/", "$")
         require(textOffsets.all { it in -512..512 }) { "Invalid text provider displacement" }
-        val requestedOffsets =
-            Collections.unmodifiableSet((TextOffsets.OFFSETS.toSet() + textOffsets).toSortedSet())
+        require(textOffsets.containsAll(fallbackTextOffsets)) { "Missing fallback text offset" }
+        val requestedOffsets = Collections.unmodifiableSet(textOffsets.toSortedSet())
+        val requestedFallbackOffsets = Collections.unmodifiableSet(fallbackTextOffsets.toSortedSet())
+        fun faceOffsets(offsetsByFace: Map<String, Set<Int>>?, available: Set<Int>) =
+            offsetsByFace?.let { offsets ->
+                require(offsets.values.all(available::containsAll)) { "Invalid font face offsets" }
+                Collections.unmodifiableMap(
+                    offsets.toSortedMap().mapValues { (_, values) ->
+                        Collections.unmodifiableSet(values.toSortedSet())
+                    }
+                )
+            }
+        val requestedCanvasOffsets = faceOffsets(canvasTextOffsetsByFace, textOffsets)
+        val requestedFallbackByFace = faceOffsets(fallbackTextOffsetsByFace, fallbackTextOffsets)
         val modalLayouts = Values.list(modal.layouts.map { it.copy(clear = Values.list(it.clear)) })
         val modalBackdrops = Values.list(modal.backdrops)
         require(
@@ -424,6 +439,9 @@ object AssetCompiler {
         )
         hash.update(Json.gson.toJson(modalFrames).toByteArray(Charsets.UTF_8))
         hash.update(Json.gson.toJson(requestedOffsets).toByteArray(Charsets.UTF_8))
+        hash.update(Json.gson.toJson(requestedFallbackOffsets).toByteArray(Charsets.UTF_8))
+        hash.update(Json.gson.toJson(requestedCanvasOffsets).toByteArray(Charsets.UTF_8))
+        hash.update(Json.gson.toJson(requestedFallbackByFace).toByteArray(Charsets.UTF_8))
         if (modalLayouts.isNotEmpty() || modalBackdrops.isNotEmpty()) {
             hash.update(ModalFonts.VERSION.toByteArray(Charsets.UTF_8))
         }
@@ -517,6 +535,9 @@ object AssetCompiler {
                 modalBackdrops = modalBackdrops,
                 modalFrames = modalFrames,
                 textOffsets = requestedOffsets,
+                fallbackTextOffsets = requestedFallbackOffsets,
+                canvasTextOffsetsByFace = requestedCanvasOffsets,
+                fallbackTextOffsetsByFace = requestedFallbackByFace,
             )
         verifySources(catalog)
         return catalog

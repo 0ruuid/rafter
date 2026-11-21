@@ -63,6 +63,9 @@ data class AssetCatalog(
     val canvasModalFlows: Map<String, CanvasModalFlow> = emptyMap(),
     val canvasItemBaseFingerprint: String? = null,
     val inputAppearances: List<InputAppearanceLayout> = emptyList(),
+    val fallbackTextOffsets: Set<Int> = textOffsets,
+    val canvasTextOffsetsByFace: Map<String, Set<Int>>? = null,
+    val fallbackTextOffsetsByFace: Map<String, Set<Int>>? = null,
 ) {
     fun dimensions() = images.mapValues { (_, glyph) -> glyph.width to glyph.height }
 

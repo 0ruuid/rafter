@@ -2,12 +2,14 @@ package com.hiusers.rafter.asset
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
+import com.hiusers.rafter.model.CanvasGeometry
 import com.hiusers.rafter.model.MenuSnapshot
 import com.hiusers.rafter.model.NodeContent
 import com.hiusers.rafter.model.NodeSpec
 import com.hiusers.rafter.model.TextSpec
 import com.hiusers.rafter.model.feedbackText
 import com.hiusers.rafter.text.InlineText
+import java.util.Collections
 import taboolib.module.chat.Components
 
 /** 模板展开后收集所需字体，不执行绑定或脚本。 */
@@ -23,88 +25,131 @@ object FontRequests {
             val actualSize = spec.fontSize ?: size
             if (actualFamily != "minecraft:default")
                 requests += FontRequest(actualFamily, actualSize)
-            if (spec.format == "simple") {
-                // 复用渲染解析器，不用正则猜测字体。
-                fun visit(element: JsonElement) {
-                    if (element.isJsonObject) {
-                        element.asJsonObject.get("font")?.asString?.let {
-                            if (it != "minecraft:default")
-                                requests += FontRequest(FontRequest.authoredFamily(it), actualSize)
-                        }
-                        element.asJsonObject.entrySet().forEach { visit(it.value) }
-                    } else if (element.isJsonArray) element.asJsonArray.forEach(::visit)
-                }
-                visit(JsonParser.parseString(Components.parseSimpleToRaw(InlineText.source(spec))))
+            inlineFamilies(spec).filterNot { it == "minecraft:default" }.forEach {
+                requests += FontRequest(it, actualSize)
             }
             spec.parts.forEach { text(it, actualFamily, actualSize) }
             spec.hover?.let { text(it, actualFamily, actualSize) }
         }
+        forEachText(snapshot, theme) { text(it) }
+        return java.util.Collections.unmodifiableSet(requests)
+    }
+
+    /** 原生文本及提示的显式位移仍可依赖系统回退字体。 */
+    fun authoredOffsetsByFace(snapshot: MenuSnapshot, theme: UiTheme): Map<String, Set<Int>> {
+        val offsets = linkedMapOf<String, MutableSet<Int>>()
+        fun visit(spec: TextSpec, parentFamily: String, parentSize: Double, parentShift: Int) {
+            val family = spec.font ?: parentFamily
+            val size = spec.fontSize ?: parentSize
+            val shift = parentShift + spec.offsetY
+            offsets.getOrPut(theme.defaultFont) { linkedSetOf() } += shift
+            for (face in inlineFamilies(spec) + family) {
+                if (face != "minecraft:default") {
+                    offsets.getOrPut(FontRequest(face, size).id) { linkedSetOf() } += shift
+                }
+            }
+            spec.parts.forEach { visit(it, family, size, shift) }
+            spec.hover?.let { visit(it, family, size, 0) }
+        }
+        forEachText(snapshot, theme) { visit(it, theme.defaultFamily, theme.defaultSize, 0) }
+        return freezeOffsets(offsets)
+    }
+
+    /** 按字面预留所有可能的画布行偏移。默认字面也用于布局的空父组件和数量。 */
+    fun canvasOffsetsByFace(snapshot: MenuSnapshot, theme: UiTheme): Map<String, Set<Int>> {
+        val offsets = linkedMapOf<String, MutableSet<Int>>()
+        fun forFace(id: String) = offsets.getOrPut(id) { linkedSetOf() }
+        fun visit(node: NodeSpec) {
+            val content = node.content
+            if (content == NodeContent.Text) {
+                val heights = linkedSetOf(1)
+                val shiftsByFace = linkedMapOf(theme.defaultFont to linkedSetOf(0))
+                fun measure(spec: TextSpec, parentFamily: String, parentSize: Double, parentShift: Int) {
+                    val family = spec.font ?: parentFamily
+                    val size = spec.fontSize ?: parentSize
+                    val shift = parentShift + spec.offsetY
+                    // offsetY 使用默认字体包裹组件，包括嵌套的 parts。
+                    shiftsByFace.getValue(theme.defaultFont) += shift
+                    for (face in inlineFamilies(spec) + family) {
+                        if (face == "minecraft:default") {
+                            heights += 10
+                        } else {
+                            val id = FontRequest(face, size).id
+                            shiftsByFace.getOrPut(id) { linkedSetOf() } += shift
+                        }
+                    }
+                    if (spec.format == "parts") {
+                        spec.parts.forEach { measure(it, family, size, shift) }
+                    } else {
+                        heights += kotlin.math.ceil(size + shift.coerceAtLeast(0)).toInt()
+                    }
+                }
+                measure(node.text, theme.defaultFamily, theme.defaultSize, 0)
+                heights.forEach { height ->
+                    val row = CanvasGeometry.ROW_HEIGHT
+                    val anchor = (node.y + height - 1) / row * row
+                    val lift = node.y - anchor
+                    shiftsByFace.forEach { (face, shifts) ->
+                        shifts.forEach { shift -> forFace(face) += lift + shift }
+                    }
+                }
+            }
+            if (content is NodeContent.Item && content.showCount) {
+                // 数量只含数字，行高等于默认字号。物品边框由固定的 size 决定。
+                val labelY = node.y + content.size - theme.defaultSize.toInt()
+                forFace(theme.defaultFont) += labelY % CanvasGeometry.ROW_HEIGHT
+            }
+            node.variants.forEach { visit(it.node) }
+        }
+        snapshot.menus.values.forEach { menu ->
+            menu.pages.values.forEach { page ->
+                (page.spec.elements + page.spec.popups.values.flatMap { it.elements }).forEach(::visit)
+                page.spec.elements
+                    .firstOrNull { it.id == page.spec.modal?.feedback }
+                    ?.let {
+                        visit(it.copy(text = feedbackText(it.text, theme.formError, theme.palette.error)))
+                    }
+            }
+        }
+        return freezeOffsets(offsets)
+    }
+
+    private fun freezeOffsets(offsets: Map<String, Set<Int>>): Map<String, Set<Int>> =
+        Collections.unmodifiableMap(
+            offsets.mapValues { (_, values) -> Collections.unmodifiableSet(values) }
+        )
+
+    private fun inlineFamilies(spec: TextSpec): Set<String> {
+        if (spec.format != "simple") return emptySet()
+        val families = linkedSetOf<String>()
+        fun visit(element: JsonElement) {
+            if (element.isJsonObject) {
+                element.asJsonObject.get("font")?.asString?.let {
+                    families += FontRequest.authoredFamily(it)
+                }
+                element.asJsonObject.entrySet().forEach { visit(it.value) }
+            } else if (element.isJsonArray) element.asJsonArray.forEach(::visit)
+        }
+        visit(JsonParser.parseString(Components.parseSimpleToRaw(InlineText.source(spec))))
+        return families
+    }
+
+    private fun forEachText(snapshot: MenuSnapshot, theme: UiTheme, visit: (TextSpec) -> Unit) {
         fun node(value: NodeSpec) {
-            text(value.text)
-            value.tooltip?.let { text(it) }
-            (value.content as? NodeContent.Select)?.options?.values?.forEach { text(it) }
+            visit(value.text)
+            value.tooltip?.let(visit)
+            (value.content as? NodeContent.Select)?.options?.values?.forEach(visit)
             value.variants.forEach { node(it.node) }
         }
         snapshot.menus.values.forEach { menu ->
             menu.spec.pages.values.forEach { page ->
-                text(page.title)
+                visit(page.title)
                 page.nodes.forEach(::node)
                 page.nodes
                     .firstOrNull { it.id == page.modal?.feedback }
-                    ?.let {
-                        text(feedbackText(it.text, theme.formError, theme.palette.error))
-                    }
+                    ?.let { visit(feedbackText(it.text, theme.formError, theme.palette.error)) }
             }
         }
-        listOf(theme.closeLabel, theme.formError).forEach { text(it) }
-        return java.util.Collections.unmodifiableSet(requests)
-    }
-
-    /** 只收集实际文本位移，不生成全部字体与行组合。 */
-    fun canvasOffsets(snapshot: com.hiusers.rafter.model.MenuSnapshot, theme: UiTheme): Set<Int> {
-        val offsets = TextOffsets.OFFSETS.toMutableSet()
-        fun extents(spec: TextSpec, size: Double, shift: Int): List<Pair<Int, Int>> {
-            val actualSize = spec.fontSize ?: size
-            val actualShift = shift + spec.offsetY
-            return if (spec.format == "parts")
-                spec.parts.flatMap { extents(it, actualSize, actualShift) }
-            else
-                listOf(
-                    kotlin.math
-                        .ceil(actualSize + actualShift.coerceAtLeast(0))
-                        .toInt()
-                        .coerceAtLeast(1) to actualShift
-                )
-        }
-        fun visit(node: NodeSpec, height: Int) {
-            if (node.content == NodeContent.Text) {
-                val leaves = extents(node.text, theme.defaultSize, 0)
-                leaves.forEach { (bottom, _) ->
-                    val anchor = minOf((node.y + bottom - 1) / 9, height / 9 - 1) * 9
-                    val lift = node.y - anchor
-                    offsets += lift
-                    leaves.forEach { (_, shift) -> offsets += lift + shift }
-                }
-            }
-            node.variants.forEach { visit(it.node, height) }
-        }
-        snapshot.menus.values.forEach { menu ->
-            menu.pages.values.forEach { page ->
-                (page.spec.elements + page.spec.popups.values.flatMap { it.elements }).forEach {
-                    visit(it, page.height)
-                }
-                page.spec.elements
-                    .firstOrNull { it.id == page.spec.modal?.feedback }
-                    ?.let {
-                        visit(
-                            it.copy(
-                                text = feedbackText(it.text, theme.formError, theme.palette.error)
-                            ),
-                            page.height,
-                        )
-                    }
-            }
-        }
-        return java.util.Collections.unmodifiableSet(offsets)
+        listOf(theme.closeLabel, theme.formError).forEach(visit)
     }
 }

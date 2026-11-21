@@ -1,5 +1,7 @@
 package com.hiusers.rafter
 
+import com.hiusers.rafter.asset.FontRequests
+import com.hiusers.rafter.asset.UiTheme
 import com.hiusers.rafter.compile.LayoutCompiler
 import com.hiusers.rafter.compile.MenuCompiler
 import com.hiusers.rafter.model.*
@@ -48,6 +50,48 @@ class CanvasTextBoundsTest {
         assertEquals(origin.range, diagnostic.range)
         assertEquals(listOf(expandedFrom), diagnostic.origins)
         return diagnostic
+    }
+
+    @Test
+    fun collectsOffsetsForEmptyAndClippedTextWithoutLoadingTheEntireRange() {
+        val theme = UiTheme(
+            "rafter-mono",
+            10.0,
+            1.0,
+            emptyMap(),
+            UiTheme.Palette("#ff6666"),
+            TextSpec(),
+            TextSpec(),
+            false,
+            false,
+            false,
+        )
+        val label = caption.copy(
+            y = 13,
+            text = TextSpec(
+                format = "parts",
+                offsetY = 3,
+                parts = listOf(
+                    TextSpec(value = "First", font = "quest", fontSize = 12.0, offsetY = -5),
+                    TextSpec(value = "Second", offsetY = 1, hover = TextSpec(offsetY = -8)),
+                ),
+            ),
+        )
+        val item = NodeSpec("item", NodeContent.Item("minecraft:stone", size = 16), y = 9)
+        val spec = page(label, item)
+        val compiled = CompiledPage(spec, emptyList(), 54)
+        val menu = MenuSpec("test:offsets", spec.id, null, emptyMap(), mapOf(spec.id to spec), "test")
+        val snapshot = MenuSnapshot(
+            mapOf(menu.id to CompiledMenu(menu, mapOf(spec.id to compiled))),
+            emptyMap(),
+        )
+
+        val authored = FontRequests.authoredOffsetsByFace(snapshot, theme)
+        assertEquals(setOf(0, 3, -2, 4, -8), authored[theme.defaultFont])
+        assertEquals(setOf(-2), authored["rafter:ttf/quest/12"])
+        val offsets = FontRequests.canvasOffsetsByFace(snapshot, theme)
+        assertEquals(setOf(-5, -2, -7, -1, 4, 7, 2, 8, 6), offsets[theme.defaultFont])
+        assertEquals(setOf(-7, 2), offsets["rafter:ttf/quest/12"])
     }
 
     @Test
