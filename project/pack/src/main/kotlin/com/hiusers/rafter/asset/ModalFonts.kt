@@ -9,7 +9,7 @@ import javax.imageio.ImageIO
 
 /** 相同背景尺寸共用位移字体，不按玩家或行复制 TTF。 */
 internal object ModalFonts {
-    const val VERSION = "native-modal-fonts-v8-ordering-bounds"
+    const val VERSION = "native-modal-fonts-v9-measured-glyphs"
 
     fun manifest(catalog: AssetCatalog): Map<String, Any?> =
         mapOf(
@@ -124,7 +124,10 @@ internal object ModalFonts {
                                 )
                             )
                             .asJsonObject
-                    font.getAsJsonArray("providers").forEach { entry ->
+                    // 冻结画布已经验证每个字形的步进，原版回退不会参与渲染。
+                    val providers = font.getAsJsonArray("providers")
+                    TextOffsetFonts.removeDefaultFallback(providers)
+                    providers.forEach { entry ->
                         val provider = entry.asJsonObject
                         when (provider.get("type").asString) {
                             "ttf" -> TextOffsetFonts.shift(provider, shift)

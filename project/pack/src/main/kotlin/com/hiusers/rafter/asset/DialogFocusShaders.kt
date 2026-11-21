@@ -50,8 +50,12 @@ object DialogFocusShaders {
                     .toSortedMap()
                     .values
                     .filter {
+                        val exitOnly =
+                            (it.spec.components.singleOrNull()?.content as? NodeContent.Button)
+                                ?.role == ButtonRole.EXIT &&
+                                it.spec.frame == null && it.spec.modal == null
                         it.spec.mode == PageMode.CANVAS &&
-                            it.spec.components.isEmpty() &&
+                            (it.spec.components.isEmpty() || exitOnly) &&
                             it.scene.none { placed -> placed.node.content is NodeContent.Item }
                     }
                     .map { page ->

@@ -126,6 +126,7 @@ object Contract {
     val settings =
         linkedMapOf(
             "default-menu" to Field("string", true),
+            "install-default-bundle" to Field("boolean", default = true),
             "idle-timeout-seconds" to
                 Field("integer", minimum = 30, maximum = 86400, default = 600),
             "resource-pack" to Field("object"),

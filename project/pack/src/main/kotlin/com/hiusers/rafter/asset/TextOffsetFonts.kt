@@ -1,5 +1,6 @@
 package com.hiusers.rafter.asset
 
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import java.nio.ByteBuffer
@@ -7,7 +8,7 @@ import java.nio.ByteOrder
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** 位移别名共用原字体、字号、采样和回退。 */
+/** 位移别名保留原字体、字号与采样。显式偏移可保留原版回退。 */
 object TextOffsetFonts {
     /** 使用 SFNT/head 单位和有符号 hhea 上升值，不当作字形墨迹范围。 */
     fun ascent(source: Path): Double {
@@ -39,9 +40,18 @@ object TextOffsetFonts {
         return ascender.toDouble() / units
     }
 
+    private fun offsets(catalog: AssetCatalog, original: String): Set<Int> =
+        catalog.canvasTextOffsetsByFace?.let { byFace ->
+            fallbackOffsets(catalog, original) + byFace[original].orEmpty()
+        } ?: catalog.textOffsets
+
+    private fun fallbackOffsets(catalog: AssetCatalog, original: String): Set<Int> =
+        catalog.fallbackTextOffsetsByFace?.let { it[original].orEmpty() }
+            ?: catalog.fallbackTextOffsets
+
     fun aliases(catalog: AssetCatalog): List<String> =
         catalog.fontFaces.keys.flatMap { original ->
-            catalog.textOffsets.filter { it != 0 }.map { TextOffsets.font(original, it) }
+            offsets(catalog, original).filter { it != 0 }.map { TextOffsets.font(original, it) }
         }
 
     /** 保留两轴原始坐标，拒绝客户端不接受的位移。 */
@@ -55,6 +65,14 @@ object TextOffsetFonts {
         provider.add("shift", Json.gson.toJsonTree(listOf(x, y)))
     }
 
+    internal fun removeDefaultFallback(providers: JsonArray) {
+        providers.asList().removeIf { entry ->
+            val provider = entry.asJsonObject
+            provider.get("type").asString == "reference" &&
+                provider.get("id").asString == "minecraft:default"
+        }
+    }
+
     fun write(stage: Path, catalog: AssetCatalog) {
         val fonts = stage.resolve("assets/rafter/font")
         catalog.fontFaces.keys.forEach { original ->
@@ -63,11 +81,13 @@ object TextOffsetFonts {
                         Files.readString(fonts.resolve(original.substringAfter(':') + ".json"))
                     )
                     .asJsonObject
-            catalog.textOffsets
+            offsets(catalog, original)
                 .filter { it != 0 }
                 .forEach { offset ->
                     val font = source.deepCopy()
-                    font.getAsJsonArray("providers").forEach { entry ->
+                    val providers = font.getAsJsonArray("providers")
+                    if (offset !in fallbackOffsets(catalog, original)) removeDefaultFallback(providers)
+                    providers.forEach { entry ->
                         val provider = entry.asJsonObject
                         if (provider.get("type").asString == "ttf") shift(provider, offset)
                     }

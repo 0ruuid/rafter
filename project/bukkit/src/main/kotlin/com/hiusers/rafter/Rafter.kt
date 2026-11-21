@@ -3,6 +3,7 @@ package com.hiusers.rafter
 import com.github.retrooper.packetevents.PacketEvents
 import com.hiusers.rafter.api.RafterService
 import com.hiusers.rafter.compile.DefaultBundle
+import com.hiusers.rafter.compile.MenuRepository
 import com.hiusers.rafter.runtime.RafterEngine
 import com.hiusers.rafter.transport.DialogListener
 import com.hiusers.rafter.transport.InputAppearanceController
@@ -30,6 +31,7 @@ object Rafter {
         private set
 
     private var ticker: PlatformTask? = null
+    private var startupLoad: PlatformTask? = null
     private var inputAppearance: InputAppearanceController? = null
     private val listener = DialogListener({ if (::engine.isInitialized) engine else null })
 
@@ -37,7 +39,8 @@ object Rafter {
     fun enable() {
         // 统一使用 TabooLib 的组件后端。
         Components.useAdventure = true
-        DefaultBundle.install(getDataFolder().toPath())
+        val projectRoot = getDataFolder().toPath()
+        if (MenuRepository.shouldInstallDefaults(projectRoot)) DefaultBundle.install(projectRoot)
         if (Bukkit.getPluginManager().getPermission("rafter.admin") == null) {
             Bukkit.getPluginManager()
                 .addPermission(Permission("rafter.admin", BukkitPermissionDefault.OP))
@@ -48,7 +51,7 @@ object Rafter {
         engine =
             RafterEngine(
                 BukkitPlugin.getInstance(),
-                getDataFolder().toPath(),
+                projectRoot,
                 inputAppearance = appearance,
             )
         Bukkit.getServicesManager()
@@ -64,9 +67,22 @@ object Rafter {
 
     @Awake(LifeCycle.ACTIVE)
     fun activate() {
-        if (::engine.isInitialized) {
+        if (::engine.isInitialized) scheduleStartupLoad(1, retry = true)
+    }
+
+    private fun scheduleStartupLoad(delay: Long, retry: Boolean) {
+        startupLoad = submit(delay = delay) {
+            startupLoad = null
             engine.reload().thenAccept { result ->
-                submit {
+                submit report@{
+                    if (!BukkitPlugin.getInstance().isEnabled) return@report
+                    if (retry && result.candidate == null &&
+                        result.diagnostics.isNotEmpty() && result.diagnostics.all { it.code == "PROVIDER" }
+                    ) {
+                        // 依赖插件可能在首个服务端 tick 注册数据和动作。
+                        scheduleStartupLoad(20, retry = false)
+                        return@report
+                    }
                     val console = Bukkit.getConsoleSender()
                     result.diagnostics.forEach { diagnostic ->
                         console.sendLang(
@@ -116,6 +132,8 @@ object Rafter {
 
     @Awake(LifeCycle.DISABLE)
     fun disable() {
+        startupLoad?.cancel()
+        startupLoad = null
         ticker?.cancel()
         ticker = null
         val appearance = inputAppearance
